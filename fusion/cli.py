@@ -8,6 +8,7 @@ from .project import create_project,read_json
 from .phase2 import build_timeline,apply_timeline,validate_timeline
 from .engine import export_plan,EFFECTS
 from .media import probe
+from .ai_local import capabilities, transcribe_local, analyze, draft, approve_draft
 
 
 def parser():
@@ -35,6 +36,30 @@ def parser():
     q=actions.add_parser('status',help='Mostrar proyecto sin modificar nada')
     q.add_argument('--project',required=True)
     q=actions.add_parser('effects',help='Mostrar efectos FFmpeg reales')
+    q=actions.add_parser('ai-check',help='Comprobar IA local sin conectar proveedores')
+    q=actions.add_parser('ai-transcribe',help='Transcribir voz en el propio equipo usando faster-whisper')
+    q.add_argument('--project',required=True)
+    q.add_argument('--model',default='small')
+    q.add_argument('--language',default='es')
+    q.add_argument('--device',choices=['cpu','cuda','auto'],default='cpu')
+    q.add_argument('--compute-type',choices=['int8','float16','float32','int8_float16'],default='int8')
+    q.add_argument('--overwrite',action='store_true')
+    q=actions.add_parser('ai-analyze',help='Analizar grabación; visión opcional SOLO con Ollama local')
+    q.add_argument('--project',required=True)
+    q.add_argument('--ollama-local',action='store_true',help='AUTORIZO analizar imágenes con Ollama en mi PC')
+    q.add_argument('--model',default='llava')
+    q.add_argument('--frames',type=int,default=4)
+    q.add_argument('--scan-seconds',type=float,default=180)
+    q.add_argument('--window',type=float,default=12)
+    q.add_argument('--overwrite',action='store_true')
+    q=actions.add_parser('ai-draft',help='Proponer cortes sin cambiar el timeline principal')
+    q.add_argument('--project',required=True)
+    q.add_argument('--limit',type=int,default=4)
+    q.add_argument('--overwrite',action='store_true')
+    q=actions.add_parser('ai-approve',help='Aceptar conscientemente un borrador IA')
+    q.add_argument('--project',required=True)
+    q.add_argument('--overwrite',action='store_true')
+
     return p
 
 
@@ -65,6 +90,19 @@ def main(argv=None):
         response={'project':str(folder),'settings':read_json(folder/'project.json'),
                   'timeline':read_json(folder/'timeline-v2.json'),
                   'prepared':(folder/'edit-plan.json').is_file()}
+    elif args.action=='ai-check':
+        response=capabilities()
+    elif args.action=='ai-transcribe':
+        response=transcribe_local(args.project,model=args.model,language=args.language,
+                                  device=args.device,compute_type=args.compute_type,overwrite=args.overwrite)
+    elif args.action=='ai-analyze':
+        response=analyze(args.project,vision=args.ollama_local,model=args.model,
+                         max_frames=args.frames,scan_seconds=args.scan_seconds,
+                         window=args.window,overwrite=args.overwrite)
+    elif args.action=='ai-draft':
+        response=draft(args.project,limit=args.limit,overwrite=args.overwrite)
+    elif args.action=='ai-approve':
+        response=approve_draft(args.project,overwrite=args.overwrite)
     else:
         response={'effects':EFFECTS,'count':len(EFFECTS)}
     print(json.dumps(response,ensure_ascii=False,indent=2))

@@ -1,4 +1,4 @@
-# 1. Crea un repositorio PRIVADO VACÍO en https://github.com/new
+# 1. Utiliza tu repositorio EXISTENTE, público o privado, y comprueba su URL en https://github.com/new
 # 2. Ejecuta desde esta carpeta: .\SUBIR_A_GITHUB.ps1 -User "TU_USUARIO"
 # Requiere Git para Windows. GitHub pedirá autenticación de manera segura.
 param([Parameter(Mandatory=$true)][string]$User,

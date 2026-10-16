@@ -1,5 +1,14 @@
 # DEXTER FUSION STUDIO · Editor personal de videos
 
+## Instalador Windows (v0.3)
+
+**Ya no necesitas ejecutar archivos Python manualmente** cuando utilices la compilación Windows. GitHub Actions prepara un instalador EXE, una edición portable, el motor de subtítulos IA y los binarios FFmpeg/FFprobe. La guía está en [docs/INSTALL_WINDOWS.md](docs/INSTALL_WINDOWS.md).
+
+Descarga el instalador desde [Compilaciones Windows](https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/workflows/windows-installer.yml), seleccionando la última ejecución exitosa y su artefacto Dexter-Fusion-Studio-Windows-v0.3.0.
+
+**Límites:** la descarga del modelo de voz gratuito es un paso opcional del asistente inicial y necesita Internet la primera vez. Ollama y el análisis visual avanzado requieren una instalación separada, y no están garantizados sin pruebas en tu PC. La API OpenAI automática no se activa ni consume saldo por defecto. La compilación está sin firma digital comercial y puede generar advertencias de Windows.
+
+
 Editor de escritorio gratuito para producir videos propios de Free Fire, YouTube, Shorts y TikTok. Proyecto original preparado para un repositorio privado; **no incluye código copiado de Concat, FilmCraft, EffectCraft ni OpenCreator**.
 
 ## ChatGPT como copiloto de edición (etapa 3)

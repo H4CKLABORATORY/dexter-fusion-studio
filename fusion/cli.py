@@ -40,7 +40,7 @@ def parser():
     q=actions.add_parser('ai-check',help='Comprobar IA local sin conectar proveedores')
     q=actions.add_parser('ai-transcribe',help='Transcribir voz en el propio equipo usando faster-whisper')
     q.add_argument('--project',required=True)
-    q.add_argument('--model',default='small')
+    q.add_argument('--model',default='tiny')
     q.add_argument('--language',default='es')
     q.add_argument('--device',choices=['cpu','cuda','auto'],default='cpu')
     q.add_argument('--compute-type',choices=['int8','float16','float32','int8_float16'],default='int8')

@@ -2,6 +2,16 @@
 
 Editor de escritorio gratuito para producir videos propios de Free Fire, YouTube, Shorts y TikTok. Proyecto original preparado para un repositorio privado; **no incluye código copiado de Concat, FilmCraft, EffectCraft ni OpenCreator**.
 
+## ChatGPT como copiloto de edición (etapa 3)
+
+Esta rama incluye un **puente opcional con ChatGPT** para analizar los clips, guiones y subtítulos de Free Fire y obtener planes de edición revisables.
+
+- **Sin costo adicional de API**: desde la pestaña ChatGPT exportas un paquete de texto/JSON, lo compartes tú mismo en ChatGPT y luego importas su respuesta validada.
+- **API automática opcional**: el comando chatgpt-api requiere OPENAI_API_KEY en la PC y --allow-paid-api explícito. La API se factura por separado de ChatGPT Plus y puede tener costos; desactivada por defecto.
+- No hay control remoto del equipo, cuentas conectadas automáticamente, clonación vocal, publicación ni entrega de video sin revisión.
+
+Guía: [docs/CHATGPT_BRIDGE.md](docs/CHATGPT_BRIDGE.md).
+
 ## Etapa 3 · IA local (rama de desarrollo)
 
 El módulo de IA local ya tiene una primera implementación: transcripción gratuita con faster-whisper **si lo instalas**, análisis heurístico de escenas/silencios, análisis visual **opcional** con Ollama en localhost, ranking explicable de clips, borrador de timeline con revisión y aceptación por separado. La ventana incorpora una pestaña específica y el CLI cuenta con ai-check, ai-transcribe, ai-analyze, ai-draft y ai-approve. Nada de esto instala modelos en tu PC ni presupone que haya un modelo compatible en ejecución.

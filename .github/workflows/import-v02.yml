@@ -2,7 +2,7 @@ name: Import Dexter Fusion Studio v0.2
 on:
   push:
     paths:
-      - '.bootstrap/v02-source.br'
+      - '.bootstrap/**'
 permissions:
   contents: write
 jobs:
@@ -41,6 +41,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           rm -f .bootstrap/v02-source.br
+          rm -f .github/workflows/verify.yml
           rmdir .bootstrap 2>/dev/null || true
           git add -A
           git commit -m "feat: import complete Dexter Fusion Studio v0.2 source"

@@ -1,0 +1,52 @@
+name: Import Dexter Fusion Studio v0.2
+on:
+  push:
+    paths:
+      - '.bootstrap/v02-source.br'
+permissions:
+  contents: write
+jobs:
+  import-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Desempaquetar release y verificar checksum
+        run: |
+          python -m pip install --quiet brotli
+          python - <<'PY'
+          import brotli, hashlib, io, pathlib, tarfile
+          archive=pathlib.Path('.bootstrap/v02-source.br')
+          binary=archive.read_bytes()
+          expected='6d2b10358438a86fe11be846ebc2ed8386f57ae87c357b6c469ce28c78a5b26a'
+          assert hashlib.sha256(binary).hexdigest()==expected, 'Package checksum mismatch'
+          tar_bytes=brotli.decompress(binary)
+          root=pathlib.Path.cwd().resolve()
+          with tarfile.open(fileobj=io.BytesIO(tar_bytes),mode='r:') as tar:
+              for entry in tar:
+                  p=pathlib.PurePosixPath(entry.name)
+                  if p.is_absolute() or '..' in p.parts or not entry.isfile():
+                      raise RuntimeError('Unexpected tar entry '+entry.name)
+                  dest=(root / entry.name).resolve()
+                  if not dest.is_relative_to(root):
+                      raise RuntimeError('Path traversal')
+                  dest.parent.mkdir(parents=True, exist_ok=True)
+                  dest.write_bytes(tar.extractfile(entry).read())
+          print('Source files restored from verified Dexter Fusion Studio release')
+          PY
+      - name: Commit source code
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -f .bootstrap/v02-source.br
+          rmdir .bootstrap 2>/dev/null || true
+          git add -A
+          git commit -m "feat: import complete Dexter Fusion Studio v0.2 source"
+          git push
+      - name: Verify Python syntax and tests
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+          python -m unittest discover -s tests -v

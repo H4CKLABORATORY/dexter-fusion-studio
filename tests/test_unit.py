@@ -46,7 +46,9 @@ class AppTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             base=Path(tmp);media=base/'test.mp4';media.write_bytes(b'not a real video')
             project,item=create_project(base/'work','Prueba',str(media),profile='freefire_short')
-            self.assertEqual(item['source'],str(media))
+            # Windows can expand a TEMP short-path (RUNNER~1) on resolve().
+            # Validate that both names reference the exact same source file.
+            self.assertTrue(Path(item['source']).samefile(media))
             self.assertFalse((project/'input'/'test.mp4').exists())
             self.assertTrue((project/'project.json').is_file())
 if __name__=='__main__':unittest.main()

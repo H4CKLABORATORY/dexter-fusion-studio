@@ -1,0 +1,8 @@
+[project]
+name = "dexter-fusion-studio"
+version = "0.1.0"
+description = "Editor personal local, modulable e integrable con Concat/ArtCraft"
+requires-python = ">=3.10"
+license = { text = "Proprietary personal project - original source; external components retain their licenses" }
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,7 +1,73 @@
-# Dexter Fusion Studio
+# DEXTER FUSION STUDIO · Editor personal de videos
 
-Editor de video local para YouTube, Free Fire y TikTok. Código fuente de la versión 0.2 preparado para una integración pública.
+Editor de escritorio gratuito para producir videos propios de Free Fire, YouTube, Shorts y TikTok. Proyecto original preparado para un repositorio privado; **no incluye código copiado de Concat, FilmCraft, EffectCraft ni OpenCreator**.
 
-El proceso de importación del código fuente se ejecuta automáticamente al incorporar el paquete de lanzamiento. El proyecto utiliza Python y FFmpeg; las integraciones con Concat, FilmCraft y EffectCraft son opcionales y requieren instalación local.
+## Etapa 2 — Actualización principal
 
-Repositorio público por elección del propietario. No subir grabaciones, secretos ni archivos personales.
+La versión 0.2 añade pestaña **Timeline v2**, 17 estilos reales FFmpeg, edición por escena con inicio/fin y zoom, selección heurística de clips, transición crossfade y narración original/subtítulos desde archivo SRT. Hay un motor de transcripción local opcional `faster-whisper` (no viene instalado ni configurado). Más detalles en `docs/ETAPA_2.md`.
+
+## Funcionamiento actual
+
+- Interfaz Windows de 6 pestañas: proyecto, edición automática, efectos y memes, **Timeline v2**, nuevos contenidos e integraciones.
+- Exporta MP4 H.264 16:9 (1920×1080) y 9:16 (1080×1920).
+- Elimina **silencios** si se habilita y prepara un plan JSON que puedes revisar; no identifica todas las jugadas o chistes por sí solo.
+- Aplica 17 presets de efectos reales (incluye clean, hype, cinematic, neon, comic, glitch, VHS y otros); cortes y fundidos a negro, marca de agua, imágenes meme, subtítulos SRT y mezcla de narración.
+- Importación de guiones locales con deduplicación; vocabulario y títulos conocidos listos como **semilla**, no falsos guiones completos.
+- Detector conservador de contenido. Cuando no reconoce un tipo, solicita que elijas uno.
+- Adaptador de **Concat JSON-RPC con token en localhost**, además de configuración MCP de FilmCraft/EffectCraft cuando se han instalado aparte.
+- Originales intactos. Sin cuotas API ni nube obligatoria.
+
+## Arranque en Windows
+
+1. Descarga/instala Python 3.10+ desde https://www.python.org/downloads/.
+2. Instala FFmpeg y FFprobe desde https://ffmpeg.org/download.html; agrega la carpeta bin a PATH.
+3. Extrae este ZIP y en su carpeta ejecuta `py -3 main.py`. También puedes hacer doble clic en `INICIAR_WINDOWS.bat` si está correctamente asociado Python.
+4. Elige un video grabado por ti. El editor guarda proyectos en `Documentos/DexterFusionStudio`.
+5. Escoge perfil (Free Fire novela, Free Fire short, tutorial, reacción o vlog), o detecta automáticamente cuando existan pistas claras.
+6. En **Edición automática**, selecciona formato y efecto, genera el plan y exporta. Comprueba el video antes de publicarlo.
+7. Para guiones, entra a **Nuevos contenidos** e importa su carpeta. Los guiones se guardan en tu PC, no en el repositorio.
+
+Requisitos prácticos: Windows 10/11, FFmpeg con libass para subtítulos. Para 1080p una GPU NVIDIA puede acelerar futuras versiones; la actual usa libx264 por CPU para asegurar compatibilidad.
+
+## Editor externo Concat (opcional)
+
+Instala Concat desde https://github.com/jub0t/Concat/releases y habilita Settings > Remote. Deja el servidor en **127.0.0.1:7420**. Introduce su token en el botón de la pestaña Integraciones. El adaptador crea un proyecto **real y editable en Concat** a partir de tu MP4, sin clonar internamente sus efectos.
+
+Para FilmCraft y EffectCraft instala sus releases si quieres trabajar con un agente compatible MCP; la aplicación genera una configuración `mcp-integrations.json` con rutas de ejecutables encontrados. No ejecuta su GUI ni usa efectos externos si no los instalaste.
+
+Documentación exacta de Concat: https://concat.standalones.org/docs/transports/json-rpc/.
+
+## Sincronizar con tu GitHub
+
+Antes de subir este ZIP verifica que el repositorio objetivo sea el correcto y que su visibilidad sea **Private de verdad**; llamarlo `Private` no lo vuelve privado. La subida desde ChatGPT queda pendiente hasta confirmar ese dato.
+
+Si prefieres subirlo tú desde Windows, asegúrate primero de que el repositorio de destino esté vacío y de haber configurado Git. Dentro de esta carpeta ejecuta:
+
+```powershell
+git init -b main
+git add .
+git commit -m "Initial Dexter Fusion Studio"
+git remote add origin https://github.com/TU_USUARIO/dexter-fusion-studio.git
+git push -u origin main
+```
+
+GitHub puede pedir autenticación del usuario. Jamás pegues tu token en el código. Si no tienes Git instalado, puedes cargar los archivos desde la interfaz web (sin incluir tus grabaciones ni biblioteca privada).
+
+## Comprobación
+
+`python -m unittest discover -s tests -v`
+
+Para pruebas de exportación con FFmpeg: `python -m unittest tests.test_smoke -v` (requiere FFmpeg y algo de CPU).
+
+**No está instalado en tu PC aún.** Se entrega como código fuente ejecutable y listo para tu repositorio independiente, no como `.exe` firmado. Puede mejorarse paso a paso sin pagar proveedores de IA.
+
+## Archivos extra
+
+- `docs/ESTILO_DEXTER_FF.md`: instrucciones y preferencias reunidas para Free Fire y proyectos futuros.
+- `SUBIR_A_GITHUB.ps1`: para subir a un **repositorio nuevo y privado que tú crees primero**, sin incluir secretos o medios.
+- `fusion/phase2.py` y `fusion/timeline_ui.py`: línea de tiempo y selección de momentos explicable.
+- `fusion/cli.py`: comandos automatizables para agentes.
+- `fusion/concat_bridge.py`: catálogo real `catalogue.list` de Concat, inserción opcional de un efecto validado en su proyecto local.
+- `fusion/integrations.py`: exporta proyectos FilmCraft/EffectCraft preexistentes con sus CLIs oficiales, si los instalas.
+
+GitHub: **se necesita confirmar la identidad y visibilidad privada del repositorio** antes de subir este código. El conector no cambia la visibilidad de los repositorios. No confundas este proyecto local listo para publicar con una instalación remota completada.

@@ -2,6 +2,12 @@
 
 Editor de escritorio gratuito para producir videos propios de Free Fire, YouTube, Shorts y TikTok. Proyecto original preparado para un repositorio privado; **no incluye código copiado de Concat, FilmCraft, EffectCraft ni OpenCreator**.
 
+## Etapa 3 · IA local (rama de desarrollo)
+
+El módulo de IA local ya tiene una primera implementación: transcripción gratuita con faster-whisper **si lo instalas**, análisis heurístico de escenas/silencios, análisis visual **opcional** con Ollama en localhost, ranking explicable de clips, borrador de timeline con revisión y aceptación por separado. La ventana incorpora una pestaña específica y el CLI cuenta con ai-check, ai-transcribe, ai-analyze, ai-draft y ai-approve. Nada de esto instala modelos en tu PC ni presupone que haya un modelo compatible en ejecución.
+
+Consulta [Etapa 3](docs/ETAPA_3.md) para la configuración real y los límites.
+
 ## Etapa 2 — Actualización principal
 
 La versión 0.2 añade pestaña **Timeline v2**, 17 estilos reales FFmpeg, edición por escena con inicio/fin y zoom, selección heurística de clips, transición crossfade y narración original/subtítulos desde archivo SRT. Hay un motor de transcripción local opcional `faster-whisper` (no viene instalado ni configurado). Más detalles en `docs/ETAPA_2.md`.

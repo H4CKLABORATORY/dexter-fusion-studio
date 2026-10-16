@@ -9,6 +9,7 @@ from .phase2 import build_timeline,apply_timeline,validate_timeline
 from .engine import export_plan,EFFECTS
 from .media import probe
 from .ai_local import capabilities, transcribe_local, analyze, draft, approve_draft
+from .chatgpt_bridge import make_packet, import_response, approve_response, api_suggest
 
 
 def parser():
@@ -60,6 +61,22 @@ def parser():
     q.add_argument('--project',required=True)
     q.add_argument('--overwrite',action='store_true')
 
+    q=actions.add_parser('chatgpt-export',help='Crear un paquete de edición para ChatGPT sin pagar API')
+    q.add_argument('--project',required=True)
+    q.add_argument('--captions',type=int,default=75)
+    q.add_argument('--overwrite',action='store_true')
+    q=actions.add_parser('chatgpt-import',help='Validar la propuesta JSON que recibiste de ChatGPT')
+    q.add_argument('--project',required=True)
+    q.add_argument('--response-file',required=True)
+    q.add_argument('--overwrite',action='store_true')
+    q=actions.add_parser('chatgpt-approve',help='Aceptar conscientemente propuesta revisada')
+    q.add_argument('--project',required=True)
+    q.add_argument('--overwrite',action='store_true')
+    q=actions.add_parser('chatgpt-api',help='API de OpenAI opcional con costo potencial')
+    q.add_argument('--project',required=True)
+    q.add_argument('--model',default='gpt-4.1-mini')
+    q.add_argument('--allow-paid-api',action='store_true',help='AUTORIZO una solicitud de API posiblemente facturable')
+    q.add_argument('--overwrite',action='store_true')
     return p
 
 
@@ -103,6 +120,15 @@ def main(argv=None):
         response=draft(args.project,limit=args.limit,overwrite=args.overwrite)
     elif args.action=='ai-approve':
         response=approve_draft(args.project,overwrite=args.overwrite)
+    elif args.action=='chatgpt-export':
+        response=make_packet(args.project,max_captions=args.captions,overwrite=args.overwrite)
+    elif args.action=='chatgpt-import':
+        response=import_response(args.project,args.response_file,overwrite=args.overwrite)
+    elif args.action=='chatgpt-approve':
+        response=approve_response(args.project,overwrite=args.overwrite)
+    elif args.action=='chatgpt-api':
+        response=api_suggest(args.project,model=args.model,
+                             allow_paid_api=args.allow_paid_api,overwrite=args.overwrite)
     else:
         response={'effects':EFFECTS,'count':len(EFFECTS)}
     print(json.dumps(response,ensure_ascii=False,indent=2))
@@ -110,6 +136,6 @@ def main(argv=None):
 
 if __name__=='__main__':
     try:main()
-    except (ValueError,FileNotFoundError,RuntimeError,OSError,KeyError) as exc:
+    except (ValueError,FileNotFoundError,RuntimeError,OSError,KeyError,PermissionError) as exc:
         print(json.dumps({'ok':False,'error':str(exc)},ensure_ascii=False),file=sys.stderr)
         sys.exit(2)

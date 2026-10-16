@@ -103,7 +103,7 @@ class Window:
                         'Ollama analiza sólo fotogramas y puede equivocarse. Tu revisión sigue siendo obligatoria.',
                   wraplength=750).pack(anchor='w',pady=(0,12))
         self.ai_model=tk.StringVar(value='llava')
-        self.ai_whisper=tk.StringVar(value='small')
+        self.ai_whisper=tk.StringVar(value='tiny')
         self.ai_device=tk.StringVar(value='cpu')
         self.ai_vision=tk.BooleanVar(value=False)
         self.ai_frames=tk.StringVar(value='4')
@@ -446,4 +446,9 @@ class Window:
         self.background('Crear proyecto en Concat',lambda:create_concat_edit(folder,token,effect_id=effect.strip() or None))
 
 def run_gui():
-    root=tk.Tk();Window(root);root.mainloop()
+    from .runtime_windows import configure_runtime
+    from .windows_setup import first_launch
+    configure_runtime()
+    root=tk.Tk();Window(root)
+    root.after(900, lambda: first_launch(root))
+    root.mainloop()

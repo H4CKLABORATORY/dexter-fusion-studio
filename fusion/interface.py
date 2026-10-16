@@ -36,6 +36,8 @@ class Window:
         self.tab('Nuevos contenidos',self.modes_tab)
         self.tab('Integraciones',self.integrations_tab)
         bottom=ttk.Frame(root,padding=(15,0,15,12));bottom.pack(fill='both')
+        ttk.Button(bottom,text='Configurar IA y componentes',
+                   command=self.open_setup).pack(anchor='e')
         ttk.Label(bottom,text='Registro de actividades').pack(anchor='w')
         self.logs=tk.Text(bottom,height=6,wrap='word');self.logs.pack(fill='both')
         self.root.after(120,self.poll)
@@ -44,6 +46,10 @@ class Window:
         PROFILES.update({key:val for key,val in custom.items() if key not in PROFILES})
         self.combo.configure(values=['Automático']+list(PROFILES))
         self.log('Listo. Selecciona una grabación y crea un proyecto. Todo el material queda en tu PC.')
+    def open_setup(self):
+        from .windows_setup import show_setup
+        show_setup(self.root)
+
     def tab(self,name,fn):
         page=ttk.Frame(self.tabs,padding=14);self.tabs.add(page,text=name);fn(page)
     def line(self,page,label,value,button=None,action=None):

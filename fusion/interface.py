@@ -12,6 +12,7 @@ from .integrations import scan,export_mcp_client_config,defaults,render_filmcraf
 from .concat_bridge import create_concat_edit,list_concat_effects
 from .timeline_ui import TimelinePanel
 from .ai_local import capabilities as ai_capabilities, transcribe_local as ai_transcribe_local, analyze as ai_analyze, draft as ai_draft, approve_draft as ai_approve_draft
+from .chatgpt_bridge import make_packet as chatgpt_packet, import_response as chatgpt_import, approve_response as chatgpt_approve
 
 HOME=Path.home()/'Documents'/'DexterFusionStudio'
 class Window:
@@ -31,6 +32,7 @@ class Window:
         self.tab('Efectos y memes',self.effects_tab)
         self.tab('Timeline v2',self.timeline_tab)
         self.tab('IA local · Etapa 3',self.ai_tab)
+        self.tab('ChatGPT · Editor asistido',self.chatgpt_tab)
         self.tab('Nuevos contenidos',self.modes_tab)
         self.tab('Integraciones',self.integrations_tab)
         bottom=ttk.Frame(root,padding=(15,0,15,12));bottom.pack(fill='both')
@@ -196,6 +198,66 @@ class Window:
             self.timeline_panel.load()
             self.log('Timeline listo para revisión final y exportación.')
         self.background('Aceptar cortes propuestos',lambda:ai_approve_draft(folder,overwrite=overwrite),completed)
+
+    def chatgpt_tab(self,p):
+        ttk.Label(p,text='ChatGPT + Dexter Fusion Studio',font=('Segoe UI',16,'bold')).pack(anchor='w',pady=(0,12))
+        ttk.Label(p,text='Modo gratuito: prepara un paquete de cortes y subtítulos, lo compartes '
+                        'con ChatGPT cuando tú quieras e importas la respuesta JSON. '
+                        'Esta pestaña NO accede a tu cuenta de ChatGPT ni usa API de pago.',
+                  wraplength=740).pack(anchor='w',pady=(0,15))
+        ttk.Button(p,text='1. Preparar paquete para ChatGPT',command=self.chatgpt_export_ui).pack(anchor='w',pady=9)
+        ttk.Label(p,text='Se crearán chatgpt-request.json y chatgpt-instructions.txt. '
+                        'Revísalos: pueden contener tus diálogos antes de compartirlos.',
+                  wraplength=740).pack(anchor='w',pady=(0,12))
+        ttk.Button(p,text='2. Importar respuesta JSON de ChatGPT',command=self.chatgpt_import_ui).pack(anchor='w',pady=9)
+        ttk.Label(p,text='Se validan los tiempos, los efectos y el proyecto correcto. '
+                        'El resultado se guarda aparte como propuesta, sin cambiar la edición.',
+                  wraplength=740).pack(anchor='w',pady=(0,12))
+        ttk.Button(p,text='3. Aceptar la propuesta revisada',command=self.chatgpt_accept_ui).pack(anchor='w',pady=9)
+        ttk.Label(p,text='La edición anterior se protege y solo puede reemplazarse con confirmación; '
+                        'después revisa el Timeline v2 y exporta el MP4.',
+                  wraplength=740).pack(anchor='w',pady=10)
+        ttk.Separator(p).pack(fill='x',pady=15)
+        ttk.Label(p,text='API automática (opcional y no habilitada)',font=('Segoe UI',11,'bold')).pack(anchor='w')
+        ttk.Label(p,text='La API de OpenAI se factura por separado de ChatGPT Plus. '
+                        'Este modo requiere configurar OPENAI_API_KEY en tu propia PC y autorizar '
+                        'cada petición mediante el comando chatgpt-api --allow-paid-api. '
+                        'Jamás pegues una clave en ChatGPT o en GitHub.',
+                  wraplength=740).pack(anchor='w',pady=7)
+
+    def chatgpt_export_ui(self):
+        try:folder=self.require()
+        except Exception as exc:messagebox.showerror('Proyecto',str(exc));return
+        target=folder/'chatgpt-request.json'
+        replace=target.exists() and messagebox.askyesno('Actualizar paquete','¿Reemplazar el paquete de ChatGPT anterior?')
+        if target.exists() and not replace:return
+        self.background('Preparar paquete ChatGPT',lambda:chatgpt_packet(folder,overwrite=replace))
+
+    def chatgpt_import_ui(self):
+        try:folder=self.require()
+        except Exception as exc:messagebox.showerror('Proyecto',str(exc));return
+        chosen=filedialog.askopenfilename(title='Respuesta de ChatGPT en JSON',
+            filetypes=[('JSON o TXT','*.json *.txt')])
+        if not chosen:return
+        target=folder/'chatgpt-proposed-timeline.json'
+        replace=target.exists() and messagebox.askyesno('Actualizar propuesta','¿Reemplazar la propuesta anterior?')
+        if target.exists() and not replace:return
+        self.background('Validar respuesta ChatGPT',lambda:chatgpt_import(folder,chosen,overwrite=replace))
+
+    def chatgpt_accept_ui(self):
+        try:folder=self.require()
+        except Exception as exc:messagebox.showerror('Proyecto',str(exc));return
+        if not messagebox.askyesno('Aceptar cortes',
+            '¿Ya revisaste chatgpt-proposed-timeline.json? Se copiará al Timeline v2.'):
+            return
+        target=folder/'timeline-v2.json'
+        replace=target.exists() and messagebox.askyesno('Backup y sustitución',
+            'Ya existe un montaje. ¿Guardar respaldo y reemplazarlo?')
+        if target.exists() and not replace:return
+        def finish(data):
+            self.timeline_panel.load()
+            self.log('Propuesta aplicada; revisa la edición en Timeline v2.')
+        self.background('Aceptar propuesta ChatGPT',lambda:chatgpt_approve(folder,overwrite=replace),finish)
 
     def modes_tab(self,p):
         ttk.Label(p,text='Biblioteca y futuros contenidos',font=('Segoe UI',15,'bold')).pack(anchor='w',pady=(0,14))

@@ -28,6 +28,39 @@ function pickHash(s){
 function chooseBig(n,k){let t=1n;for(let i=1;i<=k;i++)t=t*BigInt(n-k+i)/BigInt(i);return t}
 function totalOutcomes(g){return chooseBig(g.n,g.k)*BigInt(g.bonus||1);}
 function theoretical(g){return g.k/g.n;}
+// Estas probabilidades son del acierto COMPLETO, no de ganar cualquier premio.
+function rankedUSGames(){
+  return Object.entries(specs).filter(([key])=>key!=='chica').map(([key,g])=>({
+    key,label:g.name,total:totalOutcomes(g),probability:1/Number(totalOutcomes(g)),
+    history:Boolean(g.source),digits:Boolean(g.kind==='digits')
+  })).sort((a,b)=>a.total<b.total?-1:a.total>b.total?1:a.label.localeCompare(b.label,'es'));
+}
+function pctHighPrecision(value){
+  const p=value*100;
+  return (p<0.000001?p.toExponential(5):p.toLocaleString('es-ES',{maximumFractionDigits:9}))+' %';
+}
+function renderUSComparison(){
+  const body=$p('usComparisonRows');if(!body)return;
+  body.replaceChildren();
+  for(const entry of rankedUSGames()){
+    const row=document.createElement('tr');
+    const cells=[entry.label,'1 entre '+nf(entry.total),pctHighPrecision(entry.probability),
+      entry.history?'Biblioteca oficial conectada':'Reglas oficiales, sin historial local'];
+    for(const content of cells){
+      const cell=document.createElement('td');cell.textContent=content;row.append(cell);
+    }
+    const action=document.createElement('td');
+    const button=document.createElement('button');button.type='button';button.className='us-game-link';
+    button.textContent='Generar';
+    button.addEventListener('click',()=>{
+      $p('proGame').value=entry.key;
+      $p('proGame').dispatchEvent(new Event('change',{bubbles:true}));
+      $p('generador').scrollIntoView({behavior:'smooth'});
+    });
+    action.append(button);row.append(action);body.append(row);
+  }
+}
+
 function theoreticalCoverage(game,distinctTickets){
   const total=totalOutcomes(game),tickets=BigInt(distinctTickets);
   if(tickets<1n||tickets>total)throw new RangeError('Cobertura de boletos inválida');
@@ -35,7 +68,7 @@ function theoreticalCoverage(game,distinctTickets){
 }
 function renderCoverage(){
   const g=specs[selected],n=Number($p('proCoverage').value),probability=theoreticalCoverage(g,n);
-  $p('proCoverageChance').textContent=pct(probability)+(g.kind==='digits'?' de acertar el orden exacto':' de acertar la combinación completa');
+  $p('proCoverageChance').textContent=pctHighPrecision(probability)+(g.kind==='digits'?' de acertar el orden exacto':' de acertar la combinación completa');
   $p('proCoverageOdds').textContent='1 entre '+(Number(totalOutcomes(g))/n).toLocaleString('es-ES',{maximumFractionDigits:2})+' en un sorteo, suponiendo '+n+' boletos válidos distintos.';
 }
 function parseFav(g){
@@ -280,3 +313,4 @@ $p('proCopy').addEventListener('click',async()=>{
   try{await navigator.clipboard.writeText(text);$p('proTicketNote').textContent='Copiado: '+text;}catch{$p('proTicketNote').textContent='Selecciona y copia: '+text;}
 });
 updateGame();
+renderUSComparison();

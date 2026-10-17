@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "queue_name": "DEXTER Mission Control",
+  "policy": "SERIAL: seleccionar el active único o el primer pending por priority e id; blocked/paused/done se saltan. Completado requiere pruebas de todos los criterios; nunca inventar porcentajes",
+  "plugin": "https://chatgpt.com/plugins/plugins_6ad3e62ed5708191b7620874d603837b",
+  "last_updated": "2026-10-17",
+  "projects": [
+    {
+      "id": "1up-anime",
+      "name": "1UP Anime",
+      "repository": "H4CKLABORATORY/1UP-ANIME",
+      "priority": 1,
+      "status": "pending",
+      "acceptance": [
+        "Interfaz iPhone y escritorio comprobada",
+        "Intro cinematográfica final validada",
+        "Fuentes de streaming autorizadas verificadas",
+        "Despliegue y pruebas documentados"
+      ],
+      "next_action": "Leer AGENTS.md y docs/PROJECT_CONTINUITY.md; ejecutar siguiente cambio seguro",
+      "last_action": "",
+      "last_evidence": "",
+      "blocker": ""
+    },
+    {
+      "id": "lotto-lab",
+      "name": "LOTTO LAB",
+      "repository": "H4CKLABORATORY/dexter-fusion-studio",
+      "path": "lotto-lab",
+      "priority": 2,
+      "status": "pending",
+      "acceptance": [
+        "Generador validado con probabilidades reales",
+        "Navegación por pestañas funcional",
+        "Herramientas de boletos y resultados verificadas con fuente oficial",
+        "Pruebas de despliegue móvil"
+      ],
+      "next_action": "Inspeccionar carpeta lotto-lab y flujos, priorizar generador",
+      "last_action": "",
+      "last_evidence": "",
+      "blocker": ""
+    },
+    {
+      "id": "dexter-nexus",
+      "name": "DEXTER NEXUS",
+      "repository": "H4CKLABORATORY/dexter-ai-web",
+      "priority": 3,
+      "status": "pending",
+      "acceptance": [
+        "Terminal remota auténtica autenticada",
+        "Flujo iPhone probado",
+        "Backend autorizado operativo",
+        "Seguridad y recuperación revisadas"
+      ],
+      "next_action": "Revisar fuente y despliegue de terminal real sin simular servicios",
+      "last_action": "",
+      "last_evidence": "",
+      "blocker": ""
+    },
+    {
+      "id": "fusion-editor",
+      "name": "Editor IA Dexter Fusion",
+      "repository": "H4CKLABORATORY/dexter-fusion-studio",
+      "priority": 4,
+      "status": "pending",
+      "acceptance": [
+        "Exportaciones funcionales verificadas",
+        "Edición automática probada",
+        "Dependencias y límites documentados"
+      ],
+      "next_action": "Revisar pendientes y escoger una mejora medible del editor",
+      "last_action": "",
+      "last_evidence": "",
+      "blocker": ""
+    },
+    {
+      "id": "xeno-lab",
+      "name": "XENO LAB",
+      "repository": "",
+      "priority": 5,
+      "status": "pending",
+      "acceptance": [
+        "Prototipo científico reproducible",
+        "Fuentes contrastadas",
+        "Hipótesis y validaciones documentadas"
+      ],
+      "next_action": "Revisar avances y definir repositorio y experimento viable",
+      "last_action": "",
+      "last_evidence": "",
+      "blocker": ""
+    },
+    {
+      "id": "dexter-bot-panel",
+      "name": "Dexter Bot Panel",
+      "repository": "H4CKLABORATORY/dexter-bot-panel",
+      "priority": 6,
+      "status": "pending",
+      "acceptance": [
+        "Autenticación segura verificada",
+        "Funciones principales probadas",
+        "Despliegue documentado"
+      ],
+      "next_action": "Leer .dexter-agent/NEXT_ACTION.md y BLOCKERS.md",
+      "last_action": "",
+      "last_evidence": "",
+      "blocker": ""
+    }
+  ]
+}

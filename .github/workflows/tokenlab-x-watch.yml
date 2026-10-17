@@ -1,0 +1,73 @@
+name: TOKENLAB X - official docs watch
+on:
+  schedule:
+    - cron: '17 12 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  tokenlab-watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compare official optimization documentation
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib, json, pathlib, re, urllib.request
+          from datetime import datetime, timezone
+          root = pathlib.Path('tokenlab-x')
+          root.mkdir(exist_ok=True)
+          datafile = root / 'source_hashes.json'
+          logfile = root / 'change_report.md'
+          before = json.loads(datafile.read_text()) if datafile.exists() else {}
+          after = dict(before)
+          sources = {
+            'context_compaction': 'https://developers.openai.com/api/docs/guides/compaction.md',
+            'prompt_caching': 'https://developers.openai.com/api/docs/guides/prompt-caching.md',
+            'codex_context': 'https://developers.openai.com/cookbook/examples/codex/iterating-development-workflows-with-codex.md',
+          }
+          terms = ('token','cache','compact','context','codex','agent','efficien','latency','cost')
+          changed = []
+          for name, url in sources.items():
+              try:
+                  req = urllib.request.Request(url, headers={'User-Agent':'TokenLabDocWatch/1.0'})
+                  with urllib.request.urlopen(req, timeout=14) as res:
+                      raw = res.read(900000).decode('utf-8', errors='replace')
+                  lines = (re.sub(r'\s+', ' ', x).strip() for x in raw.splitlines())
+                  relevant = sorted(set(x[:350] for x in lines if 30 < len(x) < 3000 and any(w in x.casefold() for w in terms)))
+                  if not relevant:
+                      print('No usable source content:', name)
+                      continue
+                  digest = hashlib.sha256('\n'.join(relevant).encode()).hexdigest()
+                  if name in before and digest != before[name]['sha256']:
+                      changed.append((name, url))
+                  after[name] = {'url': url, 'sha256': digest}
+              except Exception as exc:
+                  print('Source unavailable:', name, repr(exc))
+          if after != before:
+              datafile.write_text(json.dumps(after, sort_keys=True, indent=2) + '\n')
+          if changed or not logfile.exists():
+              lines = ['# TOKENLAB X - observatorio de documentación', '',
+                       'No modifica ChatGPT ni sus límites. Los cambios se deben revisar y medir.', '',
+                       'Última actualización: ' + datetime.now(timezone.utc).strftime('%Y-%m-%d UTC'), '']
+              lines += ['- Cambio detectado (revisar manualmente): ' + name + ' — ' + url for name, url in changed]
+              if not changed:
+                  lines += ['- Línea base inicial; todavía no hay cambios comparables.']
+              logfile.write_text('\n'.join(lines) + '\n')
+          print('Changed official sources:', [x[0] for x in changed])
+          PY
+      - name: Store changes only when necessary
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tokenlab-x/source_hashes.json tokenlab-x/change_report.md
+          if ! git diff --cached --quiet; then
+            git commit -m 'docs(tokenlab): refresh token-efficiency source monitor'
+            git push
+          fi

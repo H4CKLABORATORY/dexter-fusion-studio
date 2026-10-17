@@ -113,6 +113,9 @@ test('impuestos: Maryland 9,5 % residente o 8,75 % no residente, y otros estados
   assert.ok(Math.abs(md.stateWithholding-4750)<1e-7);
   const mdNonResident=estimateTaxes({grossPrize:50000,stake:1,region:'MD',mdResident:false});
   assert.equal(mdNonResident.stateWithholding,4375);
+  const mdBorder=estimateTaxes({grossPrize:5002,stake:4,region:'MD'});
+  assert.equal(mdBorder.federalWithholding,0);
+  assert.equal(mdBorder.stateWithholding,5002*.095);
   const other=estimateTaxes({grossPrize:10000,stake:2,region:'OTHER',
     otherStateWithholdingRate:7.5,federalFinalRate:24,stateFinalRate:0});
   assert.equal(other.stateWithholding,750);

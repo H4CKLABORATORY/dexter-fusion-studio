@@ -75,14 +75,26 @@ function render(){
     $('sciAuditResult').textContent='No hay datos suficientes para esta lotería.';
   }
 }
-function audit(){
+async function audit(){
   const current=state();
   if(!current)return;
   const {game,rows,key}=current;
   const output=$('sciAuditResult');output.replaceChildren();
   const p=document.createElement('p');p.className='subtle';p.textContent='Calculando y evaluando únicamente contra resultados posteriores…';output.append(p);
   try{
-    const report=historicalAudit(rows,game,{holdout:180,minTrain:60,priorStrength:120,alpha:.05});
+    let report=null,provenance='Calculado localmente en este navegador.';
+    try{
+      const response=await fetch('data/scientific-report.json',{cache:'no-cache'});
+      if(response.ok){
+        const record=await response.json(),stored=record?.games?.[key];
+        if(record?.schema===1&&stored&&stored.comparable_draws===rows.length&&stored.evidence){
+          report=stored.evidence;
+          provenance='Auditoría recalculada automáticamente en GitHub Actions: '+(record.refreshed_at||'fecha no indicada')+'.';
+        }
+      }
+    }catch{ /* Sin red: la misma fórmula puede ejecutarse localmente. */ }
+    if(state()?.key!==key)return;
+    if(!report)report=historicalAudit(rows,game,{holdout:180,minTrain:60,priorStrength:120,alpha:.05});
     const metric=document.createElement('div');metric.className='scientific-metrics';
     for(const [label,value] of [
       ['Historial comparable',number(report.totalDraws)+' sorteos'],
@@ -107,7 +119,9 @@ function audit(){
     explain.textContent='Procedimiento: entrenamiento en '+number(report.trainDraws)+
       ' sorteos; luego evaluación en '+number(report.evaluationDraws)+
       ' sorteos ordenados cronológicamente. El modelo experimental aplica suavizado fijo de 120 observaciones. No mira sorteos futuros para emitir sus probabilidades. No se han demostrado ventajas comerciales ni predictivas.';
-    output.replaceChildren(metric,sample,band,explain);
+    const metadata=document.createElement('p');metadata.className='lotto-compact-note';
+    metadata.textContent=provenance+' Los resultados se basan en la biblioteca verificada de esta lotería.';
+    output.replaceChildren(metric,sample,band,explain,metadata);
   }catch(error){
     output.textContent='No se pudo ejecutar la auditoría: '+error.message;
   }

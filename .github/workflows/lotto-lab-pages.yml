@@ -36,6 +36,8 @@ jobs:
           node --check lotto-lab/assets/lucky-ui.mjs
           node --check lotto-lab/assets/coverage-engine.mjs
           node --check lotto-lab/assets/coverage-ui.mjs
+          node --check lotto-lab/assets/unique-pack.mjs
+          node --check lotto-lab/assets/unique-pack-ui.mjs
           node --check lotto-lab/assets/draw-simulator.mjs
           node --check lotto-lab/assets/draw-ui.mjs
           node --check lotto-lab/assets/payout-engine.mjs
@@ -101,6 +103,8 @@ jobs:
           test -s _pages/lotto-lab/assets/lucky-ui.mjs
           test -s _pages/lotto-lab/assets/coverage-engine.mjs
           test -s _pages/lotto-lab/assets/coverage-ui.mjs
+          test -s _pages/lotto-lab/assets/unique-pack.mjs
+          test -s _pages/lotto-lab/assets/unique-pack-ui.mjs
           test -s _pages/lotto-lab/assets/draw-simulator.mjs
           test -s _pages/lotto-lab/assets/draw-ui.mjs
           test -s _pages/lotto-lab/assets/payout-engine.mjs
@@ -140,6 +144,7 @@ jobs:
               && grep -q 'assets/generator-pro.js' /tmp/lotto.html \
               && grep -q 'id="generador"' /tmp/lotto.html \
               && grep -q 'id="luckyDaily"' /tmp/lotto.html \
+              && grep -q 'id="uniquePack"' /tmp/lotto.html \
               && grep -q 'href="revisar.html"' /tmp/lotto.html \
               && grep -q 'href="simulador.html"' /tmp/lotto.html \
               && ! grep -q 'id="servicesHub"' /tmp/lotto.html \
@@ -181,6 +186,10 @@ jobs:
               && curl -fsSL --max-time 20 "$base/assets/draw-ui.mjs" -o /tmp/draw-ui.mjs \
               && node --check /tmp/draw-simulator.mjs \
               && node --check /tmp/draw-ui.mjs \
+              && curl -fsSL --max-time 20 "$base/assets/unique-pack.mjs" -o /tmp/unique-pack.mjs \
+              && curl -fsSL --max-time 20 "$base/assets/unique-pack-ui.mjs" -o /tmp/unique-pack-ui.mjs \
+              && node --check /tmp/unique-pack.mjs \
+              && node --check /tmp/unique-pack-ui.mjs \
               && curl -fsSL --max-time 20 "$base/assets/coverage-engine.mjs" -o /tmp/coverage-engine.mjs \
               && curl -fsSL --max-time 20 "$base/assets/coverage-ui.mjs" -o /tmp/coverage-ui.mjs \
               && node --check /tmp/coverage-engine.mjs \

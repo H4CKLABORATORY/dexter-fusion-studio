@@ -42,6 +42,14 @@ python -m http.server 8000
 
 Abre http://localhost:8000. La biblioteca se sirve desde `data/` y se actualiza desde GitHub Actions de forma programada cuando el repositorio tenga Pages habilitado. No hace falta API key ni usar la nube para cálculos, pero sí conexión para obtener sorteos nuevos.
 
+## Cinco servicios: comprobación, escáner, premios, presupuesto e impuestos
+
+La página incluye cinco pestañas desde el **Centro de servicios**: revisión de combinaciones contra resultados históricos oficiales descargados, lectura local de códigos de barras con fallback ZXing para iPhone, premios por categoría documentados, planificación educativa de presupuesto y comparación de retención tributaria con un escenario final editable.
+
+**Cotejar números o leer un barcode nunca valida un premio real ni confirma que se pueda cobrar**: esa verificación debe hacerse con la lotería oficial. Los jackpots y pagos variables no se inventan. La lectura de fotos no las envía a servidores de LOTTO LAB.
+
+Ver detalles, fuentes oficiales, límites de escaneo y cálculos en [SERVICIOS-BOLETOS.md](SERVICIOS-BOLETOS.md). Las pruebas automatizadas cubren matrices de pago, apuestas de Maryland, multiplicadores, tasas de Virginia, escáner local y navegación por pestañas.
+
 ## Aviso fundamental
 
 Un sorteo bien diseñado es independiente: **ni los números calientes, ni los atrasados, ni una IA, aumentan la probabilidad de acertar el siguiente sorteo**. Los historiales y probabilidades no son asesoramiento financiero. Evita gastar dinero que necesites para vivir. Se incluye el programa previo en `legacy.html`.

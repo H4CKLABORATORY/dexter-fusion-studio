@@ -218,3 +218,27 @@ body{background:radial-gradient(circle at 10% 0%,#174b51 0,transparent 40%),radi
 .lucky-buttons button:last-child{background:#254c5d;color:#f1f5f8;border-color:#51717e}
 .lucky-buttons button:disabled{opacity:.4;cursor:not-allowed}
 @media(max-width:650px){.lucky-header,.lucky-foot{flex-direction:column;align-items:stretch}.lucky-day-pill{align-self:flex-start}.lucky-buttons button{flex:1}.lucky-output .ticket-ball{height:45px;width:45px;font-size:18px}.lucky-output{gap:7px}}
+
+
+/* Explorador matemático de cobertura: objetivo visible, sin recomendar gastos. */
+.coverage-explorer{border-color:#876a44;background:linear-gradient(145deg,#112c40,#253044)!important;margin-top:20px}
+.coverage-inner{padding:0 clamp(15px,2.5vw,24px) 24px}
+.coverage-inner>p{font-size:13px;color:#cadae5;line-height:1.65}
+.coverage-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:15px 0 12px}
+.coverage-grid article{background:#0d2638;border:1px solid #455b6b;border-radius:12px;padding:14px;min-width:0}
+.coverage-grid span,.coverage-grid small{display:block;color:#c3d5e0;font-size:11px;line-height:1.4}
+.coverage-grid strong{display:block;color:#ffe087;font-size:clamp(18px,2vw,25px);margin:8px 0;overflow-wrap:anywhere}
+.coverage-grid select{margin-top:10px;width:100%;color:#fff;background:#163a50}
+.coverage-tool{display:flex;gap:15px;align-items:center;justify-content:space-between;border-top:1px dashed #536379;margin-top:18px;padding-top:16px}
+.coverage-tool strong{color:#fff5bf}
+.coverage-tool p{font-size:12px;color:#c4d4e0;margin:5px 0}
+.coverage-tool>div:last-child{display:flex;gap:8px;flex-wrap:wrap}
+.coverage-tool select{background:#143a50;color:#fff}
+.coverage-tool button{border:1px solid #dcb965;background:#f1d17d;color:#34290c;border-radius:8px;padding:10px 13px;font-weight:800}
+.coverage-preview{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.coverage-line{display:flex;gap:10px;align-items:center;padding:10px;border:1px solid #3b5b66;background:#132e40;border-radius:9px}
+.coverage-line strong{color:#f4cf76;font-size:12px}
+.coverage-line-numbers{font-size:13px;letter-spacing:.025em;color:#e6eef6;font-variant-numeric:tabular-nums}
+.coverage-preview>p{grid-column:1/-1}
+@media(max-width:760px){.coverage-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.coverage-grid{grid-template-columns:1fr}.coverage-tool{display:block}.coverage-tool>div:last-child{margin-top:12px}.coverage-preview{grid-template-columns:1fr}}

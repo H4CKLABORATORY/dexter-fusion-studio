@@ -1,0 +1,43 @@
+name: Compilar instalador Windows v0.3
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/ai-local-phase3
+    paths:
+      - 'fusion/**'
+      - 'main.py'
+      - 'pyproject.toml'
+      - 'tests/**'
+      - 'installer/**'
+      - 'THIRD_PARTY_NOTICES.md'
+      - '.github/workflows/windows-installer.yml'
+permissions:
+  contents: read
+
+jobs:
+  windows-installer:
+    runs-on: windows-latest
+    timeout-minutes: 65
+    steps:
+      - name: Descargar codigo
+        uses: actions/checkout@v4
+      - name: Preparar Python para compilar
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          architecture: x64
+      - name: Crear y probar instalador real
+        shell: pwsh
+        run: ./installer/build-windows.ps1
+      - name: Publicar instalador descargable
+        uses: actions/upload-artifact@v4
+        with:
+          name: Dexter-Fusion-Studio-Windows-v0.3.0
+          path: |
+            release/Dexter-Fusion-Studio-Setup-v0.3.0.exe
+            release/Dexter-Fusion-Studio-Portable-v0.3.0.zip
+            dist/DexterFusionStudio/ffmpeg-version.txt
+            THIRD_PARTY_NOTICES.md
+          if-no-files-found: error
+          retention-days: 30

@@ -11,6 +11,8 @@ from .library import import_scripts,add_meme
 from .integrations import scan,export_mcp_client_config,defaults,render_filmcraft_project,render_effectcraft_project
 from .concat_bridge import create_concat_edit,list_concat_effects
 from .timeline_ui import TimelinePanel
+from .ai_local import capabilities as ai_capabilities, transcribe_local as ai_transcribe_local, analyze as ai_analyze, draft as ai_draft, approve_draft as ai_approve_draft
+from .chatgpt_bridge import make_packet as chatgpt_packet, import_response as chatgpt_import, approve_response as chatgpt_approve
 
 HOME=Path.home()/'Documents'/'DexterFusionStudio'
 class Window:
@@ -29,9 +31,13 @@ class Window:
         self.tab('Edición automática',self.edit_tab)
         self.tab('Efectos y memes',self.effects_tab)
         self.tab('Timeline v2',self.timeline_tab)
+        self.tab('IA local · Etapa 3',self.ai_tab)
+        self.tab('ChatGPT · Editor asistido',self.chatgpt_tab)
         self.tab('Nuevos contenidos',self.modes_tab)
         self.tab('Integraciones',self.integrations_tab)
         bottom=ttk.Frame(root,padding=(15,0,15,12));bottom.pack(fill='both')
+        ttk.Button(bottom,text='Configurar IA y componentes',
+                   command=self.open_setup).pack(anchor='e')
         ttk.Label(bottom,text='Registro de actividades').pack(anchor='w')
         self.logs=tk.Text(bottom,height=6,wrap='word');self.logs.pack(fill='both')
         self.root.after(120,self.poll)
@@ -40,6 +46,10 @@ class Window:
         PROFILES.update({key:val for key,val in custom.items() if key not in PROFILES})
         self.combo.configure(values=['Automático']+list(PROFILES))
         self.log('Listo. Selecciona una grabación y crea un proyecto. Todo el material queda en tu PC.')
+    def open_setup(self):
+        from .windows_setup import show_setup
+        show_setup(self.root)
+
     def tab(self,name,fn):
         page=ttk.Frame(self.tabs,padding=14);self.tabs.add(page,text=name);fn(page)
     def line(self,page,label,value,button=None,action=None):
@@ -93,6 +103,168 @@ class Window:
         ttk.Button(p,text='Revisar y aprobar memes sugeridos',command=self.approve_memes).pack(anchor='w',pady=8)
     def timeline_tab(self,p):
         self.timeline_panel=TimelinePanel(self,p)
+    def ai_tab(self,p):
+        ttk.Label(p,text='Asistente de IA local · Etapa 3',font=('Segoe UI',16,'bold')).pack(anchor='w',pady=(0,10))
+        ttk.Label(p,text='Transcribe tu voz, analiza señales de tu video y crea un borrador de clips. '
+                        'Ollama analiza sólo fotogramas y puede equivocarse. Tu revisión sigue siendo obligatoria.',
+                  wraplength=750).pack(anchor='w',pady=(0,12))
+        self.ai_model=tk.StringVar(value='llava')
+        self.ai_whisper=tk.StringVar(value='tiny')
+        self.ai_device=tk.StringVar(value='cpu')
+        self.ai_vision=tk.BooleanVar(value=False)
+        self.ai_frames=tk.StringVar(value='4')
+        self.ai_scan=tk.StringVar(value='180')
+        ttk.Button(p,text='Comprobar lo que está instalado',command=self.ai_check).pack(anchor='w',pady=7)
+        row=ttk.Frame(p);row.pack(fill='x',pady=5)
+        ttk.Label(row,text='Modelo Whisper',width=20).pack(side='left')
+        ttk.Entry(row,textvariable=self.ai_whisper,width=16).pack(side='left',padx=4)
+        ttk.Label(row,text='Dispositivo').pack(side='left',padx=6)
+        ttk.Combobox(row,textvariable=self.ai_device,values=['cpu','cuda','auto'],
+                     state='readonly',width=9).pack(side='left',padx=4)
+        ttk.Button(p,text='1. Transcribir mi voz localmente',command=self.ai_transcribe).pack(anchor='w',pady=8)
+        ttk.Separator(p).pack(fill='x',pady=9)
+        ttk.Checkbutton(p,text='Usar además Ollama LOCAL (no envía fotogramas a la nube)',
+                        variable=self.ai_vision).pack(anchor='w',pady=7)
+        row=ttk.Frame(p);row.pack(fill='x',pady=5)
+        ttk.Label(row,text='Modelo visual instalado',width=20).pack(side='left')
+        ttk.Entry(row,textvariable=self.ai_model,width=18).pack(side='left',padx=4)
+        ttk.Label(row,text='Fotogramas').pack(side='left',padx=6)
+        ttk.Entry(row,textvariable=self.ai_frames,width=6).pack(side='left',padx=4)
+        ttk.Label(row,text='Analizar hasta (s)').pack(side='left',padx=6)
+        ttk.Entry(row,textvariable=self.ai_scan,width=8).pack(side='left',padx=4)
+        ttk.Button(p,text='2. Analizar video / proponer momentos',command=self.ai_analyze_ui).pack(anchor='w',pady=8)
+        row=ttk.Frame(p);row.pack(anchor='w',pady=9)
+        ttk.Button(row,text='3. Crear borrador de clips',command=self.ai_draft_ui).pack(side='left')
+        ttk.Button(row,text='4. Aceptar borrador en el Timeline',command=self.ai_accept_ui).pack(side='left',padx=8)
+        ttk.Label(p,text='Orden sugerido: transcribir → analizar → proponer → revisar JSON → aceptar → '
+                        'abrir Timeline v2 → preparar y exportar. Ningún paso publica a TikTok.',
+                  wraplength=720).pack(anchor='w',pady=10)
+        ttk.Label(p,text='Importante: los modelos Whisper pueden descargarse la primera vez. '
+                        'Ollama debe instalarse y contar con un modelo visual; no se instala automáticamente.',
+                  wraplength=720).pack(anchor='w')
+
+    def ai_check(self):
+        self.log('Módulos disponibles: '+json.dumps(ai_capabilities(),ensure_ascii=False))
+
+    def ai_transcribe(self):
+        try:folder=self.require()
+        except Exception as exc:messagebox.showerror('Proyecto',str(exc));return
+        model=self.ai_whisper.get().strip();device=self.ai_device.get()
+        target=folder/'previews'/'ai-transcript.srt'
+        replace=target.exists() and messagebox.askyesno('SRT existente','¿Volver a transcribir y reemplazar este SRT?')
+        if target.exists() and not replace:return
+        def completed(info):
+            self.captions.set(info['subtitle_file'])
+            config=read_json(folder/'project.json')
+            config['subtitle_file']=info['subtitle_file']
+            safe_write(folder/'project.json',config)
+            self.log('Subtítulos vinculados al proyecto. Revísalos antes de renderizar.')
+        self.background('Transcripción local Whisper',lambda:ai_transcribe_local(
+            folder,model=model,device=device,compute_type='float16' if device=='cuda' else 'int8',
+            overwrite=replace),completed)
+
+    def ai_analyze_ui(self):
+        try:
+            folder=self.require()
+            frames=int(self.ai_frames.get());scan=float(self.ai_scan.get())
+            if not 1<=frames<=12 or not 10<=scan<=3600:raise ValueError('Fotogramas 1-12; análisis 10-3600 s')
+        except Exception as exc:messagebox.showerror('Análisis',str(exc));return
+        vision=self.ai_vision.get();model=self.ai_model.get().strip()
+        if vision and not messagebox.askyesno('Visión local voluntaria',
+                '¿Autorizar a Ollama, instalado en tu computadora, a procesar hasta '
+                +str(frames)+' fotogramas de la grabación? No se ejecuta ninguna API de pago.'):
+            return
+        target=folder/'ai-analysis.json'
+        overwrite=target.exists() and messagebox.askyesno('Reemplazar análisis','¿Sustituir el análisis anterior?')
+        if target.exists() and not overwrite:return
+        self.background('Analizar video sin nube',lambda:ai_analyze(
+            folder,vision=vision,model=model,max_frames=frames,scan_seconds=scan,
+            overwrite=overwrite))
+
+    def ai_draft_ui(self):
+        try:folder=self.require()
+        except Exception as exc:messagebox.showerror('Proyecto',str(exc));return
+        target=folder/'ai-proposed-timeline.json'
+        overwrite=target.exists() and messagebox.askyesno('Propuesta previa','¿Reemplazar el borrador?')
+        if target.exists() and not overwrite:return
+        self.background('Crear borrador de escenas',lambda:ai_draft(folder,limit=4,overwrite=overwrite))
+
+    def ai_accept_ui(self):
+        try:folder=self.require()
+        except Exception as exc:messagebox.showerror('Proyecto',str(exc));return
+        if not messagebox.askyesno('Revisar y aceptar',
+            '¿Ya revisaste ai-proposed-timeline.json? Se aplicarán sus clips al Timeline v2. '
+            'El video original no cambia.'):
+            return
+        exists=(folder/'timeline-v2.json').exists()
+        overwrite=exists and messagebox.askyesno('Respaldo y reemplazo',
+            'Ya existe un Timeline. ¿Guardar copia antes de reemplazarlo con la propuesta?')
+        if exists and not overwrite:return
+        def completed(value):
+            self.timeline_panel.load()
+            self.log('Timeline listo para revisión final y exportación.')
+        self.background('Aceptar cortes propuestos',lambda:ai_approve_draft(folder,overwrite=overwrite),completed)
+
+    def chatgpt_tab(self,p):
+        ttk.Label(p,text='ChatGPT + Dexter Fusion Studio',font=('Segoe UI',16,'bold')).pack(anchor='w',pady=(0,12))
+        ttk.Label(p,text='Modo gratuito: prepara un paquete de cortes y subtítulos, lo compartes '
+                        'con ChatGPT cuando tú quieras e importas la respuesta JSON. '
+                        'Esta pestaña NO accede a tu cuenta de ChatGPT ni usa API de pago.',
+                  wraplength=740).pack(anchor='w',pady=(0,15))
+        ttk.Button(p,text='1. Preparar paquete para ChatGPT',command=self.chatgpt_export_ui).pack(anchor='w',pady=9)
+        ttk.Label(p,text='Se crearán chatgpt-request.json y chatgpt-instructions.txt. '
+                        'Revísalos: pueden contener tus diálogos antes de compartirlos.',
+                  wraplength=740).pack(anchor='w',pady=(0,12))
+        ttk.Button(p,text='2. Importar respuesta JSON de ChatGPT',command=self.chatgpt_import_ui).pack(anchor='w',pady=9)
+        ttk.Label(p,text='Se validan los tiempos, los efectos y el proyecto correcto. '
+                        'El resultado se guarda aparte como propuesta, sin cambiar la edición.',
+                  wraplength=740).pack(anchor='w',pady=(0,12))
+        ttk.Button(p,text='3. Aceptar la propuesta revisada',command=self.chatgpt_accept_ui).pack(anchor='w',pady=9)
+        ttk.Label(p,text='La edición anterior se protege y solo puede reemplazarse con confirmación; '
+                        'después revisa el Timeline v2 y exporta el MP4.',
+                  wraplength=740).pack(anchor='w',pady=10)
+        ttk.Separator(p).pack(fill='x',pady=15)
+        ttk.Label(p,text='API automática (opcional y no habilitada)',font=('Segoe UI',11,'bold')).pack(anchor='w')
+        ttk.Label(p,text='La API de OpenAI se factura por separado de ChatGPT Plus. '
+                        'Este modo requiere configurar OPENAI_API_KEY en tu propia PC y autorizar '
+                        'cada petición mediante el comando chatgpt-api --allow-paid-api. '
+                        'Jamás pegues una clave en ChatGPT o en GitHub.',
+                  wraplength=740).pack(anchor='w',pady=7)
+
+    def chatgpt_export_ui(self):
+        try:folder=self.require()
+        except Exception as exc:messagebox.showerror('Proyecto',str(exc));return
+        target=folder/'chatgpt-request.json'
+        replace=target.exists() and messagebox.askyesno('Actualizar paquete','¿Reemplazar el paquete de ChatGPT anterior?')
+        if target.exists() and not replace:return
+        self.background('Preparar paquete ChatGPT',lambda:chatgpt_packet(folder,overwrite=replace))
+
+    def chatgpt_import_ui(self):
+        try:folder=self.require()
+        except Exception as exc:messagebox.showerror('Proyecto',str(exc));return
+        chosen=filedialog.askopenfilename(title='Respuesta de ChatGPT en JSON',
+            filetypes=[('JSON o TXT','*.json *.txt')])
+        if not chosen:return
+        target=folder/'chatgpt-proposed-timeline.json'
+        replace=target.exists() and messagebox.askyesno('Actualizar propuesta','¿Reemplazar la propuesta anterior?')
+        if target.exists() and not replace:return
+        self.background('Validar respuesta ChatGPT',lambda:chatgpt_import(folder,chosen,overwrite=replace))
+
+    def chatgpt_accept_ui(self):
+        try:folder=self.require()
+        except Exception as exc:messagebox.showerror('Proyecto',str(exc));return
+        if not messagebox.askyesno('Aceptar cortes',
+            '¿Ya revisaste chatgpt-proposed-timeline.json? Se copiará al Timeline v2.'):
+            return
+        target=folder/'timeline-v2.json'
+        replace=target.exists() and messagebox.askyesno('Backup y sustitución',
+            'Ya existe un montaje. ¿Guardar respaldo y reemplazarlo?')
+        if target.exists() and not replace:return
+        def finish(data):
+            self.timeline_panel.load()
+            self.log('Propuesta aplicada; revisa la edición en Timeline v2.')
+        self.background('Aceptar propuesta ChatGPT',lambda:chatgpt_approve(folder,overwrite=replace),finish)
+
     def modes_tab(self,p):
         ttk.Label(p,text='Biblioteca y futuros contenidos',font=('Segoe UI',15,'bold')).pack(anchor='w',pady=(0,14))
         ttk.Button(p,text='Importar todos mis guiones (.txt/.md/.srt)',command=self.import_scripts).pack(anchor='w',pady=6)
@@ -280,4 +452,9 @@ class Window:
         self.background('Crear proyecto en Concat',lambda:create_concat_edit(folder,token,effect_id=effect.strip() or None))
 
 def run_gui():
-    root=tk.Tk();Window(root);root.mainloop()
+    from .runtime_windows import configure_runtime
+    from .windows_setup import first_launch
+    configure_runtime()
+    root=tk.Tk();Window(root)
+    root.after(900, lambda: first_launch(root))
+    root.mainloop()

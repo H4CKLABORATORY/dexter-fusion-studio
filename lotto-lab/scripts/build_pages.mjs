@@ -106,6 +106,18 @@ function serviceNav(){
     choices.map(([url,title,key])=>'<a href="'+url+'">'+title+' →</a>').join('')+
     '</div>';
 }
+function showOnlyService(html,active){
+  const valid=new Set(['check','scan','prizes','budget','tax']);
+  if(!valid.has(active))throw Error('Servicio no válido');
+  return html.replace(/<section id="servicePanel-([a-z]+)"[^>]*>/g,(tag,key)=>{
+    const withoutHidden=tag.replace(/\s+hidden(?=[\s>])/g,'');
+    return key===active?withoutHidden:withoutHidden.replace(/>$/,' hidden>');
+  }).replace(/<button id="serviceTab-([a-z]+)"[^>]*>/g,(tag,key)=>{
+    let updated=tag.replace(/aria-selected="(true|false)"/,'aria-selected="'+(key===active)+'"');
+    updated=updated.replace(/\s+tabindex="-1"/g,'');
+    return key===active?updated:updated.replace(/>$/,' tabindex="-1">');
+  });
+}
 function makePage({key,body,modules=[],classic=false,extraSelector='',heading=true}){
   const head=baseHead.replace(/<title>[\s\S]*?<\/title>/,
     '<title>'+tags[key]+' · LOTTO LAB DEXTER</title>');
@@ -139,7 +151,7 @@ const pages={
 for(const [key,slug] of [['check','revisar'],['scan','escanear'],['prizes','premios'],
   ['budget','presupuesto'],['tax','impuestos']]){
   pages[slug+'.html']=makePage({key,
-    body:selector()+services+serviceNav(),
+    body:selector()+showOnlyService(services,key)+serviceNav(),
     modules:['page-context.mjs','services-ui.mjs']});
 }
 mkdirSync(destination,{recursive:true});

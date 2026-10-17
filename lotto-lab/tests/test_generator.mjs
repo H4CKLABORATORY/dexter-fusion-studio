@@ -8,7 +8,7 @@ const dom={proFavorites:{value:''},proStyle:{value:'balanced',selectedOptions:[{
 const ctx=vm.createContext({document:{getElementById:id=>dom[id]||{value:''}},console});
 const logic=script.split("$p('proGame').addEventListener")[0];
 assert.ok(logic.includes('function createTicket()'),'La lógica debe estar accesible');
-vm.runInContext(logic+';globalThis.T={specs,totalOutcomes,theoretical,theoreticalCoverage,createTicket,parseFav,pickHash,histRows,wilson};',ctx);
+vm.runInContext(logic+';globalThis.T={specs,totalOutcomes,theoretical,theoreticalCoverage,createTicket,parseFav,pickHash,histRows,wilson,renderTicketReveal};',ctx);
 const {T}=ctx;
 function select(game,style='balanced',favorites=''){
   dom.proStyle.value=style;dom.proFavorites.value=favorites;
@@ -68,11 +68,57 @@ test('intervalo Wilson es descriptivo, no una predicción',()=>{
   const arr=T.wilson(10,100);
   assert.ok(arr[0]<0.1&&arr[1]>0.1);
 });
+test('revelación animada del boleto y reinicio seguro en clics repetidos',()=>{
+  const oldCreate=ctx.document.createElement,oldMatch=ctx.matchMedia;
+  function fakeElement(){
+    const classes=new Set();
+    return {
+      children:[],className:'',attributes:{},events:{},textContent:'',
+      style:{props:{},setProperty(key,value){this.props[key]=value;}},
+      classList:{add(v){classes.add(v);},remove(v){classes.delete(v);},contains(v){return classes.has(v);}},
+      append(node){this.children.push(node);},
+      replaceChildren(...nodes){this.children=[...nodes];},
+      addEventListener(name,callback){this.events[name]=callback;},
+      setAttribute(name,value){this.attributes[name]=value;},
+      remove(){this.removed=true;},
+      get offsetWidth(){return 300;}
+    };
+  }
+  try{
+    ctx.document.createElement=fakeElement;
+    ctx.matchMedia=()=>({matches:false});
+    const container=fakeElement();
+    const draw={main:[4,13,25,38,66],bonus:9};
+    T.renderTicketReveal(container,draw,'powerball',1);
+    assert.equal(container.children.filter(x=>x.className.includes('ticket-ball')).length,6);
+    assert.equal(container.children.filter(x=>x.className==='lotto-spark').length,15);
+    assert.ok(container.classList.contains('lotto-revealing'));
+    const sparks=container.children.filter(x=>x.className==='lotto-spark');
+    assert.ok(sparks.every(x=>x.attributes['aria-hidden']==='true'));
+    const firstChildren=container.children;
+    T.renderTicketReveal(container,draw,'powerball',2);
+    assert.equal(container.children.length,21);
+    assert.ok(firstChildren.every(x=>!container.children.includes(x)),'No deben quedar efectos de una animación anterior');
+    assert.ok(container.children[5].className.includes('bonus'));
+    ctx.matchMedia=()=>({matches:true});
+    T.renderTicketReveal(container,draw,'powerball',3);
+    assert.equal(container.children.length,6,'En movimiento reducido no debe haber confeti');
+    assert.ok(container.children.every(x=>!x.className.includes('lotto-ball-reveal')));
+    assert.ok(!container.classList.contains('lotto-revealing'));
+    ctx.matchMedia=()=>({matches:false});
+    T.renderTicketReveal(container,{main:[7],bonus:null},'chica',1);
+    assert.equal(container.children.filter(x=>x.className.includes('ticket-ball')).length,1);
+    assert.equal(container.children.filter(x=>x.className==='lotto-spark').length,8);
+  }finally{
+    ctx.document.createElement=oldCreate;ctx.matchMedia=oldMatch;
+  }
+});
 test('diseño primero generador, archivo secundario, fuentes correctas',()=>{
   assert.ok(html.indexOf('id="generador"')<html.indexOf('id="resumen"'));
   assert.ok(html.indexOf('id="historial"')>html.indexOf('id="premios"'));
   assert.ok(html.includes('id="archivoDetalle"')&&html.includes('assets/generator-pro.js'));
   assert.ok(html.includes('assets/lottery-pro.css'));
+  assert.ok(script.includes('renderTicketReveal('),'La revelación debe estar integrada con el generador');
   assert.ok(!html.includes('id="proSeed"'),'La semilla no debe ser campo editable');
   assert.ok(!script.includes("$p('proSeed')"),'El motor no debe leer una semilla editable');
   assert.ok(script.includes('const INTERNAL_SEED='),'El motor debe conservar semilla interna');

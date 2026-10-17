@@ -19,6 +19,16 @@ function pickHash(s){
 function chooseBig(n,k){let t=1n;for(let i=1;i<=k;i++)t=t*BigInt(n-k+i)/BigInt(i);return t}
 function totalOutcomes(g){return chooseBig(g.n,g.k)*BigInt(g.bonus||1);}
 function theoretical(g){return g.k/g.n;}
+function theoreticalCoverage(game,distinctTickets){
+  const total=totalOutcomes(game),tickets=BigInt(distinctTickets);
+  if(tickets<1n||tickets>total)throw new RangeError('Cobertura de boletos inválida');
+  return Number(tickets)/Number(total);
+}
+function renderCoverage(){
+  const g=specs[selected],n=Number($p('proCoverage').value),probability=theoreticalCoverage(g,n);
+  $p('proCoverageChance').textContent=pct(probability)+' de acertar premio mayor';
+  $p('proCoverageOdds').textContent='1 entre '+(Number(totalOutcomes(g))/n).toLocaleString('es-ES',{maximumFractionDigits:2})+' en un sorteo, suponiendo '+n+' boletos válidos distintos.';
+}
 function parseFav(g){
   const raw=$p('proFavorites').value.trim();if(!raw)return [];
   const nums=raw.split(/[,\s;]+/).filter(Boolean).map(v=>Number(v));
@@ -122,6 +132,7 @@ function wilson(h,n){
 function renderProbabilities(){
   const g=specs[selected],total=totalOutcomes(g),individual=theoretical(g),count=verified.length;
   $p('proOdds').textContent='1 en '+nf(total);
+  renderCoverage();
   $p('proPerNumber').textContent=pct(individual);
   $p('proPerNumberLabel').textContent=g.k===1?'De que salga un número de 00 a 99':'De que salga una bola principal específica';
   $p('proModel').textContent=g.k===1?'100 números posibles · un número ganador · modelo uniforme':g.k+' de '+g.n+' + 1 especial de '+g.bonus+' · combinatoria exacta';
@@ -165,6 +176,7 @@ function updateGame(){
 }
 $p('proGame').addEventListener('change',updateGame);
 $p('proStyle').addEventListener('change',renderProbabilities);
+$p('proCoverage').addEventListener('change',renderCoverage);
 $p('proGenerate').addEventListener('click',()=>{
   try{const t=createTicket();outputTicket(t);}
   catch(e){$p('proTicketNote').textContent=e.message;$p('proTicketNote').style.color='#ffcaac';return;}

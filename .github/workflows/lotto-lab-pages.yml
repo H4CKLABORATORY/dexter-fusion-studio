@@ -27,15 +27,21 @@ jobs:
           node-version: '22'
       - name: Comprobar parsing y matematica
         run: |
-          python -m unittest discover -s lotto-lab/tests -p 'test_data.py' -v
+          python -m unittest discover -s lotto-lab/tests -p 'test_*.py' -v
           node --check lotto-lab/assets/generator-pro.js
+          node --check lotto-lab/assets/us-catalog.mjs
+          node --input-type=module --check < lotto-lab/assets/us-catalog-ui.js
           node --test lotto-lab/tests/test_*.mjs
       - name: Descargar biblioteca completa desde NY Open Data
         run: python lotto-lab/scripts/build_data.py lotto-lab/data
-      - name: Comprobar que ambos archivos existen
+      - name: Descargar sorteos NY Take 5 desde 1992 (dos sesiones por fecha)
+        run: python lotto-lab/scripts/build_us_history.py lotto-lab/data
+      - name: Comprobar archivos y cobertura de 48 jurisdicciones
         run: |
           test -s lotto-lab/data/powerball.json
           test -s lotto-lab/data/megamillions.json
+          test -s lotto-lab/data/nytake5.json
+          test -s lotto-lab/data/us-jurisdictions.json
           python - <<'PY'
           import json
           for game in ('powerball', 'megamillions'):
@@ -43,6 +49,12 @@ jobs:
                   obj=json.load(f)
               assert obj['count'] >= 1000
               print(game,obj['count'],obj['first_draw'],obj['last_draw'])
+          take5=json.load(open('lotto-lab/data/nytake5.json',encoding='utf-8'))
+          assert take5['count']>=3000 and take5['first_draw']<='1992-01-17'
+          assert take5['count']==len(take5['rows'])
+          directory=json.load(open('lotto-lab/data/us-jurisdictions.json',encoding='utf-8'))
+          assert directory['jurisdiction_count']==len(directory['jurisdictions'])==48
+          print('nytake5',take5['count'],'jurisdictions',directory['jurisdiction_count'])
           PY
       - name: Archivo web descargable, incluso sin GitHub Pages
         uses: actions/upload-artifact@v4
@@ -58,6 +70,8 @@ jobs:
           test -s _pages/lotto-lab/index.html
           test -s _pages/lotto-lab/data/powerball.json
           test -s _pages/lotto-lab/data/megamillions.json
+          test -s _pages/lotto-lab/data/nytake5.json
+          test -s _pages/lotto-lab/data/us-jurisdictions.json
       - name: Preparar sitio Pages
         uses: actions/upload-pages-artifact@v4
         with:
@@ -76,7 +90,7 @@ jobs:
       - name: Publicar en GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-      - name: Verificar web publicada, Powerball y Mega Millions
+      - name: Verificar web y tres archivos oficiales, catálogo y motores
         shell: bash
         run: |
           set -euo pipefail
@@ -86,14 +100,21 @@ jobs:
               && grep -qi 'LOTTO LAB' /tmp/lotto.html \
               && grep -q 'assets/generator-pro.js' /tmp/lotto.html \
               && grep -q 'id="generador"' /tmp/lotto.html \
+              && grep -q 'id="usDirectory"' /tmp/lotto.html \
               && curl -fsSL --max-time 20 "$base/assets/generator-pro.js" -o /tmp/lotto-generator.js \
               && curl -fsSL --max-time 20 "$base/assets/lottery-pro.css" -o /tmp/lotto-style.css \
               && node --check /tmp/lotto-generator.js \
               && test -s /tmp/lotto-style.css \
+              && curl -fsSL --max-time 20 "$base/assets/us-catalog.mjs" -o /tmp/us-catalog.mjs \
+              && curl -fsSL --max-time 20 "$base/assets/us-catalog-ui.js" -o /tmp/us-catalog-ui.js \
+              && node --check /tmp/us-catalog.mjs \
+              && node --input-type=module --check < /tmp/us-catalog-ui.js \
               && curl -fsSL --max-time 20 "$base/data/powerball.json" -o /tmp/powerball.json \
               && curl -fsSL --max-time 20 "$base/data/megamillions.json" -o /tmp/megamillions.json \
-              && python -c 'import json; assert all(json.load(open(f"/tmp/{name}.json"))["count"] >= 1000 for name in ("powerball", "megamillions"))'; then
-              echo "OK: sitio y ambos históricos públicos disponibles"
+              && curl -fsSL --max-time 25 "$base/data/nytake5.json" -o /tmp/nytake5.json \
+              && curl -fsSL --max-time 20 "$base/data/us-jurisdictions.json" -o /tmp/us-jurisdictions.json \
+              && python -c 'import json; assert all(json.load(open(f"/tmp/{name}.json"))["count"] >= 1000 for name in ("powerball", "megamillions")); assert json.load(open("/tmp/nytake5.json"))["count"] >= 3000; assert len(json.load(open("/tmp/us-jurisdictions.json"))["jurisdictions"]) == 48'; then
+              echo "OK: web, Powerball, Mega Millions, NY Take 5 y 48 jurisdicciones disponibles"
               exit 0
             fi
             echo "Esperando propagación de Pages: intento $attempt/18"

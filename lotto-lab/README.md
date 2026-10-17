@@ -60,6 +60,10 @@ Documentación técnica y pruebas en la carpeta `tests/`.
 - Para comprobar el estado más reciente, consulta [GitHub Actions](https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/workflows/lotto-lab-pages.yml).
 
 
+## Simulador de cobertura matemática
+
+El panel muestra cómo aumenta la probabilidad de acertar **el premio mayor** al disponer hipotéticamente de 1, 5, 10, 20 o 100 boletos **válidos y distintos** en un mismo sorteo. Cálculo exacto: `cantidad_de_combinaciones_distintas / total_de_combinaciones_posibles`, con máximo 100 %. El simulador no genera boletos adicionales, no compra nada ni garantiza retorno positivo. Jugar más también puede aumentar las pérdidas. El filtro del generador y la semilla interna no cambian la probabilidad de un boleto.
+
 ## Alcance de los archivos y de los métodos matemáticos
 
 La biblioteca JSON generada por el proceso diario conserva todos los sorteos **disponibles en las dos fuentes públicas**, Powerball desde 2010 y Mega Millions desde 2002. No promete recuperar sorteos anteriores a la cobertura de esas fuentes ni de todas las loterías del planeta. Para el análisis descriptivo por número se usa únicamente el período de reglas actuales; la pestaña histórica conserva también los registros de reglas anteriores. La copia generada se publica como archivos JSON estáticos en Pages y como artefacto descargable de Actions; no hay base de datos de pago.

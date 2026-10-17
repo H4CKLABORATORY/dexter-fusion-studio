@@ -71,3 +71,12 @@ Para pruebas de exportación con FFmpeg: `python -m unittest tests.test_smoke -v
 - `fusion/integrations.py`: exporta proyectos FilmCraft/EffectCraft preexistentes con sus CLIs oficiales, si los instalas.
 
 GitHub: **se necesita confirmar la identidad y visibilidad privada del repositorio** antes de subir este código. El conector no cambia la visibilidad de los repositorios. No confundas este proyecto local listo para publicar con una instalación remota completada.
+
+
+## LOTTO LAB DEXTER (aplicación web independiente)
+
+El proyecto de lotería matemática está separado del editor de video, en [`lotto-lab/`](lotto-lab/). Incluye programa adaptable a iPhone, calculadora de probabilidades, pruebas contra datos históricos y descargas diarias verificadas desde NY Open Data. **No predice sorteos futuros.**
+
+- [Código y guía de Lotto Lab](lotto-lab/README.md)
+- [Actualizaciones y descargas con histórico completo](https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/workflows/lotto-lab-pages.yml)
+- Para obtener enlace público es preciso activar GitHub Pages una vez en Settings → Pages → GitHub Actions.

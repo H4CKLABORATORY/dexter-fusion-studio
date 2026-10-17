@@ -73,3 +73,26 @@ La biblioteca JSON generada por el proceso diario conserva todos los sorteos **d
 Para La Chica se enlaza al [PANI](https://www.pani.gob.hn/); falta comprobar un archivo descargable oficial y su estructura antes de añadir sorteos hondureños a la base. No se incorporan registros sin fuente o con premios acumulados no verificables.
 
 Pruebas adicionales: `tests/test_generator.mjs` comprueba combinatoria, probabilidades, validación de rangos, reproducibilidad, preferencias e integridad del diseño. La automatización verifica además por HTTPS los nuevos recursos `assets/generator-pro.js` y `assets/lottery-pro.css`.
+
+
+## Sorteos animados y comparación de simuladores
+
+**LOTTO LAB LIVE** funciona en iPhone y escritorio sin conexión a servicios de apuestas, claves ni planes de pago. Al abrir [el estudio de sorteos](https://h4cklaboratory.github.io/dexter-fusion-studio/lotto-lab/#sorteoVirtual) puedes:
+
+- Probar números del generador, de «Números de la suerte» o una combinación manual.
+- Ver a un presentador virtual y una máquina transparente animada que extraen las bolas una a una.
+- Elegir un **sorteo virtual nuevo** (crypto.getRandomValues con rechazo uniforme de sesgo módulo, mezcla Fisher–Yates) o **reproducir un sorteo oficial anterior** tomado de la biblioteca verificada para las reglas vigentes.
+- Comprobar aciertos de bolas principales, bola especial y categorías premiadas documentadas, sin afirmar que el sorteo visual es oficial ni que se ha ganado dinero.
+- Ejecutar 1.000 ensayos virtuales, cotejar números contra resultados publicados y explorar tendencias de los últimos 50, 200 y 500 sorteos.
+- Desactivar animaciones mediante la opción de **reducir movimiento** del dispositivo.
+
+La simulación no produce predicciones ni resultados oficiales. El resultado virtual se determina **antes** de animar las bolas. La repetición histórica es una muestra de un resultado pasado, no un sorteo nuevo. Los juegos sin histórico verificable no simulan tenerlo.
+
+Fuentes y decisiones técnicas: [investigación de páginas de pronósticos y simuladores](INVESTIGACION-SIMULADOR-COMPETIDORES.md). Pruebas especializadas: `tests/test_draw.mjs`, `tests/test_draw_simulator.mjs` y `tests/test_draw_ui.mjs`. La acción de GitHub verifica además que el HTML y los módulos nuevos estén publicados por HTTPS.
+
+## Estado general de las bibliotecas y del generador
+
+Además de Powerball y Mega Millions, el proceso diario utiliza la biblioteca histórica oficial de **New York Take 5 desde 1992**, manteniendo separadas sus sesiones de mediodía y noche cuando existen. Se incluye un catálogo consultable de **48 jurisdicciones de lotería de Estados Unidos** y generadores para modalidades estatales cuyas reglas hayan sido verificadas. No significa que ya se hayan descargado todos los juegos de cada estado.
+
+El motor mantiene las probabilidades completas internamente y muestra porcentajes individuales enteros por claridad, la sección de **Números de la suerte** (sugerencias sin ventaja demostrada), el laboratorio científico y el explorador de cobertura. Las probabilidades de jackpot se presentan como **«1 entre N»**, para no redondear valores diminutos a un 0 % engañoso.
+

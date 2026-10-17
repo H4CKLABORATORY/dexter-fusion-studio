@@ -388,3 +388,95 @@ body{background:radial-gradient(circle at 10% 0%,#174b51 0,transparent 40%),radi
  .draw-extracting .draw-presenter-arm,.draw-extracting .draw-machine-chute>span,
  .draw-revealed-ball{animation:none!important}
 }
+
+
+/* ═══════════ LOTTO LAB · Centro de servicios ═══════════ */
+.services-hub{margin:23px 0 31px;scroll-margin-top:13px}
+.services-heading{padding:15px 3px}
+.services-heading h2{font-size:clamp(27px,4.1vw,43px);letter-spacing:-.045em;margin:10px 0 8px;color:#f8f9fb}
+.services-heading h2 span{color:#f5cf7e}
+.services-heading p{color:#bccecf;max-width:800px;font-size:13px;line-height:1.6;margin-bottom:8px}
+.service-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:11px 0 12px}
+.service-tabs button{display:flex;justify-content:center;align-items:center;gap:8px;min-height:60px;padding:10px 7px;
+  border:1px solid #456174;border-radius:12px;background:#173246;color:#cfe2ee;font-size:12px;font-weight:850;
+  text-align:center;cursor:pointer;transition:background .16s,transform .16s,border-color .16s}
+.service-tabs button span{font-size:17px;color:#ffe499}
+.service-tabs button:hover{background:#224459;transform:translateY(-1px)}
+.service-tabs button[aria-selected="true"]{border-color:#f0d28a;background:linear-gradient(140deg,#fce9ab,#deb765);color:#36270e;box-shadow:0 8px 28px #bb98442b}
+.service-tabs button[aria-selected="true"] span{color:#5b420c}
+.service-tabs button:focus-visible{outline:3px solid #7bd6e7;outline-offset:3px}
+.service-panel-shell{border:1px solid #4a6170;background:linear-gradient(145deg,#112a3c,#142c43 60%,#252f40);
+  border-radius:18px;padding:clamp(16px,3.2vw,28px);min-width:0}
+.service-panel[hidden],.service-field[hidden],#checkPeriodWrap[hidden],#checkOfficialDateWrap[hidden],#checkDrawManualWrap[hidden],
+#checkMultiplierWrap[hidden],#checkPowerPlayWrap[hidden],#taxOtherStateWrap[hidden]{display:none!important}
+.service-global-selector{display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-bottom:1px solid #3e596b;padding-bottom:15px;margin-bottom:20px}
+.service-global-selector label{font-size:12px;font-weight:850;color:#f9e3a2}
+.service-global-selector select{flex:1;min-width:180px;background:#092439;color:#f7faff}
+.service-global-selector small{flex-basis:100%;font-size:11px;color:#99b4c4}
+.service-panel-head{margin-bottom:18px}
+.service-panel-head h3{font-size:clamp(21px,2.9vw,29px);letter-spacing:-.035em;margin:0 0 8px;color:#fff}
+.service-panel-head p{max-width:960px;color:#c3d5dd;line-height:1.7;font-size:13px;margin:0}
+.service-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:15px 0}
+.service-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.service-field label{font-size:12px;font-weight:850;color:#e8f1f6;line-height:1.4}
+.service-field input,.service-field select{width:100%;min-height:43px;background:#092638;border:1px solid #567187;color:#fff;
+  border-radius:10px;padding:10px 12px;font:inherit;font-size:13px}
+.service-field input:disabled{opacity:.56;cursor:not-allowed}
+.service-field input[type=date]{color-scheme:dark}
+.service-field input:focus-visible,.service-field select:focus-visible{outline:2px solid #e5c67e;outline-offset:1px}
+.service-field small{font-size:11px;line-height:1.5;color:#adbecb}
+.service-actions{display:flex;flex-wrap:wrap;gap:9px;margin:18px 0}
+.service-actions button,.service-official-row button{cursor:pointer;border-radius:10px;border:1px solid #688292;padding:11px 16px;
+  background:#24445a;color:#fff;font-weight:850;font-size:12px}
+.service-actions .service-primary{border-color:#ffe6a5;color:#3b280e;font-size:14px;background:linear-gradient(100deg,#ffecb1,#e4b652);
+  min-height:48px;box-shadow:0 8px 23px #ebca6326}
+.service-actions button:hover,.service-official-row button:hover{filter:brightness(1.15)}
+.service-actions button:disabled,.service-official-row button:disabled{opacity:.42;cursor:not-allowed}
+.service-result{border:1px solid #3e6673;border-radius:13px;background:#113447;padding:16px;color:#dfecf4;font-size:13px;line-height:1.65;margin-top:11px}
+.service-result p{margin:6px 0}
+.service-status-label{display:inline-block;color:#f6e49b;font-size:12px;letter-spacing:.07em;margin-bottom:5px}
+.service-money-value{display:block;font-size:clamp(22px,3.5vw,33px);color:#ffe49b;margin:10px 0;overflow-wrap:anywhere}
+.service-fineprint{color:#a4bcca;font-size:11px;line-height:1.7;margin-top:14px}
+.service-advice{color:#bed9e9}
+.service-official-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:14px 0;border-bottom:1px dashed #587088}
+.service-official-row a,.service-source-row a,#prizeOfficialLink{color:#ffe293;text-decoration:underline;text-underline-offset:3px;font-size:13px;font-weight:750;overflow-wrap:anywhere}
+.scan-area{max-width:660px;margin:20px auto;padding:26px;border-radius:15px;border:2px dashed #7594a2;background:#0c273a;
+  display:flex;flex-direction:column;align-items:center;text-align:center;gap:11px}
+.scan-camera-icon{font-size:67px;line-height:1;color:#f4d485}
+.scan-area>strong{color:#f7f4e9;font-size:18px}
+.scan-upload{background:linear-gradient(110deg,#ffebac,#dfb25b);color:#352411;border-radius:10px;font-weight:900;
+  font-size:13px;padding:13px 19px;cursor:pointer;display:inline-flex;min-height:44px;align-items:center}
+.scan-upload:hover{filter:brightness(1.09)}
+.scan-area input[type=file]{max-width:100%;color:#b9cfda;font-size:12px}
+.scan-results{width:100%;margin-top:7px;padding:14px;background:#193648;border:1px solid #4e6674;border-radius:9px;
+  font-size:12px;color:#d6e6ed;line-height:1.5;overflow-wrap:anywhere}
+.scan-results strong{color:#ffe093}
+.service-mini-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:15px 0 20px}
+.service-mini-metrics>div{padding:15px 14px;background:#092839;border:1px solid #3d6677;border-radius:12px}
+.service-mini-metrics span{display:block;font-size:11px;color:#b9d0dc;line-height:1.5}
+.service-mini-metrics strong{display:block;margin-top:9px;font-size:clamp(18px,2.3vw,25px);color:#f5d990;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.service-prize-table{min-width:520px}
+.service-prize-table td:first-child{color:#fff;font-weight:650}
+.service-prize-table td:last-child{color:#ffe19e;white-space:nowrap;font-variant-numeric:tabular-nums}
+.service-tax-columns{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.service-tax-columns article{background:#0d283a;border:1px solid #406078;border-radius:14px;padding:18px}
+.service-tax-columns article>span{font-size:12px;color:#d1e0e7}
+.service-tax-columns article>strong{display:block;margin:10px 0;font-size:clamp(23px,3.3vw,31px);color:#f8d788;overflow-wrap:anywhere}
+.service-tax-columns article p{display:flex;justify-content:space-between;gap:12px;padding:6px 0;
+  font-size:12px;color:#b9cbd5;border-bottom:1px solid #354b5a}
+.service-source-row{display:flex;flex-wrap:wrap;gap:18px;margin-top:16px}
+@media(max-width:950px){.service-tabs{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:650px){.service-tabs{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 0 7px;
+  scrollbar-color:#8799a4 transparent}
+ .service-tabs button{flex:0 0 155px;scroll-snap-align:start;min-height:55px}
+ .service-panel-shell{padding:15px}
+ .service-form-grid{grid-template-columns:1fr}
+ .service-tax-columns{grid-template-columns:1fr}
+ .service-mini-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .service-global-selector{display:grid;grid-template-columns:1fr}
+ .service-global-selector small{grid-column:1}
+ .service-official-row{display:grid}
+ .service-actions button{flex:1}
+}
+@media(max-width:370px){.service-mini-metrics{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.service-tabs button{transition:none}}

@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {specs} from '../assets/game-catalog.mjs';
 import {outcomeCount} from '../assets/scientific-math.mjs';
 import {rankTicket} from '../assets/coverage-engine.mjs';
-import {chooseUniqueRanks,randomBigIntBelow,generateUniquePack,packCost} from '../assets/unique-pack.mjs';
+import {chooseUniqueRanks,randomBigIntBelow,generateUniquePack,generateDisjointPack,disjointThreePlusOdds,packCost} from '../assets/unique-pack.mjs';
 
 test('Floyd da cobertura sin duplicados y sin enumerar el universo de boletos',()=>{
   for(const [key,game] of Object.entries(specs)){
@@ -74,4 +74,53 @@ test('el generador principal incluye paquetes accesibles y ningún botón compra
   assert.ok(builder.includes("'unique-pack-ui.mjs'"));
   assert.ok(ui.includes('generateUniquePack('));
   assert.ok(!ui.includes('Math.random('));
+});
+
+test('modo diversidad prueba 3+ aciertos sin superposición en C(10,5)',()=>{
+  const game={name:'Matriz pequeña de verificación',n:10,k:5,bonus:0};
+  const pack=generateDisjointPack(game,2,()=>0n);
+  assert.equal(pack.tickets.length,2);
+  const first=new Set(pack.tickets[0].main),second=new Set(pack.tickets[1].main);
+  assert.equal([...first].filter(x=>second.has(x)).length,0);
+  assert.equal(new Set([...first,...second]).size,10);
+  const exact=disjointThreePlusOdds(game,2);
+  assert.equal(exact.numerator,exact.denominator);
+  let qualifying=0,checked=0;
+  for(let a=1;a<=10;a++)for(let b=a+1;b<=10;b++)
+    for(let c=b+1;c<=10;c++)for(let d=c+1;d<=10;d++)
+      for(let e=d+1;e<=10;e++){
+        const winning=new Set([a,b,c,d,e]);
+        const matches=pack.tickets.map(t=>t.main.filter(x=>winning.has(x)).length);
+        assert.equal(matches.filter(x=>x>=3).length,1);
+        if(matches.some(x=>x>=3))qualifying++;
+        checked++;
+      }
+  assert.equal(checked,252);
+  assert.equal(qualifying,252);
+});
+test('disjoint mode has exact 3+-main odds and unchanged jackpot chance',()=>{
+  for(const key of ['powerball','megamillions','vacash5','cafantasy5','nytake5']){
+    const game=specs[key],limit=Math.floor(game.n/5);
+    let counter=0n;
+    const pack=generateDisjointPack(game,limit,n=>(counter++)%n);
+    assert.equal(pack.tickets.length,limit);
+    assert.equal(new Set(pack.tickets.flatMap(t=>t.main)).size,limit*5);
+    assert.equal(new Set(pack.tickets.map(t=>String(t.rank))).size,limit);
+    assert.equal(pack.coverageNumerator,BigInt(limit));
+    assert.equal(pack.coverageDenominator,outcomeCount(game));
+    assert.ok(pack.threePlusOdds.numerator>0n);
+    assert.ok(pack.threePlusOdds.numerator<=pack.threePlusOdds.denominator);
+    assert.throws(()=>generateDisjointPack(game,limit+1,()=>0n),/grupos/);
+  }
+  assert.throws(()=>disjointThreePlusOdds(specs.mdpick3,1),/cinco bolas/);
+});
+test('la portada expone 2 métodos diferentes y resultado de 3+ sin exagerar jackpot',()=>{
+  const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
+  const ui=readFileSync(new URL('../assets/unique-pack-ui.mjs',import.meta.url),'utf8');
+  assert.ok(html.includes('id="packMode"'));
+  assert.ok(html.includes('value="disjoint"'));
+  assert.ok(html.includes('id="packThreePlusOdds"'));
+  assert.ok(ui.includes('generateDisjointPack('));
+  assert.ok(ui.includes('disjointThreePlusOdds('));
+  assert.ok(ui.includes('El jackpot mantiene la misma cobertura m/N'));
 });

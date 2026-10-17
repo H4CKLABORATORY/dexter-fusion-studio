@@ -190,6 +190,7 @@ function outputTicket(t){
   const g=specs[selected];const div=$p('proTicket');
   renderTicketReveal(div,t,selected,generation);
   lastNumbers=t.main.concat(t.bonus?[t.bonus]:[]);
+  try{sessionStorage.setItem('lotto-last-ticket',JSON.stringify({key:selected,ticket:{main:t.main,bonus:t.bonus??null}}))}catch{}
   if(typeof window!=='undefined')window.dispatchEvent(new Event('lotto-ticket-updated'));
   $p('proTicketCount').textContent='Combinación #'+nf(generation);
   $p('proCopy').disabled=false;
@@ -298,6 +299,7 @@ function renderProbabilities(){
 }
 function updateGame(){
   selected=$p('proGame').value;generation=0;lastNumbers=[];
+  try{sessionStorage.setItem('lotto-selected-game',selected)}catch{}
   const g=specs[selected];$p('proTicket').innerHTML='<span class="ticket-empty">Tu combinación aparecerá aquí.</span>';
   $p('proTicketCount').textContent='LISTO PARA GENERAR';
   $p('proCopy').disabled=true;
@@ -309,6 +311,12 @@ function updateGame(){
   $p('proTicketNote').textContent=g.kind==='digits'?'Modalidad de '+g.width+' dígitos: para acertar en orden exacto, cada dígito debe coincidir.':selected==='chica'?'La Chica: número de dos cifras (00–99), cálculo bajo equiprobabilidad.':'Prueba un criterio matemático de selección. Los resultados dependen del método elegido.';
   renderProbabilities();loadVerified();notifyScientificChange();
 }
+try{
+  const query=new URLSearchParams(location.search).get('game');
+  const prior=sessionStorage.getItem('lotto-selected-game');
+  const preferred=[query,prior].find(key=>key&&Object.hasOwn(specs,key));
+  if(preferred)$p('proGame').value=preferred;
+}catch{}
 $p('proGame').addEventListener('change',updateGame);
 $p('proStyle').addEventListener('change',renderProbabilities);
 $p('proCoverage').addEventListener('change',renderCoverage);

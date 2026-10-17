@@ -51,7 +51,7 @@ test('pestañas, comprobación de premio, impuestos y vínculos se ejecutan en e
     assert.equal(byId('checkDate').value,'2026-10-14');
     byId('checkNumbers').value='1 12 20 45 69 | 25';
     byId('checkRun').listeners.click();
-    assert.ok(byId('checkResult').children.some(c=>c.textContent.includes('US$1,000,000.00')));
+    assert.ok(byId('checkResult').children.some(c=>c.textContent.includes('1,000,000.00')));
     assert.equal(byId('checkSendTax').disabled,false);
     byId('checkSendTax').listeners.click();
     assert.equal(byId('taxGross').value,'1000000');

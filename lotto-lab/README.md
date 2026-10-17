@@ -48,3 +48,11 @@ Un sorteo bien diseñado es independiente: **ni los números calientes, ni los a
 Este proyecto está diseñado para publicarse en una ruta independiente `lotto-lab/` de un repositorio de GitHub existente si no hay permisos para crear otro repositorio. Para usar Pages, habilita **Settings > Pages > Build and deployment > Source: GitHub Actions** una vez. La acción se ejecuta en `main` y cada día para refrescar las copias de las fuentes, y el sitio es accesible en la URL Pages del repositorio.
 
 Documentación técnica y pruebas en la carpeta `tests/`.
+## Estado de publicación verificado (2026-10-17)
+
+- GitHub Pages quedó habilitado. El despliegue del [flujo LOTTO LAB n.º 2](https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39029432258) concluyó correctamente.
+- Dirección prevista: **https://h4cklaboratory.github.io/dexter-fusion-studio/lotto-lab/**. El artefacto Pages ahora conserva deliberadamente el prefijo `lotto-lab/` para no colocar el sitio sobre la raíz de otros proyectos.
+- `.github/workflows/lotto-lab-pages.yml` verifica las pruebas de Python/Node, descarga nuevos sorteos oficiales, valida ambos JSON, crea el artefacto web y publica Pages. Tras el despliegue, una prueba de humo solicita por HTTPS el HTML y los dos JSON, comprueba su formato y exige al menos 1000 registros por juego. Si no son accesibles después de varios intentos, el flujo falla claramente.
+- Los históricos se reconstruyen en el runner cada día (UTC: 12:27); no hay que confundir una ejecución correcta con una ventaja predictiva.
+- Para comprobar el estado más reciente, consulta [GitHub Actions](https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/workflows/lotto-lab-pages.yml).
+

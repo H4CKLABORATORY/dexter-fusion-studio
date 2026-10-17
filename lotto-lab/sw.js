@@ -1,6 +1,6 @@
 // LOTTO LAB DEXTER v3: datos oficiales y archivos visuales con prioridad de red.
 // No se crean resultados ficticios ni se comparten caches entre aplicaciones.
-const CACHE='lotto-lab-dexter-v4';
+const CACHE='lotto-lab-dexter-v5';
 const SHELL=['./','./index.html','./manifest.webmanifest','./icon.svg','./assets/generator-pro.js','./assets/lottery-pro.css'];
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)));

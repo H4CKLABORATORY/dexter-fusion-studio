@@ -42,9 +42,14 @@ function showItems(){
         const button=createText('button',labelFor(key),'us-game-link');
         button.type='button';
         button.addEventListener('click',()=>{
-          gameSelector.value=key;
-          gameSelector.dispatchEvent(new Event('change',{bubbles:true}));
-          document.getElementById('generador').scrollIntoView({behavior:'smooth'});
+          if(document.getElementById('generador')){
+            gameSelector.value=key;
+            gameSelector.dispatchEvent(new Event('change',{bubbles:true}));
+            document.getElementById('generador').scrollIntoView({behavior:'smooth'});
+          }else{
+            try{sessionStorage.setItem('lotto-selected-game',key)}catch{}
+            window.location.assign('index.html?game='+encodeURIComponent(key));
+          }
         });
         buttons.append(button);
       }

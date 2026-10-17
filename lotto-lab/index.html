@@ -27,7 +27,7 @@
  <a class="wordmark" href="#generador" aria-label="Lotto Lab Dexter"><span class="brand-icon">L</span><span>LOTTO<span class="brand-blue">LAB</span><small>BY DEXTER</small></span></a>
  <div class="top-actions"><span class="live-label" id="statusIndicator"><i></i> Cargando fuentes</span><button class="tiny-btn" id="installBtn" hidden>+ Instalar app</button></div>
 </header>
-<nav class="navscroll" aria-label="Secciones"><a href="#generador">Generador</a><a href="#scientificLab">Motor científico</a><a href="#comparador">Comparar juegos</a><a href="#resumen">Últimos resultados</a><a href="#estadisticas">Porcentajes</a><a href="#analisis">Matemáticas</a><a href="#usDirectory">Loterías de EE. UU.</a><a href="#premios">Grandes premios</a><a href="#archivoDetalle">Archivo histórico</a></nav>
+<nav class="navscroll" aria-label="Secciones"><a href="#generador">Generador</a><a href="#sorteoVirtual">Sorteo animado</a><a href="#scientificLab">Motor científico</a><a href="#comparador">Comparar juegos</a><a href="#resumen">Últimos resultados</a><a href="#estadisticas">Porcentajes</a><a href="#analisis">Matemáticas</a><a href="#usDirectory">Loterías de EE. UU.</a><a href="#premios">Grandes premios</a><a href="#archivoDetalle">Archivo histórico</a></nav>
 <main id="contenido">
 <section id="generador" aria-label="Generador matemático de lotería">
  <div class="lotto-stage"><div class="lotto-stage-inner">
@@ -111,6 +111,68 @@
    <p class="lotto-compact-note">Esta herramienta es una simulación matemática y <strong>no vende ni compra boletos</strong>. Un 80 % de obtener cualquier premio no es un 80 % de ganar dinero ni de acertar el jackpot.</p>
   </div>
  </details>
+</section>
+<section id="sorteoVirtual" class="draw-section" aria-label="Estudio de sorteos virtuales">
+ <div class="draw-section-heading">
+  <div><div class="lotto-kicker">EXPERIENCIA INTERACTIVA · 100 % GRATUITA</div>
+   <h2>Estudio de sorteos <span>LOTTO LAB LIVE</span></h2>
+   <p>Entra al plató y pon a prueba tus números. El presentador virtual mezcla las bolas y las extrae una por una. Puedes simular un sorteo nuevo o reproducir uno del archivo oficial.</p></div>
+  <span class="draw-sim-badge"><span aria-hidden="true">●</span> SIMULACIÓN · NO OFICIAL</span>
+ </div>
+ <div class="draw-layout">
+  <div class="draw-stage" id="drawStage" aria-label="Máquina y presentador animados de lotería">
+   <div class="draw-stage-lights" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+   <div class="draw-stage-top"><span>LOTTO LAB <b>LIVE</b></span><span id="drawLiveStatus">ESTUDIO LISTO</span></div>
+   <div class="draw-studio-floor" aria-hidden="true"></div>
+   <div class="draw-presenter" aria-hidden="true">
+     <div class="draw-presenter-head"><span class="draw-hair"></span><span class="draw-eye left"></span><span class="draw-eye right"></span><span class="draw-nose"></span><span class="draw-smile"></span></div>
+     <div class="draw-presenter-neck"></div>
+     <div class="draw-presenter-body"><div class="draw-lapel left"></div><div class="draw-lapel right"></div><span class="draw-presenter-shirt"></span><span class="draw-presenter-tie"></span><span class="draw-presenter-brand">LL</span></div>
+     <div class="draw-presenter-arm"><span class="draw-presenter-hand"></span></div>
+   </div>
+   <div class="draw-machine" aria-hidden="true">
+    <div class="draw-machine-globe"><div class="draw-globe-shine"></div>
+     <div class="draw-machine-spin">
+       <span class="draw-tumble" style="--i:0">07</span><span class="draw-tumble" style="--i:1">18</span>
+       <span class="draw-tumble" style="--i:2">24</span><span class="draw-tumble" style="--i:3">39</span>
+       <span class="draw-tumble" style="--i:4">43</span><span class="draw-tumble" style="--i:5">58</span>
+       <span class="draw-tumble" style="--i:6">62</span><span class="draw-tumble" style="--i:7">12</span>
+     </div>
+    </div>
+    <div class="draw-machine-chute"><span id="drawEmergingBall">★</span></div>
+    <div class="draw-machine-neck"></div>
+    <div class="draw-machine-base">LOTTO LAB · EXPERIMENTAL DRAW</div>
+   </div>
+   <div class="draw-stage-caption"><strong id="drawStageStatus">¿Qué números saldrán en la demostración?</strong><span>Animación ficticia · resultados aleatorios imparciales</span></div>
+  </div>
+  <div class="draw-console">
+   <div class="draw-console-title"><span>CONSOLA DE SORTEO</span><span class="draw-console-indicator">● DEMO</span></div>
+   <div class="draw-fields">
+    <label for="drawSource">Combinación que quieres probar</label>
+    <select id="drawSource"><option value="lucky">Números de la suerte de hoy</option><option value="generated">Mi boleto del generador</option><option value="custom">Escribir mis números</option></select>
+    <div id="drawCustomWrapper" hidden><label for="drawCustomNumbers">Números (separa con comas y utiliza | para la especial)</label>
+      <input id="drawCustomNumbers" type="text" autocomplete="off" placeholder="5, 12, 19, 28, 41 | 7"></div>
+    <label for="drawMode">Tipo de sorteo</label>
+    <select id="drawMode"><option value="virtual">Sorteo virtual con aleatoriedad criptográfica</option><option value="historical">Reproducir un resultado histórico oficial</option></select>
+    <label for="drawSpeed">Velocidad de extracción</label>
+    <select id="drawSpeed"><option value="normal">Cinematográfica · una bola a la vez</option><option value="fast">Rápida</option></select>
+   </div>
+   <div class="draw-your-line"><span>Tu combinación:</span><strong id="drawYourNumbers">Cargando números del día…</strong></div>
+   <div class="draw-console-actions"><button id="drawStart" type="button">▶ INICIAR SORTEO</button><button id="drawBatch" type="button">Simular 1.000</button><button id="drawHistoryCheck" type="button">Comprobar historial</button></div>
+   <p id="drawConsoleNote" class="draw-disclaimer" role="status">Este estudio no utiliza dinero ni produce resultados válidos para reclamar premios.</p>
+  </div>
+ </div>
+ <div class="draw-results">
+   <div class="draw-results-top"><h3>Resultados de la extracción</h3><span id="drawMatchBadge">SIN SORTEO</span></div>
+   <div id="drawRevealedBalls" class="draw-result-balls" aria-live="polite"><span class="ticket-empty">Aquí aparecerán las bolas extraídas.</span></div>
+   <p id="drawOutcome" class="draw-outcome">Genera una combinación o utiliza los números de la suerte del día para empezar.</p>
+   <div id="drawStatResults" class="draw-stat-results"></div>
+ </div>
+ <details class="draw-analytics" id="drawWindowsPanel"><summary>Comparar tendencias de 50, 200 y 500 sorteos</summary>
+   <p>Frecuencias, pares-impares y niveles alto/bajo de archivos oficiales del régimen vigente. Estas estadísticas describen el pasado; no alteran los próximos sorteos.</p>
+   <div class="draw-window-cards" id="drawWindowCards"><p class="subtle">Elige una lotería con historial para comparar sus ventanas.</p></div>
+ </details>
+ <div class="draw-disclaimer-box"><strong>¿Qué representa la animación?</strong> El personaje y la máquina son una recreación gráfica; las bolas virtuales se eligen con un generador criptográfico uniforme antes de mostrarlas. El modo histórico reproduce sorteos que ya ocurrieron. Ninguno predice una lotería oficial ni incrementa las probabilidades reales.</div>
 </section>
 <details id="scientificLab" class="lotto-tab-details scientific-lab">
  <summary>Laboratorio científico 3.0 · premios, probabilidades exactas y prueba de modelos</summary>
@@ -373,6 +435,7 @@ loadDateFields();fetchRows();
 <script type="module" src="assets/science-ui.mjs"></script>
 <script type="module" src="assets/lucky-ui.mjs"></script>
 <script type="module" src="assets/coverage-ui.mjs"></script>
+<script type="module" src="assets/draw-ui.mjs"></script>
 <script type="module" src="assets/us-catalog-ui.js"></script>
 </body>
 </html>

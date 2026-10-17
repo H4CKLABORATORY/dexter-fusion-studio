@@ -190,6 +190,7 @@ function outputTicket(t){
   const g=specs[selected];const div=$p('proTicket');
   renderTicketReveal(div,t,selected,generation);
   lastNumbers=t.main.concat(t.bonus?[t.bonus]:[]);
+  if(typeof window!=='undefined')window.dispatchEvent(new Event('lotto-ticket-updated'));
   $p('proTicketCount').textContent='Combinación #'+nf(generation);
   $p('proCopy').disabled=false;
   const b=g.bonus?' · especial '+String(t.bonus).padStart(2,'0'):'';
@@ -321,6 +322,11 @@ $p('proCopy').addEventListener('click',async()=>{
   const g=specs[selected];
   const text=lastNumbers.slice(0,g.k).map(v=>String(v).padStart(g.kind==='digits'?g.width:2,'0')).join(' ') +(g.bonus?' | '+String(lastNumbers.at(-1)).padStart(2,'0'):'');
   try{await navigator.clipboard.writeText(text);$p('proTicketNote').textContent='Copiado: '+text;}catch{$p('proTicketNote').textContent='Selecciona y copia: '+text;}
+});
+window.LottoLabTicketState=()=>({
+  key:selected,game:specs[selected],
+  ticket:lastNumbers.length?
+    {main:lastNumbers.slice(0,specs[selected].k),bonus:specs[selected].bonus?lastNumbers.at(-1):null}:null
 });
 window.LottoLabScientificState=()=>({key:selected,game:specs[selected],rows:verified});
 window.LottoLabDailyState=()=>({key:selected,game:specs[selected],rows:verified});

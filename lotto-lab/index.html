@@ -27,7 +27,7 @@
  <a class="wordmark" href="#generador" aria-label="Lotto Lab Dexter"><span class="brand-icon">L</span><span>LOTTO<span class="brand-blue">LAB</span><small>BY DEXTER</small></span></a>
  <div class="top-actions"><span class="live-label" id="statusIndicator"><i></i> Cargando fuentes</span><button class="tiny-btn" id="installBtn" hidden>+ Instalar app</button></div>
 </header>
-<nav class="navscroll" aria-label="Secciones"><a href="#generador">Generador</a><a href="#sorteoVirtual">Sorteo animado</a><a href="#scientificLab">Motor científico</a><a href="#comparador">Comparar juegos</a><a href="#resumen">Últimos resultados</a><a href="#estadisticas">Porcentajes</a><a href="#analisis">Matemáticas</a><a href="#usDirectory">Loterías de EE. UU.</a><a href="#premios">Grandes premios</a><a href="#archivoDetalle">Archivo histórico</a></nav>
+<nav class="navscroll" aria-label="Secciones"><a href="#servicesHub" id="servicesQuickLink">Servicios: revisar · escanear · impuestos</a><a href="#generador">Generador</a><a href="#sorteoVirtual">Sorteo animado</a><a href="#scientificLab">Motor científico</a><a href="#comparador">Comparar juegos</a><a href="#resumen">Últimos resultados</a><a href="#estadisticas">Porcentajes</a><a href="#analisis">Matemáticas</a><a href="#usDirectory">Loterías de EE. UU.</a><a href="#premios">Grandes premios</a><a href="#archivoDetalle">Archivo histórico</a></nav>
 <main id="contenido">
 <section id="generador" aria-label="Generador matemático de lotería">
  <div class="lotto-stage"><div class="lotto-stage-inner">
@@ -111,6 +111,84 @@
    <p class="lotto-compact-note">Esta herramienta es una simulación matemática y <strong>no vende ni compra boletos</strong>. Un 80 % de obtener cualquier premio no es un 80 % de ganar dinero ni de acertar el jackpot.</p>
   </div>
  </details>
+</section>
+<section id="servicesHub" class="services-hub" aria-label="Servicios de LOTTO LAB">
+ <div class="services-heading"><div><span class="lotto-kicker">CENTRO DE SERVICIOS · LOTTO LAB</span>
+ <h2>Todo sobre tu boleto, <span>en un solo lugar.</span></h2>
+ <p>Consulta resultados, compara premios, utiliza tu presupuesto y estima impuestos. Cada herramienta está separada para que puedas encontrarla fácilmente.</p></div></div>
+ <div class="service-tabs" role="tablist" aria-label="Servicios de LOTTO LAB">
+  <button id="serviceTab-check" type="button" role="tab" aria-selected="true" aria-controls="servicePanel-check" data-service="check"> <span aria-hidden="true">✓</span> Revisar boleto</button>
+  <button id="serviceTab-scan" type="button" role="tab" aria-selected="false" aria-controls="servicePanel-scan" data-service="scan" tabindex="-1"><span aria-hidden="true">▦</span> Escanear código</button>
+  <button id="serviceTab-prizes" type="button" role="tab" aria-selected="false" aria-controls="servicePanel-prizes" data-service="prizes" tabindex="-1"><span aria-hidden="true">★</span> Premios y probabilidades</button>
+  <button id="serviceTab-budget" type="button" role="tab" aria-selected="false" aria-controls="servicePanel-budget" data-service="budget" tabindex="-1"><span aria-hidden="true">$</span> Presupuesto</button>
+  <button id="serviceTab-tax" type="button" role="tab" aria-selected="false" aria-controls="servicePanel-tax" data-service="tax" tabindex="-1"><span aria-hidden="true">%</span> Impuestos</button>
+ </div>
+ <div class="service-panel-shell">
+ <div class="service-global-selector"><label for="serviceGame">Lotería para estos servicios</label>
+  <select id="serviceGame" aria-label="Elegir lotería para comprobación y cálculo"></select>
+  <small>También puedes cambiar la lotería desde el generador; ambas selecciones se mantienen sincronizadas.</small></div>
+ <section id="servicePanel-check" class="service-panel" role="tabpanel" aria-labelledby="serviceTab-check" data-service-panel="check">
+  <div class="service-panel-head"><h3>Comprobador de números de lotería</h3><p>Coteja los números de una jugada con los sorteos publicados. El resultado es informativo: solo el sistema oficial puede validar que un boleto real sea premiado y no cobrado.</p></div>
+  <div class="service-form-grid">
+   <div class="service-field"><label for="checkTicketMode">¿De dónde tomamos tus números?</label><select id="checkTicketMode"><option value="manual">Introducir números del boleto</option><option value="generated">Último boleto generado</option><option value="lucky">Números de la suerte de hoy</option></select></div>
+   <div class="service-field"><label for="checkNumbers">Números de tu jugada</label><input id="checkNumbers" type="text" inputmode="text" autocomplete="off" placeholder="5 12 19 28 41 | 7"/><small>Separa los números con espacios o comas; añade «|» antes de la bola especial.</small></div>
+   <div class="service-field"><label for="checkResultSource">¿Cómo comprobar el sorteo?</label><select id="checkResultSource"><option value="official">Historial oficial descargado</option><option value="user">Introducir resultado manual (sin verificar)</option></select></div>
+   <div class="service-field" id="checkOfficialDateWrap"><label for="checkDate">Fecha exacta del sorteo</label><input id="checkDate" type="date"/><small id="checkDateHint">Carga la última fecha disponible o elige una fecha del archivo.</small></div>
+   <div class="service-field" id="checkPeriodWrap" hidden><label for="checkPeriod">Turno del sorteo (Take 5)</label><select id="checkPeriod"><option value="evening">Noche</option><option value="midday">Mediodía</option></select></div>
+   <div class="service-field" id="checkDrawManualWrap" hidden><label for="checkWinningNumbers">Resultado ganador que deseas introducir</label><input id="checkWinningNumbers" type="text" autocomplete="off" placeholder="5 12 19 28 41 | 7"/><small>No procede de una fuente oficial: sus cálculos serán hipotéticos.</small></div>
+   <div class="service-field"><label for="checkClaimState">Estado donde se compró (relevante para pagos)</label><select id="checkClaimState"><option value="VA">Virginia</option><option value="MD">Maryland</option><option value="CA">California</option><option value="NY">Nueva York</option><option value="OTHER">Otro estado</option></select></div>
+   <div class="service-field"><label for="checkStake">Apuesta de esta jugada, en US$</label><input id="checkStake" type="number" min="0.5" max="1000" step="0.5" value="2"/><small>En Pick 3/4/5 de Maryland el cálculo cubre Straight de US$0,50 o US$1.</small></div>
+   <div class="service-field" id="checkMultiplierWrap"><label for="checkMultiplier">Multiplicador impreso en boleto</label><select id="checkMultiplier"><option value="unknown">Sin confirmar / desconocido</option><option value="2">2×</option><option value="3">3×</option><option value="4">4×</option><option value="5">5×</option><option value="10">10×</option></select><small id="checkMultiplierHint">En Mega Millions 2025+ el multiplicador está incluido en cada jugada.</small></div>
+   <div class="service-field" id="checkPowerPlayWrap" hidden><label for="checkPowerPlay">Complemento Power Play</label><select id="checkPowerPlay"><option value="no">No contratado</option><option value="yes">Sí, +US$1 (confirmar multiplicador)</option></select></div>
+  </div>
+  <div class="service-actions"><button id="checkRun" type="button" class="service-primary">✓ COMPROBAR NÚMEROS</button><button id="checkLatest" type="button">Elegir último sorteo disponible</button></div>
+  <div id="checkResult" class="service-result" role="status" aria-live="polite">Introduce tu jugada y selecciona la fecha del sorteo.</div>
+  <div class="service-official-row"><a id="checkOfficialLink" href="https://www.valottery.com/aboutus/mobileapp" target="_blank" rel="noopener noreferrer">Verificar boleto en lotería oficial ↗</a><button id="checkSendTax" type="button" disabled>Estimar impuestos del premio</button></div>
+  <p class="service-fineprint">No verifica autenticidad, código de validación, fecha de compra, elegibilidad, jugadas adicionales, premios ya pagados ni caducidad. Si no hay datos oficiales compatibles, no se mostrará una confirmación ficticia.</p>
+ </section>
+ <section id="servicePanel-scan" class="service-panel" role="tabpanel" aria-labelledby="serviceTab-scan" data-service-panel="scan" hidden>
+  <div class="service-panel-head"><h3>Escanear código de barras o QR</h3><p>Usa la cámara o selecciona una foto del boleto. Esta página intentará leer el código <strong>solo dentro de tu navegador</strong>; no enviará su foto o identificador a nuestros servidores.</p></div>
+  <div class="scan-area"><div class="scan-camera-icon" aria-hidden="true">▦</div><strong>Fotografía el código del boleto</strong>
+   <label for="scanFile" class="scan-upload">Abrir cámara / elegir foto</label><input id="scanFile" type="file" accept="image/*" capture="environment"/>
+   <div class="scan-results" id="scanOutput" role="status">Esperando una imagen. La compatibilidad de lectura depende del navegador.</div>
+  </div>
+  <p class="service-fineprint"><strong>Importante:</strong> los códigos de los boletos son identificadores únicos que la lotería comprueba contra un sistema central. Leer sus caracteres no revela necesariamente tus números ni demuestra un premio. En algunos iPhone, el navegador no permite el reconocimiento de códigos: utiliza la aplicación oficial de tu estado para obtener una validación real.</p>
+  <div class="service-official-row"><a id="scanOfficialLink" href="https://www.valottery.com/aboutus/mobileapp" target="_blank" rel="noopener noreferrer">Abrir el escáner oficial ↗</a><button type="button" id="scanGoManual">Introducir números manualmente</button></div>
+ </section>
+ <section id="servicePanel-prizes" class="service-panel" role="tabpanel" aria-labelledby="serviceTab-prizes" data-service-panel="prizes" hidden>
+  <div class="service-panel-head"><h3>Premios posibles y probabilidades exactas</h3><p>Consulta cuánto paga cada categoría en el juego base y qué tan difícil es acertarla. Premios mayores y pagos variables requieren los montos oficiales de cada sorteo.</p></div>
+  <div class="service-mini-metrics"><div><span>Probabilidad del jackpot</span><strong id="prizeJackpotOdds">—</strong></div><div><span>Precio habitual de la jugada</span><strong id="prizeBaseCost">—</strong></div><div><span>Premios fijos esperados por boleto</span><strong id="prizeFixedExpected">—</strong></div></div>
+  <div class="compare-table-scroll"><table class="compare-table service-prize-table"><thead><tr><th>Categoría</th><th>Premio</th><th>Probabilidad (1 entre)</th></tr></thead><tbody id="prizeTableRows"></tbody></table></div>
+  <p id="prizeTableNote" class="service-fineprint"></p><a id="prizeOfficialLink" target="_blank" rel="noopener noreferrer" href="https://www.powerball.com/powerball-prize-chart/">Consultar tabla de premios oficial ↗</a>
+ </section>
+ <section id="servicePanel-budget" class="service-panel" role="tabpanel" aria-labelledby="serviceTab-budget" data-service-panel="budget" hidden>
+  <div class="service-panel-head"><h3>Presupuesto y estimación matemática</h3><p>Indica cuánto gastarías. Calcularemos cuántas jugadas básicas alcanzan, el retorno promedio matemático de los premios fijos disponibles y cuánto podría perderse. <strong>No es dinero que recibirás con certeza.</strong></p></div>
+  <div class="service-form-grid"><div class="service-field"><label for="budgetMoney">Cantidad disponible (US$)</label><input id="budgetMoney" type="number" min="0" max="1000000" step="1" value="20"/></div>
+   <div class="service-field"><label for="budgetPowerPlay">Modalidad</label><select id="budgetPowerPlay"><option value="base">Jugada básica / Straight de US$1</option><option value="powerplay">Power Play en Powerball (+US$1)</option></select></div>
+  </div>
+  <div class="service-mini-metrics"><div><span>Jugadas posibles</span><strong id="budgetPlays">—</strong></div><div><span>Gasto calculado</span><strong id="budgetSpent">—</strong></div><div><span>Premios fijos esperados (promedio)</span><strong id="budgetExpectedGross">—</strong></div><div><span>Resultado promedio sin jackpot</span><strong id="budgetExpectedNet">—</strong></div></div>
+  <div id="budgetDetails" class="service-result" role="status">No es una predicción ni garantiza recuperar la apuesta.</div>
+  <p class="service-fineprint">No compra boletos. Los resultados de cada boleto no son independientes si juegas distintas combinaciones del mismo sorteo. La expectativa matemática excluye jackpots y pagos variables y se basa en reglas verificadas, por lo que no constituye una proyección exacta de la rentabilidad total.</p>
+ </section>
+ <section id="servicePanel-tax" class="service-panel" role="tabpanel" aria-labelledby="serviceTab-tax" data-service-panel="tax" hidden>
+  <div class="service-panel-head"><h3>Simulador de impuestos del premio</h3><p>Compara el dinero que podría quedar <strong>después de la retención inicial</strong> con una <strong>estimación ilustrativa del impuesto final</strong>. El resultado definitivo depende de residencia, ingresos, formularios, premios compartidos y normativa aplicable.</p></div>
+  <div class="service-form-grid">
+   <div class="service-field"><label for="taxGross">Monto bruto del premio (US$)</label><input id="taxGross" type="number" min="0" max="1000000000000" step="0.01" value="1000000"/></div>
+   <div class="service-field"><label for="taxStake">Costo de la jugada (US$)</label><input id="taxStake" type="number" min="0" max="1000000" step="0.5" value="2"/></div>
+   <div class="service-field"><label for="taxRegion">Jurisdicción de retención simulada</label><select id="taxRegion"><option value="VA">Virginia (4 % estatal si corresponde)</option><option value="MD">Maryland (8,95 % ilustrativo)</option><option value="OTHER">Otro / introducir tasa</option></select></div>
+   <div class="service-field" id="taxOtherStateWrap" hidden><label for="taxOtherWithhold">Retención estatal del otro estado (%)</label><input id="taxOtherWithhold" type="number" min="0" max="60" step="0.25" value="0"/></div>
+   <div class="service-field"><label for="taxFederalRate">Tasa federal final SUPUESTA (%)</label><input id="taxFederalRate" type="number" min="0" max="60" step="0.25" value="32"/></div>
+   <div class="service-field"><label for="taxStateFinalRate">Tasa estatal final SUPUESTA (%)</label><input id="taxStateFinalRate" type="number" min="0" max="60" step="0.25" value="5.75"/></div>
+  </div>
+  <div class="service-actions"><button id="taxRun" type="button" class="service-primary">CALCULAR NETO ESTIMADO</button></div>
+  <div class="service-tax-columns">
+   <article><span>Retenciones aproximadas al cobrar</span><strong id="taxNetWithholding">—</strong><div id="taxWithholdBreakdown"></div></article>
+   <article><span>Escenario hipotético tras impuestos finales</span><strong id="taxNetFinal">—</strong><div id="taxFinalBreakdown"></div></article>
+  </div>
+  <div id="taxCaution" class="service-result">El 24 % federal es una retención en premios sujetos a ese régimen; no significa que el impuesto final sea 24 %.</div>
+  <div class="service-source-row"><a href="https://www.irs.gov/instructions/iw2g" target="_blank" rel="noopener noreferrer">IRS · instrucciones W-2G ↗</a><a href="https://www.valottery.com/winnersnews/claimprize" target="_blank" rel="noopener noreferrer">Virginia Lottery · impuestos ↗</a></div>
+ </section>
+ </div>
 </section>
 <section id="sorteoVirtual" class="draw-section" aria-label="Estudio de sorteos virtuales">
  <div class="draw-section-heading">
@@ -436,6 +514,7 @@ loadDateFields();fetchRows();
 <script type="module" src="assets/lucky-ui.mjs"></script>
 <script type="module" src="assets/coverage-ui.mjs"></script>
 <script type="module" src="assets/draw-ui.mjs"></script>
+<script type="module" src="assets/services-ui.mjs"></script>
 <script type="module" src="assets/us-catalog-ui.js"></script>
 </body>
 </html>

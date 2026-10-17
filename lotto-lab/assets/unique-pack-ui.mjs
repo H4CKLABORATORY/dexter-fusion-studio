@@ -1,5 +1,5 @@
 /* Paquetes uniformes de boletos distintos; solo a petición del usuario. */
-import {generateUniquePack,packCost} from './unique-pack.mjs';
+import {generateUniquePack,generateDisjointPack,disjointThreePlusOdds,packCost} from './unique-pack.mjs';
 import {PRICE_USD} from './payout-engine.mjs';
 import {formatInteger,formatInverseOddsExact} from './exact-engine.mjs';
 
@@ -27,6 +27,18 @@ function theoreticalSummary(){
     ' resultados · ~'+formatInverseOddsExact(BigInt(count),total,0);
   const cost=packCost(count,PRICE_USD[item.key]??null);
   $('packPrice').textContent=cost==null?'Precio sin verificar':formatMoney(cost);
+  const diverse=$('packMode').value==='disjoint';
+  $('packThreePlusBox').hidden=!diverse;
+  if(diverse){
+    try{
+      const odds=disjointThreePlusOdds(item.game,count);
+      $('packThreePlusOdds').textContent=formatInteger(odds.numerator)+' de '+
+        formatInteger(odds.denominator)+' sorteos posibles · ~'+
+        formatInverseOddsExact(odds.numerator,odds.denominator,0);
+    }catch(error){
+      $('packThreePlusOdds').textContent=error.message;
+    }
+  }
 }
 function combinationCount(n,k){
   k=Math.min(k,n-k);
@@ -35,6 +47,21 @@ function combinationCount(n,k){
   return c;
 }
 function clearPack(){
+  const g=context()?.game;
+  if(g){
+    const allowed=!g.kind&&g.k===5;
+    const opt=$('packMode').querySelector('option[value="disjoint"]');
+    opt.disabled=!allowed;
+    if(!allowed&&$('packMode').value==='disjoint')$('packMode').value='uniform';
+    const cap=Math.floor(g.n/5);
+    for(const option of $('packCount').options)
+      option.disabled=$('packMode').value==='disjoint'&&Number(option.value)>cap;
+    const selected=$('packCount').selectedOptions[0];
+    if(selected?.disabled){
+      const last=[...$('packCount').options].filter(o=>!o.disabled).at(-1);
+      if(last)$('packCount').value=last.value;
+    }
+  }
   latest=null;$('packCopy').disabled=true;
   $('packOutput').replaceChildren();
   $('packStatus').textContent='Lista sin generar. No se han comprado boletos.';
@@ -44,7 +71,8 @@ function generate(){
   const item=context();if(!item?.game)return;
   try{
     const count=Number($('packCount').value);
-    const pack=generateUniquePack(item.game,count);
+    const diverse=$('packMode').value==='disjoint';
+    const pack=diverse?generateDisjointPack(item.game,count):generateUniquePack(item.game,count);
     latest={key:item.key,game:item.game,pack};
     const container=$('packOutput');container.replaceChildren();
     for(let i=0;i<pack.tickets.length;i++){
@@ -57,8 +85,9 @@ function generate(){
     }
     $('packCopy').disabled=false;
     $('packStatus').textContent=count+' combinaciones válidas y diferentes generadas. '+
-      'Para un sorteo justo, todas las combinaciones posibles tienen igual probabilidad; '+
-      'este cálculo solo evita repetir selecciones.';
+      (diverse?'No comparten números principales: el cálculo de 3+ aciertos no se solapa. ':
+        'Seleccionadas uniformemente entre todas las combinaciones válidas. ')+
+      'El jackpot mantiene la misma cobertura m/N con cualquiera de los dos métodos; más boletos también cuestan más.';
     theoreticalSummary();
   }catch(error){
     clearPack();
@@ -80,6 +109,7 @@ $('packCopy').addEventListener('click',async()=>{
   }
 });
 $('packCount').addEventListener('change',clearPack);
+$('packMode').addEventListener('change',clearPack);
 $('proGame').addEventListener('change',clearPack);
 $('uniquePack').addEventListener('toggle',()=>{
   if($('uniquePack').open)theoreticalSummary();

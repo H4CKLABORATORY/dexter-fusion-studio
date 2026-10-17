@@ -92,6 +92,25 @@
   </div>
   <p class="lotto-compact-note">Las sugerencias cambian diariamente según UTC. No son números con mayor posibilidad matemática de salir ni implican que se haya ganado una apuesta.</p>
  </article>
+ <details id="coverageMandel" class="lotto-tab-details coverage-explorer">
+  <summary>¿Se puede alcanzar el 80 %? · Laboratorio de cobertura matemática</summary>
+  <div class="coverage-inner">
+   <p><strong>Idea de Stefan Mandel:</strong> cubrir muchos resultados diferentes, no predecir números. La cantidad de combinaciones que necesita una estrategia depende del número de resultados posibles y del tipo de premio.</p>
+   <div class="coverage-grid">
+    <article><span>Meta de acertar la combinación completa</span>
+     <select id="coverageTarget" aria-label="Objetivo de cobertura"><option value="1000">10 %</option><option value="5000">50 %</option><option value="8000" selected>80 %</option><option value="9500">95 %</option></select>
+     <strong id="coverageNeed">—</strong><small>Boletos únicos teóricos en un mismo sorteo.</small></article>
+    <article><span>Costo mínimo teórico</span><strong id="coverageCost">—</strong><small id="coverageCostNote">No contempla impuestos, premios compartidos ni gastos operativos.</small></article>
+    <article><span>80 % de obtener algún premio</span><strong id="coverageAny">—</strong><small>Ensayos independientes: una combinación en cada sorteo.</small></article>
+   </div>
+   <p id="coverageExplanation" class="lotto-compact-note"></p>
+   <div class="coverage-tool"><div><strong>Explorar combinaciones sin repetición</strong><p>Elige una cantidad pequeña de resultados para revisar cómo se identifican combinaciones únicas, sin crear millones de registros.</p></div>
+    <div><select id="coveragePreviewCount"><option value="5">5 combinaciones</option><option value="10">10 combinaciones</option><option value="20">20 combinaciones</option></select>
+    <button id="coveragePreview" type="button">Calcular combinaciones</button></div></div>
+   <div id="coveragePreviewOutput" class="coverage-preview" aria-live="polite"></div>
+   <p class="lotto-compact-note">Esta herramienta es una simulación matemática y <strong>no vende ni compra boletos</strong>. Un 80 % de obtener cualquier premio no es un 80 % de ganar dinero ni de acertar el jackpot.</p>
+  </div>
+ </details>
 </section>
 <details id="scientificLab" class="lotto-tab-details scientific-lab">
  <summary>Laboratorio científico 3.0 · premios, probabilidades exactas y prueba de modelos</summary>
@@ -353,6 +372,7 @@ loadDateFields();fetchRows();
 <script type="module" src="assets/generator-pro.js"></script>
 <script type="module" src="assets/science-ui.mjs"></script>
 <script type="module" src="assets/lucky-ui.mjs"></script>
+<script type="module" src="assets/coverage-ui.mjs"></script>
 <script type="module" src="assets/us-catalog-ui.js"></script>
 </body>
 </html>

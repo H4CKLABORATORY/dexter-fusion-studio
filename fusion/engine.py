@@ -8,6 +8,7 @@ import json, subprocess, tempfile, shutil
 from pathlib import Path
 from .media import required,run,probe,silence_ranges,keep_ranges,select_segments,scene_changes
 from .project import read_json,safe_write
+from .caption_styles import CAPTION_STYLES,write_ass
 
 OUTPUTS={'youtube':(1920,1080),'shorts':(1080,1920),'tiktok':(1080,1920)}
 EFFECTS={
@@ -105,6 +106,7 @@ def generate_plan(folder, *, auto_silence=False, max_duration=None, scene_scan=F
     plan={'schema':1,'project':str(folder),'profile':project.get('profile','generic'),
           'platform':project.get('platform','youtube'),'effects':project.get('effects','clean'),
           'composition':project.get('composition','fit'),'cut_style':project.get('cut_style','hard'),
+          'caption_style':project.get('caption_style','classic'),
           'source':str(src),'clips':clips,'subtitles':subtitles,
           'meme_suggestions':suggest_memes(subtitles,assets),
           'meme_events_approved':[], 'watermark_file':project.get('watermark_file'),
@@ -124,6 +126,7 @@ def validate_plan(plan):
         prev=b
     if plan['platform'] not in OUTPUTS:raise ValueError('Formato de publicación desconocido')
     if plan['effects'] not in EFFECTS:raise ValueError('Efecto no soportado')
+    if plan.get('caption_style','classic') not in CAPTION_STYLES:raise ValueError('Estilo de subtítulo desconocido')
     if plan.get('composition','fit') not in ('fit','crop'):raise ValueError('Encuadre no soportado')
     if plan.get('cut_style','hard') not in ('hard','fade','crossfade'):raise ValueError('Transición no soportada')
     overrides=plan.get('clip_effects',[])
@@ -230,8 +233,14 @@ def export_plan(folder,*,overwrite=False,verify=True):
             cmd+=['-i',str(voice)]
         filters=[]; current='[0:v]'; count=0
         if plan.get('subtitles'):
-            write_srt(plan['subtitles'],work/'captions.srt')
-            filters.append(f'{current}subtitles=captions.srt[v0]')
+            style=plan.get('caption_style','classic')
+            if style=='classic':
+                write_srt(plan['subtitles'],work/'captions.srt')
+                subtitle_file='captions.srt'
+            else:
+                write_ass(plan['subtitles'],work/'captions.ass',width=width,height=height,style=style)
+                subtitle_file='captions.ass'
+            filters.append(f'{current}subtitles={subtitle_file}[v0]')
             current='[v0]'
         for idx,(_,event) in enumerate(overlays,1):
             ih=int(height*(.12 if event is None else .23))

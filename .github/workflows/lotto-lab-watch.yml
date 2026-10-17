@@ -1,0 +1,56 @@
+name: LOTTO LAB - vigilancia horaria sin costo
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: lotto-lab-hourly-watch
+  cancel-in-progress: true
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Comprobar inicio generador y nueve herramientas
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://h4cklaboratory.github.io/dexter-fusion-studio/lotto-lab"
+          check() {
+            local file="$1" marker="$2"
+            local tmp
+            tmp="$(mktemp)"
+            curl --retry 2 --retry-delay 2 --max-time 25 -fsSL "$base/$file" -o "$tmp"
+            grep -Fq "$marker" "$tmp"
+            test "$(wc -c < "$tmp")" -gt 2000
+            echo "OK $file"
+            rm -f "$tmp"
+          }
+          check "" 'id="generador"'
+          check "" 'id="uniquePack"'
+          check "revisar.html" 'id="servicePanel-check"'
+          check "escanear.html" 'id="servicePanel-scan"'
+          check "premios.html" 'id="servicePanel-prizes"'
+          check "presupuesto.html" 'id="servicePanel-budget"'
+          check "impuestos.html" 'id="servicePanel-tax"'
+          check "simulador.html" 'id="drawStage"'
+          check "matematicas.html" 'id="scientificLab"'
+          check "probabilidades.html" 'id="usComparisonRows"'
+          check "historial.html" 'id="usDirectory"'
+          for file in assets/generator-pro.js assets/unique-pack.mjs assets/unique-pack-ui.mjs assets/page-context.mjs assets/services-ui.mjs assets/draw-ui.mjs sw.js; do
+            curl --retry 2 --retry-delay 2 --max-time 20 -fsSL "$base/$file" -o /dev/null
+            echo "OK $file"
+          done
+          for file in powerball megamillions nytake5 scientific-report; do
+            curl --retry 2 --retry-delay 2 --max-time 20 -fsSI "$base/data/$file.json" -o /dev/null
+            echo "OK data/$file.json"
+          done
+      - name: Registrar resultado de vigilancia
+        if: always()
+        run: |
+          echo "## LOTTO LAB: disponibilidad web" >> "$GITHUB_STEP_SUMMARY"
+          echo "Verificación horaria automatizada de la portada del generador, herramientas independientes, motores y fuentes." >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Esta acción comprueba disponibilidad; no predice sorteos, no genera boletos ni modifica código automáticamente." >> "$GITHUB_STEP_SUMMARY"

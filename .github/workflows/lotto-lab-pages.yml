@@ -28,7 +28,8 @@ jobs:
       - name: Comprobar parsing y matematica
         run: |
           python -m unittest discover -s lotto-lab/tests -p 'test_data.py' -v
-          node --test lotto-lab/tests/test_core.mjs
+          node --check lotto-lab/assets/generator-pro.js
+          node --test lotto-lab/tests/test_*.mjs
       - name: Descargar biblioteca completa desde NY Open Data
         run: python lotto-lab/scripts/build_data.py lotto-lab/data
       - name: Comprobar que ambos archivos existen
@@ -83,6 +84,12 @@ jobs:
           for attempt in $(seq 1 18); do
             if curl -fsSL --max-time 20 "$base/" -o /tmp/lotto.html \
               && grep -qi 'LOTTO LAB' /tmp/lotto.html \
+              && grep -q 'assets/generator-pro.js' /tmp/lotto.html \
+              && grep -q 'id="generador"' /tmp/lotto.html \
+              && curl -fsSL --max-time 20 "$base/assets/generator-pro.js" -o /tmp/lotto-generator.js \
+              && curl -fsSL --max-time 20 "$base/assets/lottery-pro.css" -o /tmp/lotto-style.css \
+              && node --check /tmp/lotto-generator.js \
+              && test -s /tmp/lotto-style.css \
               && curl -fsSL --max-time 20 "$base/data/powerball.json" -o /tmp/powerball.json \
               && curl -fsSL --max-time 20 "$base/data/megamillions.json" -o /tmp/megamillions.json \
               && python -c 'import json; assert all(json.load(open(f"/tmp/{name}.json"))["count"] >= 1000 for name in ("powerball", "megamillions"))'; then

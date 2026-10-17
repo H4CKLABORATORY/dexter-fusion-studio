@@ -105,5 +105,25 @@
       "last_evidence": "",
       "blocker": ""
     }
-  ]
+  ],
+  "maintenance": {
+    "enabled": true,
+    "mode": "within_existing_hourly_trigger",
+    "guide": "orchestrator/SELF_IMPROVEMENT.md",
+    "per_run": {
+      "max_improvement_changes": 1,
+      "max_project_changes": 1,
+      "target_context_share_percent": 15
+    },
+    "last_review_at": null,
+    "last_result": "Not yet run; routine installed 2026-10-17",
+    "last_evidence": "708596892e21d873decbab692449e24cc163b431",
+    "next_hypothesis": "Medir trabajo duplicado y verificar que el seguimiento de tareas se persista correctamente.",
+    "keep_active_when_queue_empty": true,
+    "constraints": [
+      "No modificar prioridades o acceptance automáticamente",
+      "No modificar plan/cuotas/trigger por sí solo",
+      "Nunca afirmar ejecución continua ni ahorro de tokens sin medición"
+    ]
+  }
 }

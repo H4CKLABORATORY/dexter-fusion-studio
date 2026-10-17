@@ -175,7 +175,8 @@
   <div class="service-form-grid">
    <div class="service-field"><label for="taxGross">Monto bruto del premio (US$)</label><input id="taxGross" type="number" min="0" max="1000000000000" step="0.01" value="1000000"/></div>
    <div class="service-field"><label for="taxStake">Costo de la jugada (US$)</label><input id="taxStake" type="number" min="0" max="1000000" step="0.5" value="2"/></div>
-   <div class="service-field"><label for="taxRegion">Jurisdicción de retención simulada</label><select id="taxRegion"><option value="VA">Virginia (4 % estatal si corresponde)</option><option value="MD">Maryland (8,95 % ilustrativo)</option><option value="OTHER">Otro / introducir tasa</option></select></div>
+   <div class="service-field"><label for="taxRegion">Jurisdicción de retención simulada</label><select id="taxRegion"><option value="VA">Virginia (4 % estatal si corresponde)</option><option value="MD">Maryland (9,5 % residente / 8,75 % no residente)</option><option value="OTHER">Otro / introducir tasa</option></select></div>
+   <div class="service-field" id="taxMDResidencyWrap" hidden><label for="taxMDResidency">Residencia fiscal para la retención de Maryland</label><select id="taxMDResidency"><option value="yes">Residente de Maryland · 9,5 %</option><option value="no">No residente de Maryland · 8,75 %</option></select></div>
    <div class="service-field" id="taxOtherStateWrap" hidden><label for="taxOtherWithhold">Retención estatal del otro estado (%)</label><input id="taxOtherWithhold" type="number" min="0" max="60" step="0.25" value="0"/></div>
    <div class="service-field"><label for="taxFederalRate">Tasa federal final SUPUESTA (%)</label><input id="taxFederalRate" type="number" min="0" max="60" step="0.25" value="32"/></div>
    <div class="service-field"><label for="taxStateFinalRate">Tasa estatal final SUPUESTA (%)</label><input id="taxStateFinalRate" type="number" min="0" max="60" step="0.25" value="5.75"/></div>

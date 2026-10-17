@@ -47,7 +47,7 @@ function parseFav(g){
   return nums;
 }
 function historicalFrequency(g){
-  const hits=new Uint32Array(g.n+(g.bonus?1:0));
+  const hits=new Uint32Array(g.n+1);
   for(const row of verified){for(const v of row.main)if(v>=1&&v<=g.n)hits[v]++;}
   return hits;
 }
@@ -232,7 +232,7 @@ function renderProbabilities(){
   const denominator=g.k?count:0;
   const chosen=new Set(lastNumbers.slice(0,g.k));
   const percentTheo=pct(individual);
-  for(let i=g.bonus?1:0;i<=(g.bonus?g.n:99);i++){
+  for(let i=g.k===1&&!g.bonus?0:1;i<=(g.k===1&&!g.bonus?g.n-1:g.n);i++){
     const item=document.createElement('div');item.className='prob-chip'+(chosen.has(i)?' favored':'');
     const n=document.createElement('strong');n.textContent=String(i).padStart(2,'0');
     const theoreticalText=document.createElement('span');theoreticalText.textContent=percentTheo+' teórico';

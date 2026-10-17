@@ -27,7 +27,7 @@
  <a class="wordmark" href="#generador" aria-label="Lotto Lab Dexter"><span class="brand-icon">L</span><span>LOTTO<span class="brand-blue">LAB</span><small>BY DEXTER</small></span></a>
  <div class="top-actions"><span class="live-label" id="statusIndicator"><i></i> Cargando fuentes</span><button class="tiny-btn" id="installBtn" hidden>+ Instalar app</button></div>
 </header>
-<nav class="navscroll" aria-label="Secciones"><a href="#generador">Generador</a><a href="#resumen">Últimos resultados</a><a href="#estadisticas">Porcentajes</a><a href="#analisis">Matemáticas</a><a href="#usDirectory">Loterías de EE. UU.</a><a href="#premios">Grandes premios</a><a href="#archivoDetalle">Archivo histórico</a></nav>
+<nav class="navscroll" aria-label="Secciones"><a href="#generador">Generador</a><a href="#comparador">Comparar juegos</a><a href="#resumen">Últimos resultados</a><a href="#estadisticas">Porcentajes</a><a href="#analisis">Matemáticas</a><a href="#usDirectory">Loterías de EE. UU.</a><a href="#premios">Grandes premios</a><a href="#archivoDetalle">Archivo histórico</a></nav>
 <main id="contenido">
 <section id="generador" aria-label="Generador matemático de lotería">
  <div class="lotto-stage"><div class="lotto-stage-inner">
@@ -73,6 +73,11 @@
  </article>
 </section>
 <div class="alertbanner"><span class="alert-icon">ⓘ</span><div><strong>Sin promesas falsas.</strong> En sorteos independientes y justos, los resultados anteriores no permiten conocer el siguiente. Esta herramienta analiza datos y no vende boletos, ni recomienda jugar.</div></div>
+<section id="comparador" class="compare-section">
+ <div class="section-title"><div><span class="overline">OPORTUNIDADES MATEMÁTICAS · ESTADOS UNIDOS</span><h2>Comparar la probabilidad de acierto</h2><p>Cálculos combinatorios exactos para <strong>acertar todos los números</strong> de una jugada básica; el premio, costo, disponibilidad y modalidades pueden ser distintos.</p></div></div>
+ <div class="compare-table-scroll"><table class="compare-table"><thead><tr><th>Juego</th><th>Probabilidad exacta</th><th>Porcentaje</th><th>Historial</th><th>Acción</th></tr></thead><tbody id="usComparisonRows"></tbody></table></div>
+ <p class="lotto-compact-note">Más probabilidad de acierto no garantiza mayor premio ni rentabilidad. El historial histórico disponible no modifica la probabilidad de un sorteo justo. Compara reglas y pagos en cada página oficial antes de jugar.</p>
+</section>
 <section id="resumen" class="section"><p class="lotto-compact-note">Resultados e históricos oficiales disponibles para Powerball y Mega Millions. Para La Chica, la sección matemática está disponible arriba; su historial requiere una fuente verificable.</p>
  <div class="section-title"><div><span class="overline">01 · PANEL DE CONTROL</span><h2>Explora la lotería</h2></div><div class="controls"><label for="game" class="sr-only">Lotería</label><select id="game"><option value="powerball">Powerball</option><option value="megamillions">Mega Millions</option></select><button id="refresh" class="icon-button" title="Volver a cargar la base de datos" aria-label="Actualizar resultados">↻</button></div></div>
  <div class="metrics">

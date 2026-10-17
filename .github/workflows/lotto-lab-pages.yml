@@ -50,10 +50,17 @@ jobs:
           path: lotto-lab/
           if-no-files-found: error
           retention-days: 30
+      - name: Mantener LOTTO LAB en la ruta /lotto-lab/
+        run: |
+          mkdir -p _pages/lotto-lab
+          cp -a lotto-lab/. _pages/lotto-lab/
+          test -s _pages/lotto-lab/index.html
+          test -s _pages/lotto-lab/data/powerball.json
+          test -s _pages/lotto-lab/data/megamillions.json
       - name: Preparar sitio Pages
         uses: actions/upload-pages-artifact@v4
         with:
-          path: lotto-lab/
+          path: _pages/
   deploy:
     needs: build
     runs-on: ubuntu-latest

@@ -27,7 +27,7 @@
  <a class="wordmark" href="#generador" aria-label="Lotto Lab Dexter"><span class="brand-icon">L</span><span>LOTTO<span class="brand-blue">LAB</span><small>BY DEXTER</small></span></a>
  <div class="top-actions"><span class="live-label" id="statusIndicator"><i></i> Cargando fuentes</span><button class="tiny-btn" id="installBtn" hidden>+ Instalar app</button></div>
 </header>
-<nav class="navscroll" aria-label="Secciones"><a href="#generador">Generador</a><a href="#comparador">Comparar juegos</a><a href="#resumen">Últimos resultados</a><a href="#estadisticas">Porcentajes</a><a href="#analisis">Matemáticas</a><a href="#usDirectory">Loterías de EE. UU.</a><a href="#premios">Grandes premios</a><a href="#archivoDetalle">Archivo histórico</a></nav>
+<nav class="navscroll" aria-label="Secciones"><a href="#generador">Generador</a><a href="#scientificLab">Motor científico</a><a href="#comparador">Comparar juegos</a><a href="#resumen">Últimos resultados</a><a href="#estadisticas">Porcentajes</a><a href="#analisis">Matemáticas</a><a href="#usDirectory">Loterías de EE. UU.</a><a href="#premios">Grandes premios</a><a href="#archivoDetalle">Archivo histórico</a></nav>
 <main id="contenido">
 <section id="generador" aria-label="Generador matemático de lotería">
  <div class="lotto-stage"><div class="lotto-stage-inner">
@@ -72,6 +72,32 @@
   <div class="ball-probabilities" id="proProbGrid" aria-label="Porcentajes individuales de cada número"></div>
  </article>
 </section>
+<details id="scientificLab" class="lotto-tab-details scientific-lab">
+ <summary>Laboratorio científico 3.0 · premios, probabilidades exactas y prueba de modelos</summary>
+ <div class="scientific-body">
+  <p class="scientific-lead">Motor basado en <strong>combinatoria hipergeométrica</strong>, <strong>probabilidades de eventos independientes</strong>, <strong>estadística con incertidumbre</strong> y <strong>validación retrospectiva sin mirar el futuro</strong>. Calcula posibilidades, no predicciones milagrosas.</p>
+  <div class="scientific-metrics">
+   <article><span>Probabilidad de algún premio</span><strong id="sciAnyPrize">—</strong><small id="sciPrizeCaution">Depende de las categorías oficiales.</small></article>
+   <article><span>Valor esperado de premios fijos, sin jackpot</span><strong id="sciFixedValue">—</strong><small>Bruto, sin impuestos ni premio mayor; no equivale a rentabilidad.</small></article>
+   <article><span>Esperanza de bolas principales acertadas</span><strong id="sciExpectedHits">—</strong><small>Por una combinación válida, en un sorteo justo.</small></article>
+  </div>
+  <div class="scientific-control">
+   <div><label for="sciDrawCount">¿Cuántos sorteos independientes quieres comparar?</label>
+   <select id="sciDrawCount"><option value="1">1 sorteo</option><option value="10">10 sorteos</option><option value="52">52 sorteos</option><option value="100">100 sorteos</option><option value="365">365 sorteos</option></select></div>
+   <div class="scientific-projection"><span>Probabilidad matemática de al menos un acierto completo</span><strong id="sciRepeated">—</strong><small id="sciRepeatedNote">Se utiliza la cobertura de boletos elegida arriba.</small></div>
+  </div>
+  <div class="scientific-tiers">
+    <div class="panel-head"><h3 id="sciTiersTitle">Distribución exacta de aciertos</h3><a id="sciOfficialOdds" href="https://www.powerball.com/powerball-prize-chart" target="_blank" rel="noopener noreferrer">Fuente oficial ↗</a></div>
+    <div class="compare-table-scroll"><table class="compare-table"><thead><tr><th>Categoría de coincidencia</th><th>Premio o resultado</th><th>Probabilidad exacta</th><th>1 entre</th></tr></thead><tbody id="sciTierRows"></tbody></table></div>
+    <p id="sciTierDisclaimer" class="lotto-compact-note">Las coincidencias no premiadas no se presentan como premios.</p>
+  </div>
+  <div class="scientific-evidence">
+    <div class="panel-head"><div><h3>Auditor de evidencia histórica</h3><p>Compara un modelo de frecuencia suavizada contra una referencia justa con <strong>Brier Score walk-forward</strong>. La banda global de Hoeffding ayuda a interpretar desviaciones sin elegir números favorecidos.</p></div><button id="sciRunAudit" class="outline small-btn" type="button">Analizar datos</button></div>
+    <div id="sciAuditResult" role="status" aria-live="polite"><p class="subtle">Elige una lotería con datos históricos verificados y pulsa «Analizar datos».</p></div>
+  </div>
+  <p class="scientific-disclosure">Una fórmula más detallada calcula las posibilidades con mayor precisión; <strong>no puede incrementar las probabilidades físicas</strong> ni demostrar que los resultados anteriores predicen el siguiente sorteo.</p>
+ </div>
+</details>
 <div class="alertbanner"><span class="alert-icon">ⓘ</span><div><strong>Sin promesas falsas.</strong> En sorteos independientes y justos, los resultados anteriores no permiten conocer el siguiente. Esta herramienta analiza datos y no vende boletos, ni recomienda jugar.</div></div>
 <section id="comparador" class="compare-section">
  <div class="section-title"><div><span class="overline">OPORTUNIDADES MATEMÁTICAS · ESTADOS UNIDOS</span><h2>Comparar la probabilidad de acierto</h2><p>Cálculos combinatorios exactos para <strong>acertar todos los números</strong> de una jugada básica; el premio, costo, disponibilidad y modalidades pueden ser distintos.</p></div></div>
@@ -304,6 +330,7 @@ loadDateFields();fetchRows();
 
 </script>
 <script type="module" src="assets/generator-pro.js"></script>
+<script type="module" src="assets/science-ui.mjs"></script>
 <script type="module" src="assets/us-catalog-ui.js"></script>
 </body>
 </html>

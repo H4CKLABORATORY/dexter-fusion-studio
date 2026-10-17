@@ -241,10 +241,12 @@ function rateLabel(label,value){
 }
 function renderTaxes(){
   $('taxOtherStateWrap').hidden=$('taxRegion').value!=='OTHER';
+  $('taxMDResidencyWrap').hidden=$('taxRegion').value!=='MD';
   try{
     const result=estimateTaxes({
       grossPrize:$('taxGross').value,stake:$('taxStake').value,
-      region:$('taxRegion').value,federalFinalRate:Number($('taxFederalRate').value),
+      region:$('taxRegion').value,mdResident:$('taxMDResidency').value!=='no',
+      federalFinalRate:Number($('taxFederalRate').value),
       stateFinalRate:Number($('taxStateFinalRate').value),
       otherStateWithholdingRate:Number($('taxOtherWithhold').value)
     });
@@ -310,7 +312,7 @@ $('checkSendTax').addEventListener('click',()=>{
   $('taxStake').value=$('checkStake').value;
   const st=$('checkClaimState').value;
   $('taxRegion').value=['VA','MD'].includes(st)?st:'OTHER';
-  $('taxStateFinalRate').value=st==='VA'?'5.75':st==='MD'?'8.95':'0';
+  $('taxStateFinalRate').value=st==='VA'?'5.75':st==='MD'?'9.5':'0';
   activateService('tax');renderTaxes();$('servicesHub').scrollIntoView({behavior:'smooth'});
 });
 $('scanGoManual').addEventListener('click',()=>{
@@ -320,12 +322,13 @@ $('budgetMoney').addEventListener('input',renderBudget);
 $('budgetPowerPlay').addEventListener('change',renderBudget);
 $('taxRegion').addEventListener('change',()=>{
   $('taxStateFinalRate').value=$('taxRegion').value==='VA'?'5.75':
-    $('taxRegion').value==='MD'?'8.95':'0';
+    $('taxRegion').value==='MD'?'9.5':'0';
   renderTaxes();
 });
 for(const id of ['taxGross','taxStake','taxOtherWithhold','taxFederalRate','taxStateFinalRate'])
   $(id).addEventListener('input',renderTaxes);
 $('taxRun').addEventListener('click',renderTaxes);
+$('taxMDResidency').addEventListener('change',renderTaxes);
 
 /**
  * Escáner de lectura LOCAL, solo si la API está disponible.

@@ -128,3 +128,29 @@ body{background:radial-gradient(circle at 10% 0%,#174b51 0,transparent 40%),radi
   .ticket-balls .lotto-spark{display:none!important}
   #proGenerate{transition:none}
 }
+
+
+/* Loterías por estado: catálogo verificable, no listado inventado de resultados. */
+.lotto-tab-details.us-directory{margin-top:22px;margin-bottom:18px}
+.us-directory-inner{padding:0 clamp(12px,2vw,22px) 24px}
+.us-directory-inner a{color:#ffe08c;text-decoration:underline;text-underline-offset:3px}
+.us-directory-controls{display:grid;grid-template-columns:1fr minmax(180px,.34fr);gap:12px;margin:14px 0}
+.us-directory-controls>div{display:flex;flex-direction:column;gap:6px}
+.us-directory-controls label{color:#d9e4ee;font-size:12px;font-weight:750}
+.us-directory-controls input,.us-directory-controls select{width:100%}
+.us-directory-status{display:flex;align-items:center;justify-content:space-between;gap:12px;color:#c9d6e2;font-size:12px}
+.us-directory-status p{margin:0}
+.us-directory-status strong{white-space:nowrap;color:#ffe28a}
+.us-states-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:16px 0}
+.us-state-card{padding:16px;border:1px solid #3a5268;border-radius:13px;background:linear-gradient(160deg,#162c42,#102537);min-width:0}
+.us-state-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.us-state-head strong{font-size:15px;color:#f5f9fc}
+.us-state-code{padding:4px 6px;border:1px solid #5b6474;border-radius:7px;color:#ffe08c;font-size:10px;font-weight:800}
+.us-state-note{font-size:12px;line-height:1.5;color:#b8cada;min-height:38px}
+.us-state-games{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+.us-game-link{background:#f2d172;border:1px solid #ffedac;border-radius:8px;padding:7px 9px;font-size:11px;font-weight:850;color:#2d271a;text-align:left}
+.us-game-link:hover{background:#fff0bb}
+.us-official-link{font-size:12px;line-height:1.4;overflow-wrap:anywhere}
+.ticket-balls .ticket-ball.digits{width:auto;min-width:92px;max-width:100%;height:70px;padding:0 15px;border-radius:38px;letter-spacing:.06em;font-size:25px;font-variant-numeric:tabular-nums}
+@media(max-width:800px){.us-states-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.us-directory-controls{grid-template-columns:1fr}.us-states-grid{grid-template-columns:1fr}.us-directory-status{display:block}.us-state-note{min-height:unset}.us-directory-inner{padding-left:10px;padding-right:10px}.ticket-balls .ticket-ball.digits{font-size:20px;min-width:88px}}

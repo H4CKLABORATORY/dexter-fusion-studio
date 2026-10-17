@@ -147,12 +147,12 @@
   <p class="service-fineprint">No verifica autenticidad, código de validación, fecha de compra, elegibilidad, jugadas adicionales, premios ya pagados ni caducidad. Si no hay datos oficiales compatibles, no se mostrará una confirmación ficticia.</p>
  </section>
  <section id="servicePanel-scan" class="service-panel" role="tabpanel" aria-labelledby="serviceTab-scan" data-service-panel="scan" hidden>
-  <div class="service-panel-head"><h3>Escanear código de barras o QR</h3><p>Usa la cámara o selecciona una foto del boleto. Esta página intentará leer el código <strong>solo dentro de tu navegador</strong>; no enviará su foto o identificador a nuestros servidores.</p></div>
+  <div class="service-panel-head"><h3>Escanear código de barras o QR</h3><p>Usa la cámara o selecciona una foto del boleto. Esta página intentará leer el código <strong>solo dentro de tu navegador</strong>; no enviará su foto o identificador a nuestros servidores. En iPhone puede cargar ZXing (biblioteca de código abierto) desde jsDelivr al elegir la foto; la imagen permanece en el dispositivo.</p></div>
   <div class="scan-area"><div class="scan-camera-icon" aria-hidden="true">▦</div><strong>Fotografía el código del boleto</strong>
    <label for="scanFile" class="scan-upload">Abrir cámara / elegir foto</label><input id="scanFile" type="file" accept="image/*" capture="environment"/>
    <div class="scan-results" id="scanOutput" role="status">Esperando una imagen. La compatibilidad de lectura depende del navegador.</div>
   </div>
-  <p class="service-fineprint"><strong>Importante:</strong> los códigos de los boletos son identificadores únicos que la lotería comprueba contra un sistema central. Leer sus caracteres no revela necesariamente tus números ni demuestra un premio. En algunos iPhone, el navegador no permite el reconocimiento de códigos: utiliza la aplicación oficial de tu estado para obtener una validación real.</p>
+  <p class="service-fineprint"><strong>Importante:</strong> los códigos de los boletos son identificadores únicos que la lotería comprueba contra un sistema central. Leer sus caracteres no revela necesariamente tus números ni demuestra un premio. Si el reconocimiento automático falla o no tienes conexión, utiliza la aplicación oficial de tu estado para obtener una validación real.</p>
   <div class="service-official-row"><a id="scanOfficialLink" href="https://www.valottery.com/aboutus/mobileapp" target="_blank" rel="noopener noreferrer">Abrir el escáner oficial ↗</a><button type="button" id="scanGoManual">Introducir números manualmente</button></div>
  </section>
  <section id="servicePanel-prizes" class="service-panel" role="tabpanel" aria-labelledby="serviceTab-prizes" data-service-panel="prizes" hidden>

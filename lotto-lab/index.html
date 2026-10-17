@@ -92,6 +92,24 @@
   </div>
   <p class="lotto-compact-note">Las sugerencias cambian diariamente según UTC. No son números con mayor posibilidad matemática de salir ni implican que se haya ganado una apuesta.</p>
  </article>
+ <details id="uniquePack" class="lotto-tab-details unique-pack">
+   <summary>Crear varios boletos únicos · evitar repetir combinaciones</summary>
+   <div class="unique-pack-inner">
+    <p>Genera combinaciones diferentes usando aleatoriedad criptográfica sin sesgo. <strong>Repetir el mismo boleto no mejora la cobertura del jackpot.</strong> Más boletos distintos aumentan la cobertura proporcionalmente, pero también el costo; no garantizan ganar.</p>
+    <div class="unique-pack-controls">
+     <div><label for="packCount">Cantidad de combinaciones</label><select id="packCount"><option value="5">5 boletos</option><option value="10" selected>10 boletos</option><option value="20">20 boletos</option><option value="50">50 boletos</option><option value="100">100 boletos</option></select></div>
+     <button id="packGenerate" type="button">★ GENERAR SIN REPETIR</button>
+     <button id="packCopy" type="button" disabled>Copiar todos</button>
+    </div>
+    <div class="unique-pack-metrics">
+     <div><span>Cobertura teórica del premio mayor, un sorteo</span><strong id="packOdds">—</strong></div>
+     <div><span>Costo teórico de las jugadas básicas</span><strong id="packPrice">—</strong></div>
+    </div>
+    <p id="packStatus" class="lotto-compact-note" role="status" aria-live="polite">Elige una cantidad y presiona Generar.</p>
+    <div id="packOutput" class="unique-pack-list" aria-label="Combinaciones diferentes generadas"></div>
+    <p class="lotto-compact-note">Herramienta matemática: no realiza compras ni predice sorteos. Cada boleto individual tiene las mismas probabilidades que cualquier otro.</p>
+   </div>
+ </details>
  <details id="coverageMandel" class="lotto-tab-details coverage-explorer">
   <summary>¿Se puede alcanzar el 80 %? · Laboratorio de cobertura matemática</summary>
   <div class="coverage-inner">
@@ -513,6 +531,7 @@ loadDateFields();fetchRows();
 <script type="module" src="assets/generator-pro.js"></script>
 <script type="module" src="assets/science-ui.mjs"></script>
 <script type="module" src="assets/lucky-ui.mjs"></script>
+<script type="module" src="assets/unique-pack-ui.mjs"></script>
 <script type="module" src="assets/coverage-ui.mjs"></script>
 <script type="module" src="assets/draw-ui.mjs"></script>
 <script type="module" src="assets/services-ui.mjs"></script>

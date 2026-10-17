@@ -1,5 +1,6 @@
 import {matchDraw,parseUserTicket,validDraw} from './draw-simulator.mjs';
 import {outcomeCount} from './scientific-math.mjs';
+import {readTicketBarcodeImage,ticketCodeMetadata} from './barcode-reader.mjs';
 import {formatInverseOddsExact} from './exact-engine.mjs';
 import {
   PRICE_USD,OFFICIAL_CHECKERS,PRIZE_SOURCES,prizeForMatch,
@@ -341,28 +342,20 @@ $('scanFile').addEventListener('change',async()=>{
   }
   const container=$('scanOutput');
   setStatus(container,'Leyendo el código localmente; ninguna imagen se transmite a LOTTO LAB…');
-  if(typeof BarcodeDetector==='undefined'){
-    setStatus(container,'Este navegador no permite BarcodeDetector. En iPhone utiliza el escáner de la app oficial de tu estado o introduce los números en «Revisar boleto». No se ha validado ningún premio.');
-    return;
-  }
   try{
-    const supported=await BarcodeDetector.getSupportedFormats();
-    const formats=['code_128','pdf417','qr_code','data_matrix','ean_13','itf','aztec'].filter(f=>supported.includes(f));
-    if(!formats.length)throw Error('No hay formatos compatibles');
-    const reader=new BarcodeDetector({formats});
-    const codes=await reader.detect(file);
-    if(!codes.length)throw Error('No se encontró un código legible en la fotografía');
+    const result=await readTicketBarcodeImage(file);
+    const decoded=ticketCodeMetadata(result.codes);
     container.replaceChildren();
-    container.append(make('strong','Código leído localmente · NO VALIDADO'));
-    for(const entry of codes.slice(0,3)){
-      const raw=String(entry.rawValue||'');
-      const masked='••••••'+raw.slice(-4);
-      container.append(make('p','Tipo '+String(entry.format||'desconocido')+' · identificador oculto '+masked));
+    container.append(make('strong','Código leído · NO VALIDADO'));
+    container.append(make('p','Lector: '+result.decoder+'. Solo se han reconocido caracteres, no resultados de apuestas.'));
+    for(const item of decoded){
+      container.append(make('p','Tipo '+item.format+' · identificador '+item.masked+' · '+item.length+' caracteres (ocultos)'));
     }
-    container.append(make('p','La lectura no contiene una autorización para comprobar premios. Utiliza el enlace a la lotería oficial o introduce tus números.'));
+    container.append(make('p','No es posible saber si ganó o si ya fue cobrado sin consultar al operador. Utiliza la app oficial o introduce los números visibles de la jugada.'));
   }catch(error){
-    setStatus(container,'No fue posible leer el código: '+error.message+
-      '. Intenta otra foto bien iluminada o abre el escáner oficial de tu estado.');
-  }finally{$('scanFile').value='';}
+    setStatus(container,error.message+' La foto no fue subida a nuestros servidores.');
+  }finally{
+    $('scanFile').value='';
+  }
 });
 syncGame();updateResultSource();renderTaxes();activateService('check');

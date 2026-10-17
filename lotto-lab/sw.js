@@ -1,7 +1,7 @@
 // LOTTO LAB DEXTER v3: datos oficiales y archivos visuales con prioridad de red.
 // No se crean resultados ficticios ni se comparten caches entre aplicaciones.
-const CACHE='lotto-lab-dexter-v7';
-const SHELL=['./','./index.html','./manifest.webmanifest','./icon.svg','./assets/generator-pro.js','./assets/lottery-pro.css','./assets/us-catalog.mjs','./assets/us-catalog-ui.js','./assets/scientific-math.mjs','./assets/science-ui.mjs','./data/us-jurisdictions.json','./data/scientific-report.json'];
+const CACHE='lotto-lab-dexter-v8';
+const SHELL=['./','./index.html','./manifest.webmanifest','./icon.svg','./assets/generator-pro.js','./assets/lottery-pro.css','./assets/us-catalog.mjs','./assets/us-catalog-ui.js','./assets/scientific-math.mjs','./assets/science-ui.mjs','./assets/exact-engine.mjs','./assets/lucky-engine.mjs','./assets/lucky-ui.mjs','./assets/coverage-engine.mjs','./assets/coverage-ui.mjs','./data/us-jurisdictions.json','./data/scientific-report.json'];
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)));
   self.skipWaiting();

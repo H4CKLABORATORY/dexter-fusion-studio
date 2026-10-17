@@ -1,3 +1,20 @@
+## Generador de paquetes únicos y vigilancia horaria
+
+El generador principal sigue siendo la prioridad visual de `index.html`. Debajo aparece, cerrado por defecto, el panel **«Crear varios boletos únicos»** (hasta 100 boletos diferentes) con cálculo exacto de cobertura del jackpot y costo teórico cuando está disponible.
+
+- `assets/unique-pack.mjs`: algoritmo de selección sin reemplazo de Robert W. Floyd sobre índices BigInt; usa `crypto.getRandomValues` con rechazo para evitar el sesgo de módulo. Solo se materializan las combinaciones solicitadas.
+- `assets/unique-pack-ui.mjs`: interfaz móvil, lista copiable, probabilidad `m/N` y costo de jugada base. No compra, emite ni valida boletos.
+- `tests/test_unique_pack.mjs`: comprueba todas las 6 selecciones de dos números entre cuatro; cada subconjunto ocurre con la misma frecuencia cuando los rangos aleatorios de entrada son uniformes. Verifica también que ningún boleto se repite, incluso al cubrir los 100 posibles números de La Chica.
+
+**Límite matemático**: para un sorteo justo, cada combinación individual tiene exactamente la misma probabilidad. Usar `m` combinaciones distintas aumenta la **cobertura conjunta** a `m/N`, pero también cuesta `m` veces el precio unitario. Los patrones calientes, las fórmulas nuevas, la IA y las semillas no consiguen un 80 % de acierto del premio mayor con un puñado de boletos sin evidencia externa realmente predictiva.
+
+### Control de disponibilidad programado
+
+`.github/workflows/lotto-lab-watch.yml` ejecuta una vigilancia de lectura **una vez por hora**: comprueba la portada, las nueve páginas secundarias, JavaScript y archivos históricos. Cuando una comprobación falla, GitHub Actions marca su ejecución como fallida para que se investigue. Es un **monitor automático**, no un agente que detecte pausas de ChatGPT ni código de IA que siga programando continuamente.
+
+El flujo `.github/workflows/lotto-lab-pages.yml` continúa descargando fuentes oficiales, pasando pruebas, generando diez páginas y publicando la versión verificada. Las pruebas horarias no realizan cambios destructivos, compras ni apuestas.
+
+
 ## Navegación por páginas independientes
 
 **Generador primero, siempre.** El inicio del sitio publicado en `/lotto-lab/` muestra el generador matemático y la selección diaria de números de la suerte, seguido de tarjetas que conducen a páginas verdaderamente independientes. Ya no es necesario recorrer toda una página larga para encontrar los servicios.

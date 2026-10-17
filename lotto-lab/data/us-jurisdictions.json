@@ -1,0 +1,406 @@
+{
+  "schema": 1,
+  "updated": "2026-10-17",
+  "jurisdiction_count": 48,
+  "coverage": "45 estados más Washington D. C., Puerto Rico e Islas Vírgenes estadounidenses",
+  "source": "https://www.naspl.org/faq",
+  "directory": "https://www.naspl.org/naspl-lottery-members",
+  "notes": "Un catálogo de jurisdicciones NO constituye un historial descargado ni un inventario exhaustivo de juegos. Los juegos tienen reglas propias y algunos son temporales. El catálogo muestra enlaces oficiales solamente cuando fueron verificados.",
+  "jurisdictions": [
+    {
+      "code": "AZ",
+      "name": "Arizona",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "AR",
+      "name": "Arkansas",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "CA",
+      "name": "California",
+      "region": "estado",
+      "source": "https://www.calottery.com/es-us/draw-games/fantasy-5",
+      "source_label": "California Lottery · Fantasy 5",
+      "verified_game_keys": [
+        "cafantasy5"
+      ]
+    },
+    {
+      "code": "CO",
+      "name": "Colorado",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "CT",
+      "name": "Connecticut",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "DE",
+      "name": "Delaware",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "FL",
+      "name": "Florida",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "GA",
+      "name": "Georgia",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "ID",
+      "name": "Idaho",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "IL",
+      "name": "Illinois",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "IN",
+      "name": "Indiana",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "IA",
+      "name": "Iowa",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "KS",
+      "name": "Kansas",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "KY",
+      "name": "Kentucky",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "LA",
+      "name": "Louisiana",
+      "region": "estado",
+      "source": "https://louisianalottery.com/draw-games/pick-3/",
+      "source_label": "Louisiana Lottery · Pick 3",
+      "verified_game_keys": []
+    },
+    {
+      "code": "ME",
+      "name": "Maine",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "MD",
+      "name": "Maryland",
+      "region": "estado",
+      "source": "https://www.mdlottery.com/games/pick-3-pick-4-pick-5/",
+      "source_label": "Maryland Lottery · Pick 3 / 4 / 5",
+      "verified_game_keys": [
+        "mdpick3",
+        "mdpick4",
+        "mdpick5"
+      ]
+    },
+    {
+      "code": "MA",
+      "name": "Massachusetts",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "MI",
+      "name": "Michigan",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "MN",
+      "name": "Minnesota",
+      "region": "estado",
+      "source": "https://www.mnlottery.com/about-the-lottery/figuring-the-odds",
+      "source_label": "Minnesota Lottery · Cómo calcular probabilidades",
+      "verified_game_keys": []
+    },
+    {
+      "code": "MS",
+      "name": "Mississippi",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "MO",
+      "name": "Missouri",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "MT",
+      "name": "Montana",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "NE",
+      "name": "Nebraska",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "NH",
+      "name": "New Hampshire",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "NJ",
+      "name": "New Jersey",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "NM",
+      "name": "Nuevo México",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "NY",
+      "name": "Nueva York",
+      "region": "estado",
+      "source": "https://nylottery.ny.gov/draw-game?game=take5",
+      "source_label": "New York Lottery · Take 5",
+      "verified_game_keys": [
+        "nytake5"
+      ]
+    },
+    {
+      "code": "NC",
+      "name": "Carolina del Norte",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "ND",
+      "name": "Dakota del Norte",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "OH",
+      "name": "Ohio",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "OK",
+      "name": "Oklahoma",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "OR",
+      "name": "Oregón",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "PA",
+      "name": "Pensilvania",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "RI",
+      "name": "Rhode Island",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "SC",
+      "name": "Carolina del Sur",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "SD",
+      "name": "Dakota del Sur",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "TN",
+      "name": "Tennessee",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "TX",
+      "name": "Texas",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "VT",
+      "name": "Vermont",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "VA",
+      "name": "Virginia",
+      "region": "estado",
+      "source": "https://www.valottery.com/data/draw-games/cash5",
+      "source_label": "Virginia Lottery · Cash 5",
+      "verified_game_keys": [
+        "vapick3",
+        "vacash5"
+      ]
+    },
+    {
+      "code": "WA",
+      "name": "Washington",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "WV",
+      "name": "Virginia Occidental",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "WI",
+      "name": "Wisconsin",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "WY",
+      "name": "Wyoming",
+      "region": "estado",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "DC",
+      "name": "Washington D. C.",
+      "region": "distrito_o_territorio",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "PR",
+      "name": "Puerto Rico",
+      "region": "distrito_o_territorio",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    },
+    {
+      "code": "VI",
+      "name": "Islas Vírgenes de EE. UU.",
+      "region": "distrito_o_territorio",
+      "source": null,
+      "source_label": null,
+      "verified_game_keys": []
+    }
+  ]
+}

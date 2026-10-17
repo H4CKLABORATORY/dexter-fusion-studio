@@ -193,3 +193,28 @@ body{background:radial-gradient(circle at 10% 0%,#174b51 0,transparent 40%),radi
 .scientific-disclosure{font-size:12px;margin-top:18px;color:#e8d7b8;border-left:3px solid #e6bf58;padding-left:12px;line-height:1.7}
 @media(max-width:760px){.scientific-metrics{grid-template-columns:1fr 1fr}.scientific-control{grid-template-columns:1fr}.scientific-body{padding-left:14px;padding-right:14px}}
 @media(max-width:490px){.scientific-metrics{grid-template-columns:1fr}.scientific-tiers,.scientific-evidence{padding:12px}.scientific-tiers .compare-table{min-width:620px}}
+
+
+/* Selección temática diaria — usa los mismos tonos de lotería. */
+.lucky-daily{margin:19px 0 10px;border:1px solid #b38c50;border-radius:19px;
+  background:radial-gradient(circle at 100% 0,#77522760,transparent 48%),
+  linear-gradient(145deg,#162d41,#1e2c43 65%,#362a30);padding:clamp(17px,2.5vw,28px);box-shadow:0 15px 40px #0003}
+.lucky-header{display:flex;align-items:flex-start;justify-content:space-between;gap:15px}
+.lucky-header h2{font-size:clamp(24px,3vw,34px);letter-spacing:-.035em;margin:12px 0 6px;color:#ffdf84}
+.lucky-header p{margin:0;color:#d1dfeb;font-size:13px;max-width:660px;line-height:1.6}
+.lucky-day-pill{font-weight:850;font-size:11px;padding:7px 11px;background:#d5b45c22;color:#ffe8a1;border:1px solid #967e4b;border-radius:30px;white-space:nowrap}
+.lucky-output{display:flex;flex-wrap:wrap;gap:11px;align-items:center;min-height:100px;
+  padding:21px 0;border-bottom:1px dashed #647185}
+.lucky-output .ticket-ball{height:58px;width:58px;font-size:22px}
+.lucky-output .ticket-ball.digits{width:auto;min-width:105px;padding:0 18px;border-radius:40px}
+.lucky-output .ticket-ball.chica{width:92px;height:92px;font-size:34px}
+.lucky-foot{display:flex;align-items:center;justify-content:space-between;gap:18px;padding-top:15px}
+.lucky-foot strong{color:#fff1b4}
+.lucky-foot p{color:#cadce9;font-size:12px;line-height:1.55;margin:6px 0}
+.lucky-foot .lucky-odds{color:#ffe49a;font-weight:750}
+.lucky-buttons{display:flex;flex-wrap:wrap;gap:8px}
+.lucky-buttons button{cursor:pointer;border-radius:10px;background:#edc76e;color:#36290c;border:1px solid #f4dd9d;padding:10px 14px;font-weight:850}
+.lucky-buttons button:hover{background:#fff0bf}
+.lucky-buttons button:last-child{background:#254c5d;color:#f1f5f8;border-color:#51717e}
+.lucky-buttons button:disabled{opacity:.4;cursor:not-allowed}
+@media(max-width:650px){.lucky-header,.lucky-foot{flex-direction:column;align-items:stretch}.lucky-day-pill{align-self:flex-start}.lucky-buttons button{flex:1}.lucky-output .ticket-ball{height:45px;width:45px;font-size:18px}.lucky-output{gap:7px}}

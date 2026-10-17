@@ -39,6 +39,35 @@ test('la semilla interna produce cálculos reproducibles sin Math.random',()=>{
   assert.deepEqual(Array.from(a.main),Array.from(b.main));
   assert.equal(a.bonus,b.bonus);
 });
+test('matrices estatales nunca generan bola cero y admiten su número máximo',()=>{
+  for(const [game,n] of [
+    ['powerball',69],['megamillions',70],['vacash5',45],['cafantasy5',39],['nytake5',39]
+  ]){
+    select(game,'seed',String(n));
+    const t=T.createTicket();
+    assert.ok(t.main.includes(n),game+' debe poder elegir '+n);
+    assert.ok(t.main.every(v=>Number.isInteger(v)&&v>=1&&v<=n),game+' tiene un número inválido');
+    select(game,'seed',String(n+1));
+    assert.throws(()=>T.createTicket(),/números diferentes/,game+' no puede aceptar '+(n+1));
+    select(game,'seed','0');
+    assert.throws(()=>T.createTicket(),/números diferentes/,game+' no puede aceptar cero');
+    select(game,'seed');
+    for(let i=0;i<100;i++){
+      const t=T.createTicket();
+      assert.equal(t.main.length,5);
+      assert.equal(new Set(t.main).size,5);
+      assert.ok(t.main.every(v=>v>=1&&v<=n),game+' generó valores fuera de rango');
+    }
+  }
+});
+test('modos altos y bajos respetan exactamente la matriz del juego',()=>{
+  for(const [game,n] of [['powerball',69],['megamillions',70],['vacash5',45],['cafantasy5',39],['nytake5',39]]){
+    select(game,'low');
+    for(let i=0;i<18;i++)assert.ok(T.createTicket().main.every(v=>v<=Math.floor(n/2)));
+    select(game,'high');
+    for(let i=0;i<18;i++)assert.ok(T.createTicket().main.every(v=>v>Math.floor(n/2)));
+  }
+});
 test('rangos, duplicados y especial: Powerball, Mega Millions y La Chica',()=>{
   for(const game of ['powerball','megamillions','chica']){
     select(game);

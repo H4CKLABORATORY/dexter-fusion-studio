@@ -21,6 +21,8 @@ let selected='powerball',generation=0,verified=[],loading=0,lastNumbers=[];
 let fetched={};
 const nf=n=>Number(n).toLocaleString('es-ES');
 const pct=n=>(n*100).toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:6})+' %';
+// Vista pública sencilla: 1 %, 7 %, 10 %. Conserva cálculos originales sin redondear.
+const pctCompact=n=>(n>0&&n*100<.5?'<1':String(Math.round(n*100)))+' %';
 function pickHash(s){
   let h=2166136261;for(let i=0;i<s.length;i++){h=Math.imul(h^s.charCodeAt(i),16777619);}
   h ^= h>>>16; h=Math.imul(h,0x7feb352d);h ^= h>>>15;h=Math.imul(h,0x846ca68b);return(h^(h>>>16))>>>0;
@@ -249,8 +251,9 @@ function renderProbabilities(){
   const g=specs[selected],total=totalOutcomes(g),individual=theoretical(g),count=verified.length;
   $p('proOdds').textContent='1 en '+nf(total);
   renderCoverage();
-  $p('proPerNumber').textContent=pct(g.kind==='digits'?0.1:individual);
-  $p('proPerNumberLabel').textContent=g.kind==='digits'?'Probabilidad de un dígito en una posición':g.k===1?'De que salga un número de 00 a 99':'De que salga una bola principal específica';
+  $p('proPerNumber').textContent=pctCompact(g.kind==='digits'?0.1:individual);
+  $p('proPerNumber').title='Cálculo original sin redondear: '+pct(g.kind==='digits'?0.1:individual);
+  $p('proPerNumberLabel').textContent=g.kind==='digits'?'Probabilidad de un dígito en una posición (redondeada)':g.k===1?'De que salga un número de 00 a 99 (redondeada)':'De que salga una bola principal específica (redondeada)';
   $p('proModel').textContent=g.kind==='digits'?g.width+' dígitos ordenados · 10^'+g.width+' resultados posibles':g.k===1?'100 números posibles · un número ganador · modelo uniforme':g.k+' de '+g.n+(g.bonus?' + 1 especial de '+g.bonus:'')+' · combinatoria exacta';
   const chips=$p('proProbGrid');chips.replaceChildren();
   if(g.kind==='digits'){
@@ -270,13 +273,13 @@ function renderProbabilities(){
   const counts=historicalFrequency(g);
   const denominator=g.k?count:0;
   const chosen=new Set(lastNumbers.slice(0,g.k));
-  const percentTheo=pct(individual);
+  const percentTheo=pctCompact(individual);
   for(let i=g.k===1&&!g.bonus?0:1;i<=(g.k===1&&!g.bonus?g.n-1:g.n);i++){
     const item=document.createElement('div');item.className='prob-chip'+(chosen.has(i)?' favored':'');
     const n=document.createElement('strong');n.textContent=String(i).padStart(2,'0');
     const theoreticalText=document.createElement('span');theoreticalText.textContent=percentTheo+' teórico';
     const sample=document.createElement('small');
-    sample.textContent=denominator?pct(counts[i]/denominator)+' histórico':'Sin archivo histórico';
+    sample.textContent=denominator?pctCompact(counts[i]/denominator)+' histórico':'Sin archivo histórico';
     item.append(n,theoreticalText,sample);
     if(denominator){
       const ci=wilson(counts[i],denominator);
@@ -284,7 +287,7 @@ function renderProbabilities(){
     }
     chips.append(item);
   }
-  $p('proSpecialOdds').textContent=g.bonus?pct(1/g.bonus):'No hay bola especial';
+  $p('proSpecialOdds').textContent=g.bonus?pctCompact(1/g.bonus):'No hay bola especial';
   $p('proEntropy').textContent=Math.log2(Number(total)).toFixed(2)+' bits';
   const mode=$p('proStyle').value;
   $p('proModeNote').textContent=(mode==='hot'||mode==='cold')
@@ -319,5 +322,6 @@ $p('proCopy').addEventListener('click',async()=>{
   try{await navigator.clipboard.writeText(text);$p('proTicketNote').textContent='Copiado: '+text;}catch{$p('proTicketNote').textContent='Selecciona y copia: '+text;}
 });
 window.LottoLabScientificState=()=>({key:selected,game:specs[selected],rows:verified});
+window.LottoLabDailyState=()=>({key:selected,game:specs[selected],rows:verified});
 updateGame();
 renderUSComparison();

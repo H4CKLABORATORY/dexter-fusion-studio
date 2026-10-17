@@ -69,8 +69,8 @@ class CaptionExportTests(unittest.TestCase):
             ], check=True)
             srt = folder / 'voice.srt'
             srt.write_text(
-                '1\\n00:00:00,120 --> 00:00:01,150\\n'
-                'Hoy tenemos un video muy bueno\\n',
+                '1\n00:00:00,120 --> 00:00:01,150\n'
+                'Hoy tenemos un video muy bueno\n',
                 encoding='utf-8',
             )
             project_folder, config = create_project(

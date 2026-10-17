@@ -16,9 +16,12 @@ El script `scripts/build_data.py` descarga CSV públicos de NY State Gaming Comm
 - Biblioteca de resultados de estas fuentes y búsqueda por fecha/año.
 - Frecuencias de bolas principales y especiales, pares, impar/par y exportación CSV. Los análisis comparativos solo usan sorteos bajo las reglas actuales, sin contaminar con sistemas históricos distintos.
 - Probabilidad exacta para una o varias combinaciones *distintas* en un solo sorteo.
-- Generador aleatorio criptográfico, sin priorizar números por frecuencia.
+- **Generador principal determinista**: cada combinación se calcula desde una semilla y un contador reproducibles, sin fingir capacidad predictiva. Incluye opciones equilibradas, pares, impares, altas, bajas, números favoritos y frecuencias históricas del régimen actual. Se conserva el generador criptográfico clásico oculto por compatibilidad interna.
 - Prueba walk-forward: en cada paso entrena sobre el pasado y evalúa el resultado siguiente, sin mirar datos futuros. Se compara con una línea base matemática, no promete ventaja predictiva.
 - Instalación tipo web app en iPhone mediante **Compartir > Agregar a pantalla de inicio**, y en PC por navegador compatible. Datos en caché para consultas sin conexión después de la primera carga correcta.
+- Opción matemática **La Chica Honduras (00–99)** con una probabilidad teórica de 1/100 para un número específico en un sorteo uniforme. **No se proporciona historial oficial hondureño hasta encontrar una fuente verificable.**
+- Panel de probabilidades por cada bola con porcentajes teóricos y frecuencias históricas observadas (cuando exista una base verificada); entropía combinatoria e intervalos Wilson descriptivos. La probabilidad real del siguiente sorteo NO se deduce de frecuencias pasadas.
+- Interfaz de lotería con generador primero, grandes premios históricos documentados y el historial de sorteos en una pestaña desplegable al final. El pozo actual solo se consulta mediante enlaces oficiales para evitar cifras desactualizadas.
 - No cuentas, pagos, compra de boletos, publicidad ni trackers externos.
 
 ## Compilar biblioteca oficial
@@ -28,7 +31,7 @@ Requiere Python 3.10+ con Internet:
 ```bash
 python scripts/build_data.py data
 python -m unittest discover -s tests -v
-node --test tests/test_core.mjs
+node --test tests/test_*.mjs
 ```
 
 Para ver la web localmente:
@@ -56,3 +59,13 @@ Documentación técnica y pruebas en la carpeta `tests/`.
 - Los históricos se reconstruyen en el runner cada día (UTC: 12:27); no hay que confundir una ejecución correcta con una ventaja predictiva.
 - Para comprobar el estado más reciente, consulta [GitHub Actions](https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/workflows/lotto-lab-pages.yml).
 
+
+## Alcance de los archivos y de los métodos matemáticos
+
+La biblioteca JSON generada por el proceso diario conserva todos los sorteos **disponibles en las dos fuentes públicas**, Powerball desde 2010 y Mega Millions desde 2002. No promete recuperar sorteos anteriores a la cobertura de esas fuentes ni de todas las loterías del planeta. Para el análisis descriptivo por número se usa únicamente el período de reglas actuales; la pestaña histórica conserva también los registros de reglas anteriores. La copia generada se publica como archivos JSON estáticos en Pages y como artefacto descargable de Actions; no hay base de datos de pago.
+
+**Una bola principal determinada:** en Powerball su probabilidad exacta por sorteo justo es `5/69`; Mega Millions `5/70`; la bola especial `1/26` o `1/24`. En La Chica de dos cifras y bajo un modelo uniforme de 00 a 99, `1/100`. **Una combinación completa:** `1 / (C(n,k) × b)`, y `1/100` en La Chica con un solo número de dos cifras. Los porcentajes de frecuencia histórica se calculan como `sorteos_con_el_numero / sorteos_validos` y no son probabilidades mejores del siguiente sorteo. Una semilla produce números reproducibles, pero no descubre patrones futuros. Las técnicas «cuánticas» no transforman un sorteo justo independiente en uno predecible.
+
+Para La Chica se enlaza al [PANI](https://www.pani.gob.hn/); falta comprobar un archivo descargable oficial y su estructura antes de añadir sorteos hondureños a la base. No se incorporan registros sin fuente o con premios acumulados no verificables.
+
+Pruebas adicionales: `tests/test_generator.mjs` comprueba combinatoria, probabilidades, validación de rangos, reproducibilidad, preferencias e integridad del diseño. La automatización verifica además por HTTPS los nuevos recursos `assets/generator-pro.js` y `assets/lottery-pro.css`.

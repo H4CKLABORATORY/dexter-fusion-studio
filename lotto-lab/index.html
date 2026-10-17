@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#09131f">
+<meta name="description" content="LOTTO LAB DEXTER: historial oficial completo disponible, frecuencias, probabilidades exactas y validación de estrategias. Ciencia de datos sin falsas predicciones.">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<style>
+:root{--bg:#07121f;--panel:#0f2031;--panel2:#11263a;--line:#243b50;--fg:#f3f7fd;--muted:#9bb0c5;--accent:#69cbea;--gold:#eab66d;--green:#68e1bb;--danger:#ffb87e;--max:1200px}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;color:var(--fg);background:radial-gradient(ellipse 70% 32% at 75% 2%,#153447 0,transparent 72%),var(--bg);font:15px/1.55 -apple-system,BlinkMacSystemFont,Inter,'Segoe UI',sans-serif}a{color:inherit;text-decoration:none}button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:3px}.sr-only,.skip:not(:focus){position:absolute;clip:rect(0,0,0,0);width:1px;height:1px;overflow:hidden}.skip:focus{position:fixed;z-index:100;top:12px;left:12px;background:#fff;color:#000;padding:12px}.app-shell{width:min(var(--max),calc(100% - 44px));margin:auto}.topbar{min-height:82px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #233e52;gap:16px}.wordmark{display:inline-flex;align-items:center;gap:11px;font-size:21px;font-weight:900;line-height:.95;letter-spacing:-.055em}.brand-icon{height:38px;width:38px;display:grid;place-items:center;border-radius:11px;background:linear-gradient(135deg,#83e4ef,#4096d3);color:#05131e;font-size:23px;box-shadow:0 0 36px #61cee536}.brand-blue{color:var(--accent)}.wordmark small{display:block;color:#799ab0;letter-spacing:.24em;font-size:9px;padding-top:7px}.top-actions{display:flex;align-items:center;gap:14px}.live-label{color:#a5c2cc;font-size:12px;font-weight:700;white-space:nowrap}.live-label i,.dot{display:inline-block;width:7px;height:7px;background:var(--gold);border-radius:50%;margin-right:6px}.live-label.live i,.dot{background:var(--green);box-shadow:0 0 11px #69ecc75f}.tiny-btn{color:#d3ecf5;background:#173349;border:1px solid #2c5266;border-radius:11px;padding:8px 12px}.navscroll{display:flex;gap:36px;border-bottom:1px solid #24394d;overflow-x:auto;scrollbar-width:none;padding:13px 0;white-space:nowrap}.navscroll a{color:#9fb1c3;font-size:13px;font-weight:680}.navscroll a:hover{color:#d8f5ff}.hero{min-height:400px;display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,.6fr);align-items:center;padding:66px 0 54px;gap:20px}.eyebrow,.overline{font-size:11px;font-weight:800;letter-spacing:.16em;color:var(--accent)}.hero h1{font-size:clamp(35px,4.6vw,64px);letter-spacing:-.06em;line-height:1.08;margin:18px 0;max-width:750px}.hero h1 em{font-style:normal;color:var(--accent)}.hero p{max-width:650px;color:#acc1ce;font-size:16px}.hero-actions{display:flex;gap:12px;margin-top:26px;flex-wrap:wrap}.primary,.outline{display:inline-flex;align-items:center;justify-content:center;gap:20px;min-height:43px;border-radius:11px;padding:10px 17px;font-weight:770;border:1px solid transparent;font-size:13px}.primary{background:var(--accent);color:#031824}.outline{color:#c8e4f1;background:transparent;border-color:#365365}.primary:hover{background:#95e5f3}.outline:hover{background:#18374b}.fill{width:100%}.hero-visual{position:relative;height:305px;isolation:isolate}.hero-ring{position:absolute;border:1px solid #2c7990;border-radius:50%;left:50%;top:50%;transform:translate(-50%,-50%);box-shadow:inset 0 0 40px #1b516133}.ring-one{width:260px;height:260px}.ring-two{width:320px;height:320px;border-style:dashed;opacity:.6}.float-ball{width:75px;height:75px;border-radius:50%;display:grid;place-items:center;position:absolute;font-size:25px;font-weight:850;box-shadow:inset -10px -13px 19px #0d4a606f,0 16px 40px #0005}.ball-big{width:108px;height:108px;left:40%;top:22%;background:radial-gradient(circle at 28% 26%,#effaff,#5dc9e6 45%,#1584b4);color:#06263b}.ball-second{left:3%;top:38%;background:radial-gradient(circle at 25% 30%,#fcffff,#9ad5e2 45%,#3f93b7);color:#063449}.ball-third{right:2%;bottom:15%;background:radial-gradient(circle at 22% 22%,#fff,#9dccd3 44%,#548da9);color:#0b3445}.ball-special{left:41%;bottom:0;background:radial-gradient(circle at 22% 22%,#ffedc6,#e7ac61 53%,#9d5e21);color:#552b00}.orbit-label{position:absolute;top:6%;right:0;color:#7391a3;font-size:10px;letter-spacing:.26em}.alertbanner{border:1px solid #31536a;border-left:3px solid #e3ac68;background:#132434;border-radius:12px;padding:13px 16px;display:flex;gap:12px;color:#c5d6dd;font-size:13px;line-height:1.65}.alert-icon{font-size:19px;color:#e3ac68}.section{padding:70px 0 10px;scroll-margin-top:20px}.section-title{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:23px}.section-title h2{font-size:clamp(25px,3.2vw,38px);line-height:1.18;letter-spacing:-.047em;margin:8px 0 4px}.section-title p{margin:5px 0 0;color:var(--muted)}.controls{display:flex;align-items:center;gap:10px}.controls label{color:var(--muted);font-size:13px}.icon-button{background:#162c3e;color:#cfe5f4;border:1px solid #345165;border-radius:9px;padding:8px 13px;font-size:20px}select,input{background:#0f2333;color:var(--fg);border:1px solid #34546b;border-radius:9px;padding:10px 12px;max-width:100%;min-height:43px}option{background:#162e43}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-bottom:16px}.metric{background:linear-gradient(147deg,#102538,#0a1d2e);border:1px solid var(--line);border-radius:15px;padding:20px;min-width:0}.metric span{color:#a3b7c5;font-size:12px;display:block}.metric strong{display:block;font-size:clamp(21px,2vw,29px);letter-spacing:-.045em;margin:8px 0;color:#d6f8ff;overflow-wrap:anywhere}.metric small{color:#849db0;font-size:11px}.grid-halves{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}.secondary-grid{margin-top:15px}.panel{background:linear-gradient(135deg,#102538,#0c1f30 75%);border:1px solid #263e52;padding:24px;border-radius:17px;min-width:0}.panel h3{font-size:18px;line-height:1.35;letter-spacing:-.025em;margin:0 0 14px}.panel-head{display:flex;align-items:start;justify-content:space-between;gap:15px;margin-bottom:13px}.panel-head h3{margin:4px 0 0}.soft-pill{border:1px solid #375365;background:#1b3547;border-radius:40px;color:#b9d6e7;padding:6px 11px;font-size:11px;white-space:nowrap}.soft-pill.green{color:#87e2c7;border-color:#2c655e}.mini-note{font-size:11px;color:#85a1b3}.balls{display:flex;align-items:center;flex-wrap:wrap;gap:9px;margin:15px 0 18px;min-height:51px}.ball{height:49px;width:49px;display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle at 30% 22%,#fff,#d5eaf3 45%,#80a7c0 93%);color:#153246;font-size:17px;font-weight:850;box-shadow:inset -5px -5px 9px #6c82904f,0 5px 13px #0003}.ball.bonus{background:radial-gradient(circle at 30% 20%,#fff5d6,#f1b563 48%,#bc783b);color:#472406}.subtle,.muted{font-size:13px;color:var(--muted);line-height:1.65}.rule-summary{display:flex;gap:32px;margin:20px 0}.rule-summary div{flex:1}.rule-summary strong{display:block;font-size:25px;color:var(--green);letter-spacing:-.04em}.rule-summary span{color:#93aabd;font-size:12px}.bar-row{display:grid;grid-template-columns:26px 1fr 42px;gap:11px;align-items:center;margin:11px 0}.bar-label{font-weight:790;font-size:13px;color:#b9d7e4}.bar-track{height:8px;background:#203a4a;border-radius:20px;overflow:hidden}.bar-ink{height:100%;background:linear-gradient(90deg,#358cb6,#72dded);border-radius:20px}.bar-ink.gold{background:linear-gradient(90deg,#a87a4e,#f5c875)}.bar-count{font-size:12px;color:#b9ccdb;text-align:right}.sub-metrics{display:grid;gap:14px;margin-top:16px}.sub-metrics div{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid #2b4354;padding:8px 0}.sub-metrics span{font-size:13px;color:#a7bfd0}.sub-metrics strong{font-size:15px;color:#ddf5ff;font-variant-numeric:tabular-nums}.history-toolbar{display:flex;gap:14px;align-items:end;margin-bottom:22px;flex-wrap:wrap}.history-toolbar label,.panel label{color:#adc4d2;font-weight:650;font-size:12px;display:block;margin:3px 0 6px}.history-toolbar input{width:155px}.history-toolbar select{min-width:132px}.history-count{margin-left:auto;font-size:12px;color:#91b6ca}.history-head,.history-item{display:grid;grid-template-columns:minmax(100px,1fr) minmax(200px,2fr) 70px;gap:8px;align-items:center}.history-head{color:#829eb1;font-size:11px;letter-spacing:.07em;font-weight:780;border-bottom:1px solid #2b4558;padding:8px 4px 13px}.history-item{padding:11px 4px;border-bottom:1px solid #23394a;font-size:13px}.history-item .numbers{display:flex;gap:6px;flex-wrap:wrap}.history-item .num{width:30px;height:30px;border:1px solid #3d6579;border-radius:50%;display:grid;place-items:center;color:#dfebf4;background:#1e384b;font-weight:750;font-size:12px}.history-item .special{color:#eac68b}.history-item .previous{font-size:10px;color:var(--gold);display:block}.history-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:20px;color:var(--muted);font-size:12px}.small-btn{min-height:37px;padding:8px 14px}.play-balls{margin-bottom:5px}.panel input[type=number]{width:100%}.backtest{margin-top:15px}.backtest-results{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.backtest-results .result{padding:15px;border:1px solid #315263;background:#132e40;border-radius:10px}.result strong{display:block;color:#d4f6ff;font-size:20px}.result span{color:#a8c4d1;font-size:12px}.backtest-results .caution{grid-column:1/-1;color:#dbbb8c;font-size:12px}.source-links{display:grid;gap:9px}.source-links a,footer a{color:var(--accent);font-size:13px}footer{margin-top:86px;border-top:1px solid #314c60;padding:34px 0 60px;display:flex;gap:20px;flex-wrap:wrap;align-items:center;color:var(--muted)}footer p{max-width:450px;font-size:12px}footer>small{flex-basis:100%;font-size:11px}.footerbrand{font-size:16px}.footerbrand .brand-icon{height:30px;width:30px;font-size:18px}.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(140px);transition:transform .2s;z-index:99;max-width:calc(100% - 32px);width:max-content;padding:12px 18px;background:#233e50;color:#f2faff;border:1px solid #47738a;border-radius:12px;box-shadow:0 16px 35px #0008;font-size:13px}.toast.show{transform:translateX(-50%) translateY(0)}
+@media(max-width:860px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.hero{grid-template-columns:1fr minmax(200px,.42fr)}.hero-visual{transform:scale(.76);transform-origin:center}.navscroll{gap:22px}}
+@media(max-width:680px){.app-shell{width:calc(100% - 28px)}.topbar{min-height:69px}.wordmark{font-size:17px}.brand-icon{width:33px;height:33px;font-size:18px}.top-actions{gap:7px}.live-label{font-size:10px}.tiny-btn{font-size:10px;padding:6px}.navscroll{gap:25px}.hero{display:block;padding:50px 0 29px;min-height:unset}.hero h1{font-size:clamp(33px,9.4vw,49px)}.hero p{font-size:14px}.hero-visual{display:none}.hero-actions{margin-top:21px}.section{padding:48px 0 5px}.section-title{align-items:start;flex-direction:column;gap:14px}.section-title h2{font-size:29px}.metrics,.grid-halves{grid-template-columns:1fr}.metric{padding:17px}.metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.metric strong{font-size:22px}.metric small{font-size:10px}.panel{padding:18px}.ball{height:42px;width:42px;font-size:15px}.balls{gap:7px}.secondary-grid{margin-top:15px}.history-head,.history-item{grid-template-columns:78px minmax(150px,1fr) 37px;gap:5px}.history-item .num{width:26px;height:26px;font-size:10px}.history-item .numbers{gap:3px}.history-toolbar{gap:9px}.history-toolbar input{width:128px}.history-count{margin-left:0;width:100%}.backtest-results{grid-template-columns:1fr 1fr}.backtest-results .result:last-of-type{grid-column:1/-1}.rule-summary{gap:17px}.rule-summary strong{font-size:21px}footer{margin-top:48px}}
+@media(max-width:380px){.metric{padding:13px}.metric strong{font-size:18px}.metric span{font-size:10px}.ball{height:36px;width:36px;font-size:13px}.history-item .num{width:23px;height:23px}.soft-pill{font-size:9px}.panel-head{flex-wrap:wrap}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
+
+</style>
+<title>LOTTO LAB DEXTER · Laboratorio de resultados históricos</title>
+</head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+<div class="app-shell">
+<header class="topbar">
+ <a class="wordmark" href="#inicio" aria-label="Lotto Lab Dexter"><span class="brand-icon">L</span><span>LOTTO<span class="brand-blue">LAB</span><small>BY DEXTER</small></span></a>
+ <div class="top-actions"><span class="live-label" id="statusIndicator"><i></i> Cargando fuentes</span><button class="tiny-btn" id="installBtn" hidden>+ Instalar app</button></div>
+</header>
+<nav class="navscroll" aria-label="Secciones"><a href="#resumen">Resumen</a><a href="#estadisticas">Estadísticas</a><a href="#historial">Historial</a><a href="#analisis">Laboratorio</a><a href="#metodo">Método</a></nav>
+<main id="contenido">
+<section id="inicio" class="hero">
+ <div class="hero-copy"><div class="eyebrow"><span class="dot"></span> Datos públicos · Matemáticas reales · Versión 2.0</div>
+ <h1>Los números tienen <em>historia.</em><br>El azar no tiene memoria.</h1>
+ <p>Explora los sorteos reales de Powerball y Mega Millions. Compara frecuencias, revisa cada resultado, comprueba probabilidades y pon a prueba estrategias sin inventar predicciones.</p>
+ <div class="hero-actions"><a class="primary" href="#resumen">Explorar resultados <span aria-hidden="true">↗</span></a><a class="outline" href="#metodo">Cómo funciona</a></div></div>
+ <div class="hero-visual" aria-hidden="true"><div class="hero-ring ring-one"></div><div class="hero-ring ring-two"></div><span class="float-ball ball-big">07</span><span class="float-ball ball-second">29</span><span class="float-ball ball-third">13</span><span class="float-ball ball-special">★</span><span class="orbit-label">DATA / 2026</span></div>
+</section>
+<div class="alertbanner"><span class="alert-icon">ⓘ</span><div><strong>Sin promesas falsas.</strong> En sorteos independientes y justos, los resultados anteriores no permiten conocer el siguiente. Esta herramienta analiza datos y no vende boletos, ni recomienda jugar.</div></div>
+<section id="resumen" class="section">
+ <div class="section-title"><div><span class="overline">01 · PANEL DE CONTROL</span><h2>Explora la lotería</h2></div><div class="controls"><label for="game" class="sr-only">Lotería</label><select id="game"><option value="powerball">Powerball</option><option value="megamillions">Mega Millions</option></select><button id="refresh" class="icon-button" title="Volver a cargar la base de datos" aria-label="Actualizar resultados">↻</button></div></div>
+ <div class="metrics">
+  <article class="metric"><span>Registros históricos</span><strong id="allDraws">—</strong><small>Hasta la última fecha disponible</small></article>
+  <article class="metric"><span>Último sorteo cargado</span><strong id="latestDate">—</strong><small id="latestCaption">Fuente oficial</small></article>
+  <article class="metric"><span>Combinaciones del premio mayor</span><strong id="jackpotOdds">—</strong><small>1 boleto de la matriz actual</small></article>
+  <article class="metric"><span>Precio de referencia</span><strong id="price">—</strong><small>Por jugada básica, sin impuestos</small></article>
+ </div>
+ <div class="grid-halves">
+  <article class="panel"><div class="panel-head"><div><span class="overline">ÚLTIMO RESULTADO</span><h3 id="lastGameName">Powerball</h3></div><span class="soft-pill" id="drawDay">—</span></div><div class="balls" id="latestBalls"><span class="muted">Cargando archivo oficial…</span></div><p class="subtle">Los resultados mostrados proceden de New York Open Data. Para reclamaciones, prevalece el resultado certificado del operador.</p></article>
+  <article class="panel"><div class="panel-head"><div><span class="overline">PRECISIÓN DEL ANÁLISIS</span><h3>Misma regla, mismos números</h3></div><span class="soft-pill green">Sin sesgos de reglas</span></div><div class="rule-summary"><div><strong id="regimeDraws">—</strong><span>Sorteos con la configuración actual</span></div><div><strong id="regimeStart">—</strong><span>Inicio del sistema vigente</span></div></div><p class="subtle" id="dataHealth">Se mostrarán datos cuando termine la descarga.</p></article>
+ </div>
+</section>
+<section id="estadisticas" class="section">
+ <div class="section-title"><div><span class="overline">02 · CIENCIA DE DATOS</span><h2>Estadísticas históricas</h2><p>Frecuencias descriptivas. No aumentan la posibilidad de ganar.</p></div><div class="controls"><label for="window">Muestra</label><select id="window"><option value="50">Últimos 50</option><option value="100">Últimos 100</option><option value="250" selected>Últimos 250</option><option value="all">Todos (reglas actuales)</option></select></div></div>
+ <div class="grid-halves"><article class="panel"><div class="panel-head"><h3>Más frecuentes</h3><span class="mini-note">Bolas principales</span></div><div id="hotBars" class="bar-list"><p class="muted">Preparando estadísticas…</p></div></article>
+ <article class="panel"><div class="panel-head"><h3>Menos frecuentes</h3><span class="mini-note">No están «por salir»</span></div><div id="coldBars" class="bar-list"><p class="muted">Preparando estadísticas…</p></div></article></div>
+ <div class="grid-halves secondary-grid"><article class="panel"><div class="panel-head"><h3>Bola especial</h3><span class="mini-note">Las 6 primeras por frecuencia</span></div><div id="bonusBars" class="bar-list"></div></article><article class="panel"><div class="panel-head"><h3>Patrones observados</h3><span class="mini-note">No pronósticos</span></div><div class="sub-metrics"><div><span>Bolitas impares</span><strong id="oddMetric">—</strong></div><div><span>Suma promedio de 5 números</span><strong id="sumMetric">—</strong></div><div><span>Par más repetido</span><strong id="pairMetric">—</strong></div></div></article></div>
+</section>
+<section id="historial" class="section"><div class="section-title"><div><span class="overline">03 · ARCHIVO VERIFICABLE</span><h2>Biblioteca de sorteos</h2><p>Explora el historial del dataset, también las etapas con reglas anteriores.</p></div><button id="downloadCSV" class="outline small-btn">↓ Exportar CSV</button></div>
+ <div class="panel"><div class="history-toolbar"><div><label for="year">Año</label><select id="year"><option value="all">Todos los años</option></select></div><div><label for="findDate">Buscar fecha</label><input type="search" id="findDate" placeholder="AAAA-MM-DD" autocomplete="off" inputmode="text"/></div><span class="history-count" id="matchedRows">— resultados</span></div>
+ <div class="history-head"><span>FECHA</span><span>NÚMEROS GANADORES</span><span>ESPECIAL</span></div><div id="historyRows" class="history-rows"><p class="muted">Cargando biblioteca…</p></div><div class="history-footer"><span id="historyRange">—</span><button id="loadMore" class="outline small-btn">Mostrar 40 más</button></div></div>
+</section>
+<section id="analisis" class="section"><div class="section-title"><div><span class="overline">04 · LABORATORIO MATEMÁTICO</span><h2>Comprueba las posibilidades</h2><p>Experimentos transparentes y resultados reproducibles.</p></div></div>
+ <div class="grid-halves"><article class="panel"><div class="panel-head"><h3>Generador imparcial</h3><span class="mini-note">Aleatoriedad criptográfica</span></div><p class="subtle">No considera números calientes: cada combinación válida es igualmente probable.</p><button id="generate" class="primary fill">Generar combinación</button><div id="myTicket" class="balls play-balls"><span class="muted">Aún no generaste una combinación.</span></div><button id="copyTicket" class="outline small-btn" disabled>Copiar números</button></article>
+ <article class="panel"><div class="panel-head"><h3>Probabilidad y costo</h3><span class="mini-note">Un solo sorteo</span></div><label for="tickets">Combinaciones distintas</label><input type="number" min="1" max="1000000" id="tickets" value="1"/><div class="sub-metrics"><div><span>Probabilidad de jackpot</span><strong id="chance">—</strong></div><div><span>Costo hipotético</span><strong id="cost">—</strong></div></div><p class="subtle">Repetir una combinación no aumenta la cobertura. El cálculo presupone boletos distintos.</p></article></div>
+ <article class="panel backtest"><div class="panel-head"><div><h3>Auditor de «números calientes»</h3><p class="subtle">Prueba retrospectiva progresiva: el algoritmo usa solo el pasado y después compara con resultados reales que todavía no ha visto.</p></div><button id="runBacktest" class="outline small-btn">Ejecutar prueba</button></div><div id="backtestOutput" class="backtest-results"><p class="muted">Pulsa «Ejecutar prueba» para comparar una estrategia de frecuencias con el promedio matemático de elegir números al azar.</p></div></article>
+</section>
+<section id="metodo" class="section"><div class="section-title"><div><span class="overline">05 · TRANSPARENCIA</span><h2>Lo que sí y lo que no sabemos</h2></div></div><div class="grid-halves"><article class="panel"><h3>¿De dónde vienen los números?</h3><p class="subtle">De los conjuntos publicados por la New York State Gaming Commission. Powerball desde 2010 y Mega Millions desde 2002. Los datos completos se descargan durante la actualización de la web; no proceden de un algoritmo inventado.</p><div class="source-links"><a href="https://data.ny.gov/d/d6yy-54nr" target="_blank" rel="noopener noreferrer">Datos oficiales Powerball ↗</a><a href="https://data.ny.gov/d/5xaw-6ayf" target="_blank" rel="noopener noreferrer">Datos oficiales Mega Millions ↗</a></div></article>
+ <article class="panel"><h3>¿Cuándo se actualiza?</h3><p class="subtle">La automatización en GitHub intenta actualizar la biblioteca diariamente y publicar la última copia validada. Puede haber demora de publicación en la fuente oficial.</p><p class="subtle"><strong id="freshness">Última actualización: —</strong></p><p class="subtle">Los cambios de reglas se manejan aparte. Frecuencias de diferentes matrices nunca se mezclan en estadísticas de estrategia.</p></article></div></section>
+</main>
+<footer><div class="wordmark footerbrand"><span class="brand-icon">L</span><span>LOTTO<span class="brand-blue">LAB</span><small>BY DEXTER</small></span></div><p>Estadísticas educativas. No estamos afiliados a Powerball, Mega Millions ni la Lotería de Nueva York. No vendemos boletos.</p><a href="legacy.html">Versión original sin conexión ↗</a><small>© 2026 LOTTO LAB DEXTER · Hecho para aprender, no para predecir el azar.</small></footer>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script type="module">
+const GAMES={
+  powerball:{label:'Powerball',main:69,bonus:26,k:5,price:2,ruleFrom:'2015-10-07',dataset:'data/powerball.json',color:'#7da9fa'},
+  megamillions:{label:'Mega Millions',main:70,bonus:24,k:5,price:5,ruleFrom:'2025-04-08',dataset:'data/megamillions.json',color:'#f7bc65'}
+};
+function choose(n,k){
+  if(!Number.isInteger(n)||!Number.isInteger(k)||n<0||k<0||k>n)throw new RangeError('Valores combinatorios incorrectos');
+  k=Math.min(k,n-k);let v=1n;
+  for(let i=1;i<=k;i++)v=v*BigInt(n-k+i)/BigInt(i);
+  return v;
+}
+function totalCombos(game){const g=typeof game==='string'?GAMES[game]:game; if(!g)throw Error('Juego desconocido');return choose(g.main,g.k)*BigInt(g.bonus)}
+function exactJackpotChance(game,tickets=1){
+  const total=totalCombos(game),t=BigInt(tickets);
+  if(t<=0n)throw RangeError('Cantidad de boletos positiva');
+  return Number(t>total?total:t)/Number(total); // Solo combinaciones distintas en UN sorteo.
+}
+function normalizeRows(payload,game){
+  const g=GAMES[game];if(!g||!payload||payload.game!==game||!Array.isArray(payload.rows))throw Error('Archivo histórico incorrecto');
+  const seen=new Set(),rows=[];
+  for(const input of payload.rows){
+    if(!Array.isArray(input)||input.length!==7||typeof input[0]!=='string')continue;
+    const date=input[0];if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||seen.has(date))continue;
+    const main=input.slice(1,6),extra=input[6];
+    // Archivo completo: permite límites anteriores más altos (Mega Millions pasó por varios sistemas).
+    if(!main.every(v=>Number.isInteger(v)&&v>=1&&v<=75)||new Set(main).size!==5||!Number.isInteger(extra)||extra<1||extra>52)continue;
+    rows.push({date,main:[...main].sort((a,b)=>a-b),bonus:extra});seen.add(date);
+  }
+  rows.sort((a,b)=>b.date.localeCompare(a.date));
+  if(!rows.length)throw Error('Sin sorteos válidos');
+  return rows;
+}
+function currentRegime(rows,game){const g=GAMES[game];return rows.filter(r=>r.date>=g.ruleFrom&&r.main.every(x=>x<=g.main)&&r.bonus<=g.bonus)}
+function stats(rows,game){
+  const g=GAMES[game];if(!g)throw Error('Juego inválido');
+  const counts=Array(g.main+1).fill(0),bonuses=Array(g.bonus+1).fill(0);let oddCount=0,sum=0;
+  const pairs=new Map();
+  for(const row of rows){
+    row.main.forEach(n=>{counts[n]++;sum+=n;if(n%2)oddCount++});bonuses[row.bonus]++;
+    for(let i=0;i<row.main.length;i++)for(let j=i+1;j<row.main.length;j++){
+      const key=`${row.main[i]}-${row.main[j]}`;pairs.set(key,(pairs.get(key)||0)+1);
+    }
+  }
+  const main=Array.from({length:g.main},(_,i)=>({number:i+1,count:counts[i+1]}));
+  const bonus=Array.from({length:g.bonus},(_,i)=>({number:i+1,count:bonuses[i+1]}));
+  return {n:rows.length,hot:[...main].sort((a,b)=>b.count-a.count||a.number-b.number),
+    cold:[...main].sort((a,b)=>a.count-b.count||a.number-b.number),
+    bonus:[...bonus].sort((a,b)=>b.count-a.count||a.number-b.number),
+    pairs:[...pairs].map(([pair,count])=>({pair,count})).sort((a,b)=>b.count-a.count||a.pair.localeCompare(b.pair)),
+    oddPercent:rows.length?100*oddCount/(rows.length*5):0,avgMainSum:rows.length?sum/rows.length:0};
+}
+function secureInt(max){
+  if(!globalThis.crypto?.getRandomValues)throw Error('Tu navegador no admite un generador seguro.');
+  if(!Number.isInteger(max)||max<1||max>2**32-1)throw RangeError('Máximo incorrecto');
+  const range=0x100000000, limit=range-(range%max),u=new Uint32Array(1);
+  do{globalThis.crypto.getRandomValues(u)}while(u[0]>=limit);
+  return u[0]%max;
+}
+function randomTicket(game,rand=secureInt){
+  const g=GAMES[game];if(!g)throw Error('Juego desconocido');
+  const pool=Array.from({length:g.main},(_,i)=>i+1);
+  for(let i=0;i<g.k;i++){let j=i+rand(g.main-i);[pool[i],pool[j]]=[pool[j],pool[i]];}
+  return {main:pool.slice(0,g.k).sort((a,b)=>a-b),bonus:rand(g.bonus)+1};
+}
+function overlaps(ticket,draw){const set=new Set(draw.main);return {main:ticket.main.filter(n=>set.has(n)).length,bonus:ticket.bonus===draw.bonus};}
+// Walk-forward validation: never looks at future results when selecting numbers.
+function backtest(rows,game,{minimumTrain=30,evaluations=120}={}){
+  const g=GAMES[game];if(!g)throw Error('Juego desconocido');
+  const sequence=[...rows].sort((a,b)=>a.date.localeCompare(b.date));
+  const count=Math.min(evaluations,sequence.length-minimumTrain);
+  if(count<20)throw Error('Necesitamos al menos 50 sorteos del mismo régimen para evaluar estrategias.');
+  const start=sequence.length-count,frequency=Array(g.main+1).fill(0),special=Array(g.bonus+1).fill(0);
+  for(const row of sequence.slice(0,start)){row.main.forEach(x=>frequency[x]++);special[row.bonus]++;}
+  let hitHot=0,hitUniform=0,bHot=0,bUniform=0;
+  for(let i=start;i<sequence.length;i++){
+    const rankings=Array.from({length:g.main},(_,j)=>j+1).sort((a,b)=>frequency[b]-frequency[a]||a-b);
+    const hot={main:rankings.slice(0,5),bonus:Array.from({length:g.bonus},(_,j)=>j+1).sort((a,b)=>special[b]-special[a]||a-b)[0]};
+    const actual=sequence[i];
+    const h=overlaps(hot,actual);hitHot+=h.main;bHot+=Number(h.bonus);
+    // Baseline matemático exacto: E[aciertos principales]=k*k/N y P[bonus]=1/B.
+    hitUniform+=g.k*g.k/g.main;bUniform+=1/g.bonus;
+    actual.main.forEach(x=>frequency[x]++);special[actual.bonus]++;
+  }
+  return {n:count,hotAverage:hitHot/count,randomExpected:hitUniform/count,
+          hotBonusRate:bHot/count,randomBonusExpected:bUniform/count,
+          warning:'Muestra retrospectiva; una ventaja aparente NO prueba capacidad predictiva.'};
+}
+function oddsLabel(total){return '1 entre '+total.toLocaleString('es-ES')}
+function csvForRows(rows){return ['fecha,n1,n2,n3,n4,n5,bola_especial',...rows.map(r=>[r.date,...r.main,r.bonus].join(','))].join('\n')+'\n'}
+
+const $=id=>document.getElementById(id), num=n=>Number(n).toLocaleString('es-ES');
+let game='powerball',allRows=[],currentRows=[],payload=null,ticket=null,historyOffset=0,filteredRows=[],toastTimer=null,installEvent=null,token=0;
+const SOURCES={powerball:'https://data.ny.gov/resource/d6yy-54nr.json',megamillions:'https://data.ny.gov/resource/5xaw-6ayf.json'};
+const safeDate=d=>/^\d{4}-\d{2}-\d{2}$/.test(d)?d.slice(8,10)+'/'+d.slice(5,7)+'/'+d.slice(0,4):d;
+function showToast(text){$('toast').textContent=text;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),4600)}
+function setStatus(text,ready=false){$('statusIndicator').classList.toggle('live',ready);$('statusIndicator').lastChild.textContent=' '+text;}
+function balls(values,bonus,small=false){const container=document.createDocumentFragment();for(const n of values){let s=document.createElement('span');s.className=small?'num':'ball';s.textContent=String(n).padStart(2,'0');container.append(s)}if(bonus!==undefined){let b=document.createElement('span');b.className=small?'special':'ball bonus';b.textContent=String(bonus).padStart(2,'0');container.append(b)}return container;}
+function updateProbability(){const g=GAMES[game];const raw=Number($('tickets').value);if(!Number.isSafeInteger(raw)||raw<1||raw>1_000_000){$('chance').textContent='Indica de 1 a 1.000.000';$('cost').textContent='—';return;}let p=exactJackpotChance(game,raw)*100;$('chance').textContent=(p<.0001?p.toExponential(3):p.toFixed(8))+' %';$('cost').textContent=(g.price*raw).toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0});}
+function resetState(){allRows=[];currentRows=[];payload=null;ticket=null;filteredRows=[];historyOffset=0;$('myTicket').textContent='Pulsa «Generar combinación» para crear una.';$('copyTicket').disabled=true;$('backtestOutput').textContent='Ejecuta la prueba después de cargar datos.';}
+function loadDateFields(){const g=GAMES[game];$('jackpotOdds').textContent='1 en '+num(totalCombos(game));$('price').textContent='$'+g.price;$('regimeStart').textContent=safeDate(g.ruleFrom);$('lastGameName').textContent=g.label;updateProbability();}
+async function fetchRows(){
+ const current=++token;resetState();loadDateFields();setStatus('Cargando datos…');$('allDraws').textContent='—';$('latestDate').textContent='—';$('latestBalls').textContent='Cargando…';$('dataHealth').textContent='Conectando con el historial oficial…';
+ let data;
+ try{
+   const r=await fetch(GAMES[game].dataset,{cache:'no-cache'});
+   if(!r.ok)throw Error('HTTP '+r.status);
+   data=await r.json();
+ }catch(err){
+   // Graceful fallback: official public API, last 1000 only and CLEAR truncation warning.
+   try{
+     const response=await fetch(SOURCES[game],{cache:'no-cache'});
+     if(!response.ok)throw Error('HTTP '+response.status);
+     const raw=await response.json();
+     const rows=raw.map(x=>{
+       const values=String(x.winning_numbers||'').trim().split(/\s+/).map(Number);
+       const bonus=game==='powerball'?values.pop():Number(x.mega_ball);
+       return [String(x.draw_date||'').slice(0,10),...values,bonus];
+     });
+     data={schema:2,game,rows,source:game==='powerball'?'https://data.ny.gov/d/d6yy-54nr':'https://data.ny.gov/d/5xaw-6ayf',refreshed_at:null,partial:true};
+   }catch(offline){
+     if(current!==token)return;
+     setStatus('Sin datos disponibles');$('dataHealth').textContent='No se pudo descargar la biblioteca. Verifica Internet o vuelve a intentarlo. No mostramos resultados inventados.';
+     $('latestBalls').textContent='Sin conexión o archivo aún no publicado.';
+     for(const id of ['hotBars','coldBars','bonusBars','historyRows'])$(id).textContent='Datos históricos no disponibles. Se mantienen los cálculos matemáticos.';
+     showToast('No se pudieron descargar los resultados. Puedes usar la calculadora.');return;
+   }
+ }
+ if(current!==token)return;
+ try{
+   const parsed=normalizeRows(data,game);if(!parsed.length)throw Error('Archivo sin sorteos');
+   if(data.count && parsed.length<data.count*.97)throw Error('Archivo truncado o incompleto');
+   payload=data;allRows=parsed;currentRows=currentRegime(parsed,game);
+   $('allDraws').textContent=num(parsed.length);$('latestDate').textContent=safeDate(parsed[0].date);$('latestCaption').textContent=parsed[0].date;
+   $('regimeDraws').textContent=num(currentRows.length);
+   $('latestBalls').replaceChildren(balls(parsed[0].main,parsed[0].bonus));
+   $('dataHealth').textContent=(data.partial?'Vista de respaldo: solamente los 1.000 sorteos más recientes disponibles; no es el archivo completo. ':'')+`Regla vigente desde ${safeDate(GAMES[game].ruleFrom)}. Los años anteriores quedan en el archivo, pero no se mezclan en las frecuencias.`;
+   const refreshing=data.refreshed_at?new Date(data.refreshed_at):null;
+   $('freshness').textContent=refreshing&&!Number.isNaN(refreshing.getTime())?'Biblioteca regenerada: '+refreshing.toLocaleString('es-US'):'Datos oficiales disponibles; hora de sincronización no verificada.';
+   setStatus(data.partial?'Archivo parcial':'Historial oficial',!data.partial);
+   refreshYears();renderStats();filterHistory();
+ }catch(err){setStatus('Datos inválidos');$('dataHealth').textContent='Validación fallida: '+err.message;showToast('El archivo fue rechazado: '+err.message)}
+}
+function refreshYears(){const selector=$('year');selector.replaceChildren();const all=document.createElement('option');all.value='all';all.textContent='Todos los años';selector.append(all);
+ const years=[...new Set(allRows.map(r=>r.date.slice(0,4)))];for(const year of years){const option=document.createElement('option');option.textContent=year;option.value=year;selector.append(option)}}
+function barRows(items,which,max){const dest=$(which);dest.replaceChildren();if(!items.length){dest.textContent='No hay datos para analizar.';return;}
+ const maxCount=Math.max(max||1,...items.map(x=>x.count));for(const item of items){const line=document.createElement('div');line.className='bar-row';const label=document.createElement('span');label.className='bar-label';label.textContent=String(item.number).padStart(2,'0');const track=document.createElement('div');track.className='bar-track';const ink=document.createElement('div');ink.className='bar-ink '+(which==='bonusBars'?'gold':'');ink.style.width=100*item.count/maxCount+'%';track.append(ink);const n=document.createElement('span');n.className='bar-count';n.textContent=item.count;line.append(label,track,n);dest.append(line)}}
+function renderStats(){if(!currentRows.length)return;const setting=$('window').value;const sample=setting==='all'?currentRows:currentRows.slice(0,Number(setting));const result=stats(sample,game);
+ barRows(result.hot.slice(0,8),'hotBars');barRows(result.cold.slice(0,8),'coldBars',result.hot[0]?.count);barRows(result.bonus.slice(0,6),'bonusBars');$('oddMetric').textContent=result.oddPercent.toFixed(1)+' %';$('sumMetric').textContent=result.avgMainSum.toFixed(1);$('pairMetric').textContent=result.pairs[0]?.pair.replace('-', ' y ')||'—';}
+function filterHistory(){const year=$('year').value,search=$('findDate').value.trim();filteredRows=allRows.filter(r=>(year==='all'||r.date.startsWith(year))&&(!search||r.date.includes(search)));historyOffset=0;$('matchedRows').textContent=num(filteredRows.length)+' resultados';renderHistory();}
+function renderHistory(){const dest=$('historyRows');if(historyOffset===0)dest.replaceChildren();const next=filteredRows.slice(historyOffset,historyOffset+40);for(const r of next){const row=document.createElement('div');row.className='history-item';const date=document.createElement('div');date.textContent=safeDate(r.date);if(r.date<GAMES[game].ruleFrom){let tag=document.createElement('span');tag.className='previous';tag.textContent='Reglas anteriores';date.append(tag)}const mains=document.createElement('div');mains.className='numbers';mains.append(balls(r.main,undefined,true));const special=document.createElement('strong');special.className='special';special.textContent=String(r.bonus).padStart(2,'0');row.append(date,mains,special);dest.append(row)}historyOffset+=next.length;$('historyRange').textContent=`Mostrando ${num(historyOffset)} de ${num(filteredRows.length)}`;$('loadMore').hidden=historyOffset>=filteredRows.length;if(!historyOffset){const p=document.createElement('p');p.className='muted';p.textContent='No se encontraron fechas con ese filtro.';dest.append(p);}}
+function saveBlob(contents,name,type){const blob=new Blob([contents],{type});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=name;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1600)}
+function downloadHistory(){if(!allRows.length){showToast('Primero espera a que se carguen los resultados.');return;}saveBlob('\ufeff'+csvForRows(filteredRows),`${game}-resultados-${$('year').value}.csv`,'text/csv;charset=utf-8');showToast('CSV exportado con '+num(filteredRows.length)+' resultados.');}
+function generate(){try{ticket=randomTicket(game);$('myTicket').replaceChildren(balls(ticket.main,ticket.bonus));$('copyTicket').disabled=false;}catch(err){showToast(err.message)}}
+async function copyTicket(){if(!ticket)return;const text=ticket.main.map(n=>String(n).padStart(2,'0')).join(' ')+' | '+String(ticket.bonus).padStart(2,'0');try{await navigator.clipboard.writeText(text);showToast('Combinación copiada');}catch{showToast('No se pudo copiar: '+text)}}
+function runValidation(){if(!currentRows.length){showToast('Primero carga el historial oficial.');return;}const dst=$('backtestOutput');try{const tested=backtest(currentRows,game,{minimumTrain:60,evaluations:Math.min(250,currentRows.length-60)});dst.replaceChildren();for(const [label,note,value] of [
+ ['Sorteos evaluados','Prueba sin mirar los resultados futuros',num(tested.n)],
+ ['Promedio «calientes»','Números principales acertados',tested.hotAverage.toFixed(3)],
+ ['Promedio aleatorio','Esperanza matemática justa',tested.randomExpected.toFixed(3)]]){
+ const card=document.createElement('div');card.className='result';const strong=document.createElement('strong');strong.textContent=value;const hint=document.createElement('span');hint.textContent=label+' · '+note;card.append(strong,hint);dst.append(card);
+ }const msg=document.createElement('p');msg.className='caution';msg.textContent='Esto no predice el próximo sorteo. Una diferencia observada en una muestra puede surgir por azar; el promedio de la estrategia no garantiza ganancias.';dst.append(msg);
+ }catch(err){dst.textContent=err.message}}
+$('game').addEventListener('change',()=>{game=$('game').value;loadDateFields();fetchRows()});$('refresh').addEventListener('click',fetchRows);$('window').addEventListener('change',renderStats);$('year').addEventListener('change',filterHistory);$('findDate').addEventListener('input',filterHistory);$('loadMore').addEventListener('click',renderHistory);$('downloadCSV').addEventListener('click',downloadHistory);$('generate').addEventListener('click',generate);$('tickets').addEventListener('input',updateProbability);$('copyTicket').addEventListener('click',copyTicket);$('runBacktest').addEventListener('click',runValidation);
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEvent=e;$('installBtn').hidden=false});$('installBtn').addEventListener('click',async()=>{if(!installEvent)return;installEvent.prompt();await installEvent.userChoice;installEvent=null;$('installBtn').hidden=true});
+if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
+loadDateFields();fetchRows();
+
+</script>
+</body>
+</html>

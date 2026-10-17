@@ -152,7 +152,10 @@ export function estimateTaxes({
   // MD 9,5 % para residentes, 8,75 % para no residentes sobre premio bruto.
   // Federal: 24 % sobre el premio neto de la apuesta, no el premio bruto.
   const stateWithholdRate=region==='VA'?4:region==='MD'?(mdResident?9.5:8.75):Number(otherStateWithholdingRate);
-  const stateWithholding=proceeds>5000?gross*stateWithholdRate/100:0;
+  // MD publica el umbral de su propia retención en función del premio bruto.
+  // VA usa proceeds netos del precio de la apuesta; IRS también usa proceeds.
+  const stateThreshold=region==='MD'?gross>5000:proceeds>5000;
+  const stateWithholding=stateThreshold?gross*stateWithholdRate/100:0;
   const withheld=federalWithholding+stateWithholding;
   const netAfterWithholding=gross-withheld;
   const estimatedFinalFederal=proceeds*Number(federalFinalRate)/100;

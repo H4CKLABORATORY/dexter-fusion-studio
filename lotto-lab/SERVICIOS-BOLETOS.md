@@ -12,7 +12,7 @@ Fecha de implementación: 2026-10-17. Aplicación gratuita y estática para iPho
 
 **Presupuesto**: dado un presupuesto, se muestra cuántos boletos básicos caben, cuánto costarían, y el valor matemático esperado de pagos fijos, EXCLUYENDO jackpot y pagos variables. Un promedio no significa dinero que el usuario ganará. El resultado esperado puede ser negativo; no es una recomendación de apostar. Los complementos incrementan el costo y no cambian el azar justo.
 
-**Impuestos**: diferencia retención provisional de una estimación final elegida por el usuario. El IRS especifica 24% de retención federal para determinados premios con importe neto del costo de la apuesta superior a US$5,000. Virginia retiene 4% sobre premios pertinentes superiores a US$5,000. Maryland muestra como escenario ilustrativo 8.95% de retención, sujeto a normas de residencia y actualidad. El cálculo final utiliza tasas federales y estatales editables; NO representa liquidación ni asesoramiento tributario y no incluye el valor en efectivo de un jackpot anunciado en anualidades.
+**Impuestos**: diferencia retención provisional de una estimación final elegida por el usuario. El IRS especifica 24% de retención federal para determinados premios con importe neto del costo de la apuesta superior a US$5,000. Virginia retiene 4% sobre premios pertinentes superiores a US$5,000. Maryland, según su lotería oficial en octubre de 2026, retiene 9,5 % del premio bruto para residentes de Maryland y 8,75 % para no residentes cuando el premio supera US$5.000. El formulario permite elegir residencia. El umbral federal se aplica a los beneficios netos de la apuesta y no debe confundirse con el umbral de Maryland. El cálculo final utiliza tasas federales y estatales editables; NO representa liquidación ni asesoramiento tributario y no incluye el valor en efectivo de un jackpot anunciado en anualidades.
 
 ## Fuentes oficiales
 
@@ -23,6 +23,7 @@ Fecha de implementación: 2026-10-17. Aplicación gratuita y estática para iPho
 - https://www.calottery.com/draw-games/fantasy-5
 - https://www.irs.gov/instructions/iw2g
 - https://law.lis.virginia.gov/admincode/title23/agency10/chapter140/section282/
+- https://www.mdlottery.com/winners/how-to-claim/
 - https://www.mdlottery.com/mobile-apps/
 - https://www.valottery.com/aboutus/mobileapp
 - https://github.com/zxing-js/browser (licencia MIT)

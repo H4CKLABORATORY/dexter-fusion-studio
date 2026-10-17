@@ -13,7 +13,7 @@ const percentage=p=>{
   return value.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:10})+' %';
 };
 const state=()=>window.LottoLabScientificState?.();
-let auditFor=null;
+let auditFor=null,auditSampleCount=-1;
 function cell(text){
   const td=document.createElement('td');
   td.textContent=text;return td;
@@ -64,13 +64,13 @@ function render(){
   }
   const available=Array.isArray(rows)&&rows.length>=80&&!game.kind;
   $('sciRunAudit').disabled=!available;
-  if(auditFor!==key){
+  if(auditFor!==key||auditSampleCount!==rows.length){
     $('sciAuditResult').replaceChildren();
     const info=document.createElement('p');info.className='subtle';
     info.textContent=available?'Historial disponible: '+number(rows.length)+' sorteos. Pulsa «Analizar datos» para probar el modelo contra la línea base justa.':
       'Auditoría estadística no disponible: hace falta un historial verificado de al menos 80 sorteos con la misma matriz.';
     $('sciAuditResult').append(info);
-    auditFor=key;
+    auditFor=key;auditSampleCount=rows.length;
   }else if(!available){
     $('sciAuditResult').textContent='No hay datos suficientes para esta lotería.';
   }
@@ -130,6 +130,6 @@ $('sciDrawCount').addEventListener('change',render);
 $('proCoverage').addEventListener('change',render);
 $('sciRunAudit').addEventListener('click',audit);
 $('scientificLab').addEventListener('toggle',()=>{if($('scientificLab').open)render()});
-$('proGame').addEventListener('change',()=>{auditFor=null;render()});
+$('proGame').addEventListener('change',()=>{auditFor=null;auditSampleCount=-1;render()});
 window.addEventListener('lotto-science-updated',render);
 render();

@@ -37,7 +37,7 @@ def calculate(game, r=None, special=None):
 
 
 def audit(vectors):
-    if len(vectors) < 20:
+    if len(vectors) < 50:
         raise AssertionError("Insuficientes vectores de verificación")
     for index, item in enumerate(vectors):
         total, expected = calculate(item["game"], item.get("r"), item.get("special"))

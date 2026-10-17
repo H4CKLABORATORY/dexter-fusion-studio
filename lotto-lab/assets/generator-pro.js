@@ -116,6 +116,7 @@ function renderTicketReveal(container,t,lottery,sequence){
     ball.className='ticket-ball'
       +(bonus?' bonus':'')
       +(lottery==='chica'?' chica':'')
+      +(specs[lottery]?.kind==='digits'?' digits':'')
       +(reduceMotion?'':' lotto-ball-reveal');
     ball.textContent=String(value).padStart(lottery in specs && specs[lottery].kind==='digits'?specs[lottery].width:2,'0');
     if(bonus)ball.title='Bola especial';

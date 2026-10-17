@@ -64,7 +64,7 @@ export function formatDecimal(n,d,places=12,{minPlaces=0,trim=false}={}){
 }
 export function formatPercentExact(n,d,places=14){
   const f=fraction(n,d);
-  return formatDecimal(f.n*100n,f.d,places,{minPlaces:2,trim:true})+' %';
+  return formatDecimal(f.n*100n,f.d,places,{minPlaces:Math.min(2,places),trim:true})+' %';
 }
 export function formatInverseOddsExact(n,d,places=2){
   const f=fraction(n,d);

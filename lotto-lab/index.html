@@ -65,11 +65,32 @@
  </div></div>
  <article class="model-panel" aria-label="Probabilidades científicas por número">
   <h2>Probabilidad científica de cada número</h2>
-  <p>El porcentaje <strong>teórico</strong> se calcula con combinatoria exacta; el <strong>histórico</strong> mide cuántas veces salió en la base verificada. Ninguno es una predicción del siguiente resultado.</p>
+  <p>Porcentajes sencillos y <strong>redondeados a números enteros</strong> (ejemplo: 7 %). El <strong>histórico</strong> mide solo lo que ya ocurrió: no es una predicción. El cálculo sin redondear se conserva internamente.</p>
   <div class="science-metrics"><span id="proModel">—</span><span>Especial: <strong id="proSpecialOdds">—</strong></span><span>Información combinatoria: <strong id="proEntropy">—</strong></span></div>
   <p id="proHistoryStatus" role="status">Revisando datos oficiales…</p>
   <p id="proModeNote" class="lotto-compact-note">El patrón elegido no altera las probabilidades del sorteo.</p>
   <div class="ball-probabilities" id="proProbGrid" aria-label="Porcentajes individuales de cada número"></div>
+ </article>
+ <article id="luckyDaily" class="lucky-daily" aria-label="Números de la suerte del día">
+  <div class="lucky-header">
+   <div><div class="lotto-kicker">LOTTO LAB · SELECCIÓN DEL DÍA</div>
+    <h2><span aria-hidden="true">★ </span>Números de la suerte</h2>
+    <p>Una combinación especial que cambia cada día. Puede destacar números frecuentes en el historial, pero <strong>todos conservan la misma probabilidad real en un sorteo justo</strong>.</p></div>
+   <span class="lucky-day-pill" id="luckyDay">Actualizando fecha…</span>
+  </div>
+  <div class="lucky-output" id="luckyBalls" aria-live="polite"><span class="ticket-empty">Preparando combinación diaria…</span></div>
+  <div class="lucky-foot">
+   <div>
+    <strong id="luckyGameName">Lotería seleccionada</strong>
+    <p id="luckyExplanation">Los sorteos anteriores describen el pasado, no pueden garantizar el futuro.</p>
+    <p class="lucky-odds" id="luckyProbability">Probabilidad teórica: —</p>
+   </div>
+   <div class="lucky-buttons">
+    <button type="button" id="luckyRefresh">Generar otros números</button>
+    <button type="button" id="luckyCopy" disabled>Copiar</button>
+   </div>
+  </div>
+  <p class="lotto-compact-note">Las sugerencias cambian diariamente según UTC. No son números con mayor posibilidad matemática de salir ni implican que se haya ganado una apuesta.</p>
  </article>
 </section>
 <details id="scientificLab" class="lotto-tab-details scientific-lab">
@@ -331,6 +352,7 @@ loadDateFields();fetchRows();
 </script>
 <script type="module" src="assets/generator-pro.js"></script>
 <script type="module" src="assets/science-ui.mjs"></script>
+<script type="module" src="assets/lucky-ui.mjs"></script>
 <script type="module" src="assets/us-catalog-ui.js"></script>
 </body>
 </html>

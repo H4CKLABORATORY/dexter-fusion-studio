@@ -10,6 +10,10 @@ La versión 0.2 añade pestaña **Timeline v2**, 17 estilos reales FFmpeg, edici
 
 Con subtítulos SRT existentes o generados localmente con Whisper, el editor puede señalar tomas consecutivas muy similares y crear un informe revisable. Desde Timeline v2 aparece el botón **Analizar tomas repetidas**. Los cortes solo se aplican al timeline mediante CLI si se indican explícitamente las sugerencias revisadas; los originales permanecen intactos. No es el plugin comercial AutoEdit ni una función de Claude incorporada. Guía: [docs/MODO_CREADOR.md](docs/MODO_CREADOR.md).
 
+## Subtítulos animados
+
+En Timeline v2, **Estilo de subtítulos** permite `classic` (SRT tradicional), `karaoke` (palabras resaltadas) y `punch` (resaltado y aparición animada). Se renderizan localmente usando ASS/FFmpeg sin APIs de pago. La sincronía por palabra es aproximada porque el SRT contiene tiempos por frase. Ver [docs/SUBTITULOS_ANIMADOS.md](docs/SUBTITULOS_ANIMADOS.md).
+
 ## Funcionamiento actual
 
 - Interfaz Windows de 6 pestañas: proyecto, edición automática, efectos y memes, **Timeline v2**, nuevos contenidos e integraciones.

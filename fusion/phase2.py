@@ -11,6 +11,7 @@ import re
 from .media import probe, scene_changes, silence_ranges, keep_ranges, required, run
 from .project import read_json, safe_write
 from .engine import read_srt, map_srt, suggest_memes, EFFECTS
+from .caption_styles import CAPTION_STYLES
 
 HOOKS = ('bro', 'manco', 'botsito', 'interesada', 'sorpresa', 'traición',
          'chacalito', 'chacalita', 'qué', 'no', 'jajaja', 'espera', 'mira')
@@ -105,6 +106,7 @@ def build_timeline(folder, *, scan_seconds=120, select_highlights=False, limit=5
               'platform':project.get('platform','youtube'),
               'profile':project.get('profile','freefire_short'),
               'effects':clip_effect,'composition':project.get('composition','fit'),
+              'caption_style':project.get('caption_style','classic'),
               'cut_style':'crossfade' if len(intervals)>1 and select_highlights else project.get('cut_style','hard'),
               'transition_seconds':0.25,
               'clips':annotated,
@@ -127,6 +129,8 @@ def validate_timeline(tl):
     info=probe(src)
     if not isinstance(tl.get('clips'),list) or not 1<=len(tl['clips'])<=100:
         raise ValueError('Timeline requiere entre 1 y 100 clips.')
+    if tl.get('caption_style','classic') not in CAPTION_STYLES:
+        raise ValueError('Estilo de subtítulo inválido')
     if tl.get('platform') not in ('youtube','shorts','tiktok'):
         raise ValueError('Plataforma inválida.')
     if tl.get('cut_style') not in ('hard','fade','crossfade'):
@@ -173,6 +177,7 @@ def apply_timeline(folder,*,overwrite=True):
     plan={'schema':2,'project':str(folder),'source':tl['source'],
           'profile':tl['profile'],'platform':tl['platform'],
           'effects':tl['effects'],'composition':tl.get('composition','fit'),
+          'caption_style':tl.get('caption_style','classic'),
           'cut_style':tl['cut_style'],'transition_seconds':tl['transition_seconds'],
           'clips':clips,'clip_effects':[x['effect'] for x in tl['clips']],
           'clip_zooms':[float(x.get('zoom',1)) for x in tl['clips']],

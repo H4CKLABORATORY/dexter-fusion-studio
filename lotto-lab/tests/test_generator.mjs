@@ -4,14 +4,14 @@ import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 const script=readFileSync(new URL('../assets/generator-pro.js',import.meta.url),'utf8');
 const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
-const dom={proFavorites:{value:''},proStyle:{value:'balanced',selectedOptions:[{textContent:'Equilibrados'}]},proSeed:{value:'DEXTER-2026'}};
+const dom={proFavorites:{value:''},proStyle:{value:'balanced',selectedOptions:[{textContent:'Equilibrados'}]}};
 const ctx=vm.createContext({document:{getElementById:id=>dom[id]||{value:''}},console});
 const logic=script.split("$p('proGame').addEventListener")[0];
 assert.ok(logic.includes('function createTicket()'),'La lógica debe estar accesible');
 vm.runInContext(logic+';globalThis.T={specs,totalOutcomes,theoretical,createTicket,parseFav,pickHash,histRows,wilson};',ctx);
 const {T}=ctx;
-function select(game,style='balanced',favorites='',seed='DEXTER-2026'){
-  dom.proStyle.value=style;dom.proFavorites.value=favorites;dom.proSeed.value=seed;
+function select(game,style='balanced',favorites=''){
+  dom.proStyle.value=style;dom.proFavorites.value=favorites;
   vm.runInContext('selected='+JSON.stringify(game)+';generation=0;verified=[];',ctx);
 }
 test('fórmulas combinatorias correctas para los tres juegos',()=>{
@@ -22,9 +22,9 @@ test('fórmulas combinatorias correctas para los tres juegos',()=>{
   assert.equal(T.theoretical(T.specs.megamillions),5/70);
   assert.equal(T.theoretical(T.specs.chica),1/100);
 });
-test('la misma semilla produce la misma combinación, sin Math.random',()=>{
+test('la semilla interna produce cálculos reproducibles sin Math.random',()=>{
   assert.ok(!logic.includes('Math.random('));
-  select('powerball','balanced','','VALOR-123');
+  select('powerball','balanced');
   const a=T.createTicket();vm.runInContext('generation=0',ctx);const b=T.createTicket();
   assert.deepEqual(Array.from(a.main),Array.from(b.main));
   assert.equal(a.bonus,b.bonus);
@@ -44,9 +44,9 @@ test('rangos, duplicados y especial: Powerball, Mega Millions y La Chica',()=>{
   }
 });
 test('preferencias explícitas se respetan y números fuera de rango se rechazan',()=>{
-  select('powerball','seed','7, 13','ABC');assert.ok(T.createTicket().main.includes(7));vm.runInContext('generation=0',ctx);
+  select('powerball','seed','7, 13');assert.ok(T.createTicket().main.includes(7));vm.runInContext('generation=0',ctx);
   assert.ok(T.createTicket().main.includes(13));
-  select('chica','odd','00','XYZ');assert.equal(T.createTicket().main[0],0);
+  select('chica','odd','00');assert.equal(T.createTicket().main[0],0);
   select('chica','seed','100');assert.throws(()=>T.createTicket(),/números diferentes/);
 });
 test('filtrado de frecuencias solo incluye el régimen vigente',()=>{
@@ -64,4 +64,7 @@ test('diseño primero generador, archivo secundario, fuentes correctas',()=>{
   assert.ok(html.indexOf('id="historial"')>html.indexOf('id="premios"'));
   assert.ok(html.includes('id="archivoDetalle"')&&html.includes('assets/generator-pro.js'));
   assert.ok(html.includes('assets/lottery-pro.css'));
+  assert.ok(!html.includes('id="proSeed"'),'La semilla no debe ser campo editable');
+  assert.ok(!script.includes("$p('proSeed')"),'El motor no debe leer una semilla editable');
+  assert.ok(script.includes('const INTERNAL_SEED='),'El motor debe conservar semilla interna');
 });

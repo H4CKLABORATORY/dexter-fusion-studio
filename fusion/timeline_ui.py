@@ -9,6 +9,7 @@ from .engine import EFFECTS, export_plan
 from .media import probe
 from .project import read_json,safe_write
 from .phase2 import build_timeline, apply_timeline, still_preview, transcribe_local,validate_timeline
+from .caption_styles import CAPTION_STYLES
 
 
 class TimelinePanel:
@@ -20,6 +21,7 @@ class TimelinePanel:
         self.remove_silences=tk.BooleanVar(value=False)
         self.crossfade=tk.BooleanVar(value=True)
         self.effect=tk.StringVar(value='hype')
+        self.caption_style=tk.StringVar(value='classic')
         self.zoom=tk.StringVar(value='1.0')
         self.window=tk.StringVar(value='12')
         self.limit=tk.StringVar(value='4')
@@ -58,6 +60,10 @@ class TimelinePanel:
         ttk.Checkbutton(row,text='Fundido cruzado entre clips',variable=self.crossfade).pack(side='left')
         ttk.Button(row,text='Guardar y preparar edición',command=self.prepare).pack(side='left',padx=10)
         ttk.Button(row,text='Exportar MP4',command=self.render).pack(side='left')
+        caprow=ttk.Frame(parent);caprow.pack(anchor='w',pady=5)
+        ttk.Label(caprow,text='Estilo de subtítulos:').pack(side='left')
+        ttk.Combobox(caprow,textvariable=self.caption_style,values=list(CAPTION_STYLES),state='readonly',width=14).pack(side='left',padx=7)
+        ttk.Label(caprow,text='Karaoke/Punch usan tiempos estimados desde SRT; revisa la sincronía.').pack(side='left')
         ttk.Button(parent,text='Subtitular mi voz (Whisper local opcional)',command=self.whisper).pack(anchor='w',pady=7)
         ttk.Label(parent,text='Los originales y guiones no se envían a ningún servicio. Presets no equivalen a los efectos propietarios de otra app.',wraplength=800).pack(anchor='w')
         self.current=None
@@ -85,6 +91,7 @@ class TimelinePanel:
             if not content:raise FileNotFoundError('Crea la línea de tiempo primero.')
             self.current=content
             self.crossfade.set(content.get('cut_style')=='crossfade')
+            self.caption_style.set(content.get('caption_style','classic'))
             self.display()
             self.app.log('Timeline cargado: '+str(len(content['clips']))+' escenas')
         except Exception as exc:messagebox.showerror('Timeline',str(exc))
@@ -99,7 +106,7 @@ class TimelinePanel:
             auto=self.highlights.get();silence=self.remove_silences.get();effects=self.auto_effects.get()
             def job():return build_timeline(folder,select_highlights=auto,automatic_silence=silence,
                         window=window,limit=limit,automatic_effects=effects,overwrite=True)
-            def done(data):self.current=data;self.display()
+            def done(data):self.current=data;self.caption_style.set(data.get('caption_style','classic'));self.display()
             self.app.background('Analizar escenas y preparar timeline',job,done)
         except Exception as exc:messagebox.showerror('Datos',str(exc))
 
@@ -107,6 +114,7 @@ class TimelinePanel:
         folder=self.folder()
         if self.current is None:raise ValueError('No hay timeline activo.')
         self.current['cut_style']='crossfade' if self.crossfade.get() and len(self.current['clips'])>1 else 'hard'
+        self.current['caption_style']=self.caption_style.get()
         validate_timeline(self.current)
         safe_write(folder/'timeline-v2.json',self.current)
         self.display()

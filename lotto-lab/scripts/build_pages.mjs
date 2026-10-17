@@ -134,7 +134,7 @@ function makePage({key,body,modules=[],classic=false,extraSelector='',heading=tr
 const pages={
   'index.html':makePage({key:'home',heading:false,
     body:generator+'</section>'+navCards(),
-    modules:['generator-pro.js','lucky-ui.mjs']}),
+    modules:['generator-pro.js','lucky-ui.mjs','unique-pack-ui.mjs']}),
   'revisar.html':null,'escanear.html':null,'premios.html':null,
   'presupuesto.html':null,'impuestos.html':null,
   'simulador.html':makePage({key:'simulator',

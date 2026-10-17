@@ -5,6 +5,8 @@ const specs = Object.freeze({
   megamillions:{name:'Mega Millions',n:70,k:5,bonus:24,start:'2025-04-08',source:'data/megamillions.json',web:'https://www.megamillions.com/',price:'$5'},
   chica:{name:'La Chica · Honduras',n:100,k:1,bonus:0,start:null,source:null,web:'https://www.pani.gob.hn/',price:'Consultar PANI'}
 });
+// Semilla fija e interna, no editable por visitantes ni predictiva.
+const INTERNAL_SEED='LOTTO-LAB-DEXTER-2.0';
 const $p = id=>document.getElementById(id);
 let selected='powerball',generation=0,verified=[],loading=0,lastNumbers=[];
 let fetched={};
@@ -31,7 +33,7 @@ function historicalFrequency(g){
   return hits;
 }
 function createTicket(){
-  const g=specs[selected],style=$p('proStyle').value,seed=$p('proSeed').value.trim()||'LOTTO-LAB-DEXTER';
+  const g=specs[selected],style=$p('proStyle').value,seed=INTERNAL_SEED;
   const favorites=parseFav(g);
   if((style==='hot'||style==='cold')&&!verified.length)throw Error('Este modo requiere historial verificado; espera la descarga o selecciona otro modo.');
   const counts=historicalFrequency(g);
@@ -146,7 +148,7 @@ function renderProbabilities(){
   const mode=$p('proStyle').value;
   $p('proModeNote').textContent=(mode==='hot'||mode==='cold')
     ?'Ordena números usando frecuencias históricas de las reglas vigentes. La ventaja predictiva NO está demostrada; cada bola conserva la misma probabilidad teórica.'
-    :'Las probabilidades mostradas son del sorteo, NO la probabilidad que asigna tu filtro a cada boleto. Cambiar paridad, fechas, semilla o categorías no mejora las probabilidades de acertar.';
+    :'Las probabilidades mostradas son del sorteo, NO la probabilidad que asigna tu filtro a cada boleto. Cambiar paridad, fechas o categorías no mejora las probabilidades de acertar.';
 }
 function updateGame(){
   selected=$p('proGame').value;generation=0;lastNumbers=[];
@@ -158,7 +160,7 @@ function updateGame(){
   $p('proPrice').textContent=g.price;
   $p('proOfficial').href=g.web;
   $p('proOfficial').textContent=g.bonus?'Consultar premio acumulado ↗':'Información oficial PANI ↗';
-  $p('proTicketNote').textContent=g.k===1?'La Chica: número de dos cifras (00–99), cálculo bajo equiprobabilidad.':'Prueba un criterio de selección. El resultado depende de la semilla y el modo.';
+  $p('proTicketNote').textContent=g.k===1?'La Chica: número de dos cifras (00–99), cálculo bajo equiprobabilidad.':'Prueba un criterio matemático de selección. Los resultados dependen del método elegido.';
   renderProbabilities();loadVerified();
 }
 $p('proGame').addEventListener('change',updateGame);

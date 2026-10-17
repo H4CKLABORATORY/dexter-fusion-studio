@@ -135,7 +135,7 @@ export function budgetProjection(game,key,budget,options={}){
  * Las retenciones estatales varían según la jurisdicción y el cobro.
  */
 export function estimateTaxes({
-  grossPrize,stake=0,region='VA',federalFinalRate=32,stateFinalRate=5.75,
+  grossPrize,stake=0,region='VA',mdResident=true,federalFinalRate=32,stateFinalRate=5.75,
   otherStateWithholdingRate=0
 }){
   const gross=finiteMoney(grossPrize,'Premio');
@@ -148,10 +148,11 @@ export function estimateTaxes({
   ])if(!Number.isFinite(Number(value))||Number(value)<0||Number(value)>60)throw RangeError(name+' inválida');
   const proceeds=Math.max(0,gross-cost);
   const federalWithholding=proceeds>5000?proceeds*.24:0;
-  const stateWithholdRate=region==='VA'?4:region==='MD'?8.95:Number(otherStateWithholdingRate);
-  const stateWithholding=region==='VA'?gross>5000?gross*stateWithholdRate/100:0:
-    region==='MD'?gross>5000?gross*stateWithholdRate/100:0:
-    gross>5000?gross*stateWithholdRate/100:0;
+  // Operadores oficiales (2026): VA 4 % sobre premio bruto si proceeds > $5.000;
+  // MD 9,5 % para residentes, 8,75 % para no residentes sobre premio bruto.
+  // Federal: 24 % sobre el premio neto de la apuesta, no el premio bruto.
+  const stateWithholdRate=region==='VA'?4:region==='MD'?(mdResident?9.5:8.75):Number(otherStateWithholdingRate);
+  const stateWithholding=proceeds>5000?gross*stateWithholdRate/100:0;
   const withheld=federalWithholding+stateWithholding;
   const netAfterWithholding=gross-withheld;
   const estimatedFinalFederal=proceeds*Number(federalFinalRate)/100;
@@ -164,6 +165,7 @@ export function estimateTaxes({
     estimatedAfterFinalTax:gross-estimatedFinalTotal,
     finalCashLessStake:gross-estimatedFinalTotal-cost,
     extraDueEstimated:estimatedFinalTotal-withheld,
+    mdResident,
     taxLiabilityIsScenario:true
   };
 }

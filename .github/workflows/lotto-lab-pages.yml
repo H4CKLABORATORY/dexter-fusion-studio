@@ -36,6 +36,8 @@ jobs:
           node --check lotto-lab/assets/lucky-ui.mjs
           node --check lotto-lab/assets/coverage-engine.mjs
           node --check lotto-lab/assets/coverage-ui.mjs
+          node --check lotto-lab/assets/draw-simulator.mjs
+          node --check lotto-lab/assets/draw-ui.mjs
           node --check lotto-lab/scripts/build_science.mjs
           node --check lotto-lab/assets/us-catalog.mjs
           node --input-type=module --check < lotto-lab/assets/us-catalog-ui.js
@@ -87,6 +89,8 @@ jobs:
           test -s _pages/lotto-lab/assets/lucky-ui.mjs
           test -s _pages/lotto-lab/assets/coverage-engine.mjs
           test -s _pages/lotto-lab/assets/coverage-ui.mjs
+          test -s _pages/lotto-lab/assets/draw-simulator.mjs
+          test -s _pages/lotto-lab/assets/draw-ui.mjs
           test -s _pages/lotto-lab/data/powerball.json
           test -s _pages/lotto-lab/data/megamillions.json
           test -s _pages/lotto-lab/data/nytake5.json
@@ -124,12 +128,18 @@ jobs:
               && grep -q 'id="scientificLab"' /tmp/lotto.html \
               && grep -q 'id="luckyDaily"' /tmp/lotto.html \
               && grep -q 'id="coverageMandel"' /tmp/lotto.html \
+              && grep -q 'id="sorteoVirtual"' /tmp/lotto.html \
+              && grep -q 'id="drawStage"' /tmp/lotto.html \
               && curl -fsSL --max-time 20 "$base/assets/generator-pro.js" -o /tmp/lotto-generator.js \
               && curl -fsSL --max-time 20 "$base/assets/lottery-pro.css" -o /tmp/lotto-style.css \
               && node --check /tmp/lotto-generator.js \
               && test -s /tmp/lotto-style.css \
               && curl -fsSL --max-time 20 "$base/assets/exact-engine.mjs" -o /tmp/exact-engine.mjs \
               && curl -fsSL --max-time 20 "$base/assets/lucky-engine.mjs" -o /tmp/lucky-engine.mjs \
+              && curl -fsSL --max-time 20 "$base/assets/draw-simulator.mjs" -o /tmp/draw-simulator.mjs \
+              && curl -fsSL --max-time 20 "$base/assets/draw-ui.mjs" -o /tmp/draw-ui.mjs \
+              && node --check /tmp/draw-simulator.mjs \
+              && node --check /tmp/draw-ui.mjs \
               && curl -fsSL --max-time 20 "$base/assets/coverage-engine.mjs" -o /tmp/coverage-engine.mjs \
               && curl -fsSL --max-time 20 "$base/assets/coverage-ui.mjs" -o /tmp/coverage-ui.mjs \
               && node --check /tmp/coverage-engine.mjs \
@@ -152,7 +162,7 @@ jobs:
               && curl -fsSL --max-time 25 "$base/data/scientific-report.json" -o /tmp/science-report.json \
               && curl -fsSL --max-time 20 "$base/data/us-jurisdictions.json" -o /tmp/us-jurisdictions.json \
               && python -c 'import json; assert all(json.load(open(f"/tmp/{name}.json"))["count"] >= 1000 for name in ("powerball", "megamillions")); assert json.load(open("/tmp/nytake5.json"))["count"] >= 3000; assert len(json.load(open("/tmp/us-jurisdictions.json"))["jurisdictions"]) == 48; assert len(json.load(open("/tmp/science-report.json"))["games"]) == 3'; then
-              echo "OK: web, 3 bibliotecas oficiales, 48 jurisdicciones y auditor científico disponibles"
+              echo "OK: web, 3 bibliotecas oficiales, 48 jurisdicciones, simulador animado y auditor disponibles"
               exit 0
             fi
             echo "Esperando propagación de Pages: intento $attempt/18"

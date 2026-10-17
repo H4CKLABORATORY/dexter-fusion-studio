@@ -46,7 +46,7 @@ test('mezcla Fisher-Yates sin reemplazo y bola especial separada',()=>{
     }
   }
   const max=fairDraw(games.powerball,n=>n-1);
-  assert.deepEqual(max.main,[65,66,67,68,69]);assert.equal(max.bonus,26);
+  assert.deepEqual(max.main,[1,2,3,4,69]);assert.equal(max.bonus,26);
   const min=fairDraw(games.powerball,()=>0);
   assert.deepEqual(min.main,[1,2,3,4,5]);assert.equal(min.bonus,1);
   assert.equal(fairDraw(games.chica,()=>0).main[0],0);

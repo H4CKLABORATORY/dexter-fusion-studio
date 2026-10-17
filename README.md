@@ -6,6 +6,10 @@ Editor de escritorio gratuito para producir videos propios de Free Fire, YouTube
 
 La versión 0.2 añade pestaña **Timeline v2**, 17 estilos reales FFmpeg, edición por escena con inicio/fin y zoom, selección heurística de clips, transición crossfade y narración original/subtítulos desde archivo SRT. Hay un motor de transcripción local opcional `faster-whisper` (no viene instalado ni configurado). Más detalles en `docs/ETAPA_2.md`.
 
+## Subtítulos animados (nueva rama)
+
+En Timeline v2, **Estilo de subtítulos** permite `classic` (SRT tradicional), `karaoke` (palabras resaltadas) y `punch` (resaltado y aparición animada). Se renderizan localmente usando ASS/FFmpeg sin APIs de pago. La sincronía por palabra es aproximada porque el SRT contiene tiempos por frase. Ver [docs/SUBTITULOS_ANIMADOS.md](docs/SUBTITULOS_ANIMADOS.md).
+
 ## Funcionamiento actual
 
 - Interfaz Windows de 6 pestañas: proyecto, edición automática, efectos y memes, **Timeline v2**, nuevos contenidos e integraciones.

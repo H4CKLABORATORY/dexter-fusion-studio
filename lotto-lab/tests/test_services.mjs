@@ -139,7 +139,9 @@ test('las cinco pestañas, enlaces y avisos de validación están presentes',()=
   }
   assert.ok(html.includes('assets/services-ui.mjs'));
   assert.ok(html.includes('id="scanFile"'));
-  assert.match(js,/BarcodeDetector/);
+  assert.ok(js.includes('readTicketBarcodeImage'));
+  const reader=readFileSync(new URL('../assets/barcode-reader.mjs',import.meta.url),'utf8');
+  assert.ok(reader.includes('BarcodeDetector'));
   assert.ok(css.includes('.services-hub{'));
   assert.ok(js.includes('No se ha confirmado un sorteo'));
 });

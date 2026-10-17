@@ -74,7 +74,8 @@ function renderCoverage(){
 function parseFav(g){
   const raw=$p('proFavorites').value.trim();if(!raw)return [];
   const nums=raw.split(/[,\s;]+/).filter(Boolean).map(v=>Number(v));
-  const min=g.bonus?1:0,max=g.bonus?g.n-1:(g.kind==='digits'?g.n-1:99);
+  const isTwoDigit=g.k===1&&!g.bonus;
+  const min=isTwoDigit?0:1,max=isTwoDigit?g.n-1:g.n;
   if(nums.some(v=>!Number.isInteger(v)||v<min||v>max)||new Set(nums).size!==nums.length||nums.length>g.k)
     throw Error('Escribe hasta '+g.k+' números diferentes entre '+String(min).padStart(2,'0')+' y '+max+'.');
   return nums;
@@ -102,7 +103,8 @@ function createTicket(){
     return {main:[value],bonus:null};
   }
   const counts=historicalFrequency(g);
-  const values=Array.from({length:g.n},(_,i)=>g.bonus?i+1:i);
+  const offset=g.k===1&&!g.bonus?0:1;
+  const values=Array.from({length:g.n},(_,i)=>i+offset);
   const ranked=values.map(v=>{
     const tie=pickHash([seed,selected,style,generation,v].join('|'))/4294967296;
     const frequency=counts[v];
@@ -112,8 +114,8 @@ function createTicket(){
   let pool=ranked;
   if(style==='even')pool=ranked.filter(x=>x%2===0);
   if(style==='odd')pool=ranked.filter(x=>x%2===1);
-  if(style==='low')pool=ranked.filter(x=>g.bonus?x<=Math.floor(g.n/2):x<50);
-  if(style==='high')pool=ranked.filter(x=>g.bonus?x>Math.floor(g.n/2):x>=50);
+  if(style==='low')pool=ranked.filter(x=>g.k===1&&!g.bonus?x<g.n/2:x<=Math.floor(g.n/2));
+  if(style==='high')pool=ranked.filter(x=>g.k===1&&!g.bonus?x>=g.n/2:x>Math.floor(g.n/2));
   const chosen=[...favorites];
   if(style==='balanced'&&g.k===5){
     const even=ranked.filter(x=>x%2===0&&!chosen.includes(x));

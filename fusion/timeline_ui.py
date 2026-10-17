@@ -196,8 +196,8 @@ class TimelinePanel:
                 if not suggestions:
                     messagebox.showinfo('Modo Creador', 'No se detectaron frases repetidas de alta similitud. No se ha recortado nada.')
                     return
-                brief = '\\n'.join(f"{i}: {s['start']:.1f}-{s['end']:.1f}s — {s['original_text'][:60]}" for i, s in enumerate(suggestions[:8]))
-                messagebox.showinfo('Modo Creador', f"Se detectaron {len(suggestions)} posibles tomas repetidas.\\n\\n{brief}\\n\\nSe guardó retakes-report.json. No se aplicaron cortes; revísalos primero.")
+                brief = '\n'.join(f"{i}: {s['start']:.1f}-{s['end']:.1f}s — {s['original_text'][:60]}" for i, s in enumerate(suggestions[:8]))
+                messagebox.showinfo('Modo Creador', f"Se detectaron {len(suggestions)} posibles tomas repetidas.\n\n{brief}\n\nSe guardó retakes-report.json. No se aplicaron cortes; revísalos primero.")
             self.app.background('Analizar tomas repetidas por subtítulos', lambda:analyze_retakes(folder,overwrite=True),finished)
         except Exception as exc:
             messagebox.showerror('Modo Creador',str(exc))

@@ -27,7 +27,7 @@
  <a class="wordmark" href="#generador" aria-label="Lotto Lab Dexter"><span class="brand-icon">L</span><span>LOTTO<span class="brand-blue">LAB</span><small>BY DEXTER</small></span></a>
  <div class="top-actions"><span class="live-label" id="statusIndicator"><i></i> Cargando fuentes</span><button class="tiny-btn" id="installBtn" hidden>+ Instalar app</button></div>
 </header>
-<nav class="navscroll" aria-label="Secciones"><a href="#generador">Generador</a><a href="#resumen">Últimos resultados</a><a href="#estadisticas">Porcentajes</a><a href="#analisis">Matemáticas</a><a href="#premios">Grandes premios</a><a href="#archivoDetalle">Archivo histórico</a></nav>
+<nav class="navscroll" aria-label="Secciones"><a href="#generador">Generador</a><a href="#resumen">Últimos resultados</a><a href="#estadisticas">Porcentajes</a><a href="#analisis">Matemáticas</a><a href="#usDirectory">Loterías de EE. UU.</a><a href="#premios">Grandes premios</a><a href="#archivoDetalle">Archivo histórico</a></nav>
 <main id="contenido">
 <section id="generador" aria-label="Generador matemático de lotería">
  <div class="lotto-stage"><div class="lotto-stage-inner">
@@ -36,7 +36,14 @@
    <h1>Elige tus números. <span>Conoce las probabilidades.</span></h1>
    <p class="lotto-lead">Diseña combinaciones con reglas matemáticas reproducibles y consulta porcentajes exactos. Conoce qué dice el historial, sin confundir estadísticas con predicciones.</p>
    <div class="lotto-form">
-    <div class="lotto-field"><label for="proGame">Lotería</label><select id="proGame"><option value="powerball">🇺🇸 Powerball</option><option value="megamillions">🇺🇸 Mega Millions</option><option value="chica">🇭🇳 La Chica · Honduras (00–99)</option></select></div>
+    <div class="lotto-field"><label for="proGame">Lotería</label><select id="proGame" aria-label="Elegir lotería">
+<optgroup label="Juegos nacionales"><option value="powerball">🇺🇸 Powerball</option><option value="megamillions">🇺🇸 Mega Millions</option></optgroup>
+<optgroup label="Maryland"><option value="mdpick3">Pick 3 · MD (000–999)</option><option value="mdpick4">Pick 4 · MD (0000–9999)</option><option value="mdpick5">Pick 5 · MD (00000–99999)</option></optgroup>
+<optgroup label="Virginia"><option value="vapick3">Pick 3 · VA (000–999)</option><option value="vacash5">Cash 5 · VA (5 de 45)</option></optgroup>
+<optgroup label="California"><option value="cafantasy5">Fantasy 5 · CA (5 de 39)</option></optgroup>
+<optgroup label="Nueva York"><option value="nytake5">Take 5 · NY (5 de 39)</option></optgroup>
+<optgroup label="Honduras"><option value="chica">🇭🇳 La Chica · Honduras (00–99)</option></optgroup>
+</select></div>
     <div class="lotto-field"><label for="proStyle">Tipo de números</label><select id="proStyle"><option value="balanced">Equilibrados (pares e impares)</option><option value="even">Solo pares</option><option value="odd">Solo impares</option><option value="low">Números bajos</option><option value="high">Números altos</option><option value="hot">Más frecuentes históricamente</option><option value="cold">Menos frecuentes históricamente</option><option value="seed">Cálculo matemático</option></select></div>
     
     <div class="lotto-field full"><label for="proFavorites">Números que quieres incluir</label><input id="proFavorites" type="text" maxlength="90" inputmode="text" placeholder="Ej. 7, 13, 28"><small>Opcional · se validan según las reglas del juego.</small></div>
@@ -93,6 +100,20 @@
 </section>
 <section id="metodo" class="section"><div class="section-title"><div><span class="overline">05 · TRANSPARENCIA</span><h2>Lo que sí y lo que no sabemos</h2></div></div><div class="grid-halves"><article class="panel"><h3>¿De dónde vienen los números?</h3><p class="subtle">De los conjuntos publicados por la New York State Gaming Commission. Powerball desde 2010 y Mega Millions desde 2002. Los datos completos se descargan durante la actualización de la web; no proceden de un algoritmo inventado.</p><div class="source-links"><a href="https://data.ny.gov/d/d6yy-54nr" target="_blank" rel="noopener noreferrer">Datos oficiales Powerball ↗</a><a href="https://data.ny.gov/d/5xaw-6ayf" target="_blank" rel="noopener noreferrer">Datos oficiales Mega Millions ↗</a></div></article>
  <article class="panel"><h3>¿Cuándo se actualiza?</h3><p class="subtle">La automatización en GitHub intenta actualizar la biblioteca diariamente y publicar la última copia validada. Puede haber demora de publicación en la fuente oficial.</p><p class="subtle"><strong id="freshness">Última actualización: —</strong></p><p class="subtle">Los cambios de reglas se manejan aparte. Frecuencias de diferentes matrices nunca se mezclan en estadísticas de estrategia.</p></article></div></section>
+<details id="usDirectory" class="lotto-tab-details us-directory">
+ <summary>Explorar loterías de los 45 estados + Washington D. C. y territorios</summary>
+ <div class="us-directory-inner">
+   <p class="subtle">Directorio nacional de <strong>48 jurisdicciones</strong> según NASPL. Los botones de juegos aparecen únicamente donde se verificaron sus reglas. Un estado catalogado no significa que estén descargados todos sus sorteos ni que existan todos los mismos juegos en cada estado.</p>
+   <div class="us-directory-controls">
+     <div><label for="usSearch">Buscar estado o territorio</label><input id="usSearch" type="search" placeholder="Ej. Maryland, Virginia, NY" autocomplete="off"></div>
+     <div><label for="usScope">Jurisdicciones</label><select id="usScope"><option value="all">Todas (48)</option><option value="states">Estados (45)</option><option value="territories">Distrito y territorios (3)</option></select></div>
+   </div>
+   <div class="us-directory-status"><p id="usStatus" role="status">Abre este catálogo para consultar las jurisdicciones.</p><strong id="usCount"></strong></div>
+   <div id="usResults" class="us-states-grid"></div>
+   <p id="usNonLottery" class="lotto-compact-note"></p>
+   <p class="lotto-compact-note">Fuentes: <a href="https://www.naspl.org/faq" rel="noopener noreferrer" target="_blank">NASPL (recuento)</a> · <a href="https://www.naspl.org/naspl-lottery-members" rel="noopener noreferrer" target="_blank">Directorio de loterías</a>. Los juegos de raspaditos, sorteos especiales y sorteos retirados todavía no están incorporados como calculadoras.</p>
+ </div>
+</details>
 <section id="premios" class="lotto-historia">
  <div class="lotto-kicker">HISTORIAS REALES · PREMIOS QUE MARCARON ÉPOCA</div><h2>Grandes premios y curiosidades</h2>
  <p class="subtle">Estos son premios históricos, no el pozo actual. Para el acumulado de hoy, utiliza el enlace oficial del juego.</p>
@@ -278,5 +299,6 @@ loadDateFields();fetchRows();
 
 </script>
 <script type="module" src="assets/generator-pro.js"></script>
+<script type="module" src="assets/us-catalog-ui.js"></script>
 </body>
 </html>

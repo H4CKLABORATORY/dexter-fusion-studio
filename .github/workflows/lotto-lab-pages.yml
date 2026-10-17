@@ -40,6 +40,11 @@ jobs:
           node --check lotto-lab/assets/draw-ui.mjs
           node --check lotto-lab/assets/payout-engine.mjs
           node --check lotto-lab/assets/services-ui.mjs
+          node --check lotto-lab/assets/multipage-nav.mjs
+          node --check lotto-lab/assets/game-catalog.mjs
+          node --check lotto-lab/assets/page-context.mjs
+          node --check lotto-lab/assets/probabilities-page.mjs
+          node --check lotto-lab/scripts/build_pages.mjs
           node --check lotto-lab/assets/barcode-reader.mjs
           node --check lotto-lab/scripts/build_science.mjs
           node --check lotto-lab/assets/us-catalog.mjs
@@ -86,7 +91,11 @@ jobs:
         run: |
           mkdir -p _pages/lotto-lab
           cp -a lotto-lab/. _pages/lotto-lab/
+          node lotto-lab/scripts/build_pages.mjs lotto-lab _pages/lotto-lab
           test -s _pages/lotto-lab/index.html
+          for page in revisar escanear premios presupuesto impuestos simulador matematicas probabilidades historial; do test -s "_pages/lotto-lab/$page.html"; done
+          test -s _pages/lotto-lab/assets/page-context.mjs
+          test -s _pages/lotto-lab/assets/multipage-nav.mjs
           test -s _pages/lotto-lab/assets/exact-engine.mjs
           test -s _pages/lotto-lab/assets/lucky-engine.mjs
           test -s _pages/lotto-lab/assets/lucky-ui.mjs
@@ -130,19 +139,36 @@ jobs:
               && grep -qi 'LOTTO LAB' /tmp/lotto.html \
               && grep -q 'assets/generator-pro.js' /tmp/lotto.html \
               && grep -q 'id="generador"' /tmp/lotto.html \
-              && grep -q 'id="usDirectory"' /tmp/lotto.html \
-              && grep -q 'id="scientificLab"' /tmp/lotto.html \
               && grep -q 'id="luckyDaily"' /tmp/lotto.html \
-              && grep -q 'id="coverageMandel"' /tmp/lotto.html \
-              && grep -q 'id="sorteoVirtual"' /tmp/lotto.html \
-              && grep -q 'id="drawStage"' /tmp/lotto.html \
-              && grep -q 'id="servicesHub"' /tmp/lotto.html \
-              && grep -q 'id="serviceTab-check"' /tmp/lotto.html \
-              && grep -q 'id="serviceTab-scan"' /tmp/lotto.html \
+              && grep -q 'href="revisar.html"' /tmp/lotto.html \
+              && grep -q 'href="simulador.html"' /tmp/lotto.html \
+              && ! grep -q 'id="servicesHub"' /tmp/lotto.html \
+              && curl -fsSL --max-time 20 "$base/revisar.html" -o /tmp/lotto-check.html \
+              && grep -q 'id="servicePanel-check"' /tmp/lotto-check.html \
+              && curl -fsSL --max-time 20 "$base/escanear.html" -o /tmp/lotto-scan.html \
+              && grep -q 'id="servicePanel-scan"' /tmp/lotto-scan.html \
+              && curl -fsSL --max-time 20 "$base/premios.html" -o /tmp/lotto-prizes.html \
+              && grep -q 'id="servicePanel-prizes"' /tmp/lotto-prizes.html \
+              && curl -fsSL --max-time 20 "$base/presupuesto.html" -o /tmp/lotto-budget.html \
+              && grep -q 'id="servicePanel-budget"' /tmp/lotto-budget.html \
+              && curl -fsSL --max-time 20 "$base/impuestos.html" -o /tmp/lotto-tax.html \
+              && grep -q 'id="servicePanel-tax"' /tmp/lotto-tax.html \
+              && curl -fsSL --max-time 20 "$base/simulador.html" -o /tmp/lotto-sim.html \
+              && grep -q 'id="drawStage"' /tmp/lotto-sim.html \
+              && curl -fsSL --max-time 20 "$base/matematicas.html" -o /tmp/lotto-math.html \
+              && grep -q 'id="scientificLab"' /tmp/lotto-math.html \
+              && curl -fsSL --max-time 20 "$base/probabilidades.html" -o /tmp/lotto-odds.html \
+              && grep -q 'id="usComparisonRows"' /tmp/lotto-odds.html \
+              && curl -fsSL --max-time 20 "$base/historial.html" -o /tmp/lotto-history.html \
+              && grep -q 'id="usDirectory"' /tmp/lotto-history.html \
               && curl -fsSL --max-time 20 "$base/assets/generator-pro.js" -o /tmp/lotto-generator.js \
               && curl -fsSL --max-time 20 "$base/assets/lottery-pro.css" -o /tmp/lotto-style.css \
               && node --check /tmp/lotto-generator.js \
               && test -s /tmp/lotto-style.css \
+              && curl -fsSL --max-time 20 "$base/assets/multipage-nav.mjs" -o /tmp/multipage-nav.mjs \
+              && curl -fsSL --max-time 20 "$base/assets/page-context.mjs" -o /tmp/page-context.mjs \
+              && node --check /tmp/multipage-nav.mjs \
+              && node --check /tmp/page-context.mjs \
               && curl -fsSL --max-time 20 "$base/assets/exact-engine.mjs" -o /tmp/exact-engine.mjs \
               && curl -fsSL --max-time 20 "$base/assets/lucky-engine.mjs" -o /tmp/lucky-engine.mjs \
               && curl -fsSL --max-time 20 "$base/assets/draw-simulator.mjs" -o /tmp/draw-simulator.mjs \
@@ -177,7 +203,7 @@ jobs:
               && curl -fsSL --max-time 25 "$base/data/scientific-report.json" -o /tmp/science-report.json \
               && curl -fsSL --max-time 20 "$base/data/us-jurisdictions.json" -o /tmp/us-jurisdictions.json \
               && python -c 'import json; assert all(json.load(open(f"/tmp/{name}.json"))["count"] >= 1000 for name in ("powerball", "megamillions")); assert json.load(open("/tmp/nytake5.json"))["count"] >= 3000; assert len(json.load(open("/tmp/us-jurisdictions.json"))["jurisdictions"]) == 48; assert len(json.load(open("/tmp/science-report.json"))["games"]) == 3'; then
-              echo "OK: web, historiales y 5 servicios: revisión, escaneo, premios, presupuesto e impuestos"
+              echo "OK: 10 páginas reales publicadas, generador primero, 5 servicios, simulador, matemáticas, probabilidades e historial"
               exit 0
             fi
             echo "Esperando propagación de Pages: intento $attempt/18"

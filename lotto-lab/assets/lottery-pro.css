@@ -544,3 +544,34 @@ body[data-page="history"] #usDirectory{margin-top:25px}
  .page-heading{padding:17px}.page-context-chooser{padding:11px 13px}
 }
 @media(prefers-reduced-motion:reduce){.home-service-card,.multi-page-nav a{transition:none!important}}
+
+/* Generador de paquetes de boletos únicos: plegable y secundario al generador. */
+.unique-pack{margin-top:14px;border:1px solid #af9150;border-radius:14px;
+  background:linear-gradient(125deg,#153548,#1d3245 70%,#352d36)}
+.unique-pack summary{color:#ffe3a2;font-size:15px;font-weight:900;cursor:pointer}
+.unique-pack-inner{padding:2px clamp(15px,2.2vw,24px) 22px}
+.unique-pack-inner>p{font-size:13px;color:#cadce6;line-height:1.65}
+.unique-pack-controls{display:flex;flex-wrap:wrap;gap:11px;align-items:end;margin:15px 0}
+.unique-pack-controls>div{display:grid;gap:6px;flex:1 1 180px}
+.unique-pack-controls label{color:#e5edf4;font-size:12px;font-weight:800}
+.unique-pack-controls select{background:#0a283e;border:1px solid #5c7281;color:#fff;min-height:43px;border-radius:9px;padding:9px}
+.unique-pack-controls button{min-height:43px;padding:9px 13px;font-weight:900;
+  background:#1a4658;border:1px solid #5d7e8e;border-radius:9px;color:#ebf3f9;cursor:pointer}
+.unique-pack-controls #packGenerate{background:linear-gradient(120deg,#fff0b0,#e9bf62);color:#36270b;border-color:#f2d583}
+.unique-pack-controls button:disabled{opacity:.45;cursor:not-allowed}
+.unique-pack-metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.unique-pack-metrics>div{display:grid;gap:8px;background:#092c41;border:1px solid #465f72;padding:14px;border-radius:11px}
+.unique-pack-metrics span{font-size:11px;color:#c3d7e1;line-height:1.5}
+.unique-pack-metrics strong{font-size:clamp(16px,2vw,21px);color:#ffe5a1;overflow-wrap:anywhere}
+.unique-pack-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.unique-pack-line{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #446676;
+  border-radius:10px;background:#122e43;min-width:0}
+.unique-pack-line strong{font-variant-numeric:tabular-nums;line-height:1.4;font-size:13px;
+  letter-spacing:.035em;color:#e6f1f6;overflow-wrap:anywhere}
+.unique-pack-index{flex:0 0 28px;border-radius:6px;padding:4px;background:#bf9c4b33;
+  color:#ffe3a1;font-size:11px;text-align:center;font-weight:900}
+@media(max-width:650px){.unique-pack-list,.unique-pack-metrics{grid-template-columns:1fr}
+  .unique-pack-controls{align-items:stretch}
+  .unique-pack-controls>div{flex:1 1 100%}
+  .unique-pack-controls button{flex:1 1 140px}
+}

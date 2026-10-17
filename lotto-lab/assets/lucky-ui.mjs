@@ -13,7 +13,8 @@ function refreshLucky(another=false){
   else if(another)round++;
   const ticket=luckySuggestion(game,key,rows,day,round);
   if(!validLucky(game,ticket))throw Error('Combinación no válida');
-  selection={game,...ticket};
+  selection={key,game,...ticket};
+  window.dispatchEvent(new Event('lotto-lucky-updated'));
   byId('luckyDay').textContent='Día '+day+' · UTC';
   byId('luckyGameName').textContent=game.name+' · propuesta '+(round+1);
   const container=byId('luckyBalls');container.replaceChildren();
@@ -36,6 +37,7 @@ function refreshLucky(another=false){
   byId('luckyCopy').disabled=false;
   byId('luckyCopy').textContent='Copiar';
 }
+window.LottoLabLuckyState=()=>selection?{...selection,main:selection.main.slice()}:null;
 byId('luckyRefresh').addEventListener('click',()=>refreshLucky(true));
 byId('luckyCopy').addEventListener('click',async()=>{
   if(!selection)return;

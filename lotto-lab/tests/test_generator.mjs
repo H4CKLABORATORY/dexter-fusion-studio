@@ -68,6 +68,16 @@ test('modos altos y bajos respetan exactamente la matriz del juego',()=>{
     for(let i=0;i<18;i++)assert.ok(T.createTicket().main.every(v=>v>Math.floor(n/2)));
   }
 });
+test('opción anti-cumpleaños cambia selección, no la probabilidad',()=>{
+ for(const game of ['powerball','megamillions','vacash5','cafantasy5','nytake5']){
+  select(game,'avoidbirthdays');
+  for(let i=0;i<7;i++){
+   const t=T.createTicket();
+   assert.ok(t.main.every(n=>n>31&&n<=T.specs[game].n),game+' '+t.main.join(','));
+  }
+ }
+ assert.ok(html.includes('value="avoidbirthdays"'));
+});
 test('rangos, duplicados y especial: Powerball, Mega Millions y La Chica',()=>{
   for(const game of ['powerball','megamillions','chica']){
     select(game);

@@ -75,3 +75,22 @@ jobs:
       - name: Publicar en GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+      - name: Verificar web publicada, Powerball y Mega Millions
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://h4cklaboratory.github.io/dexter-fusion-studio/lotto-lab"
+          for attempt in $(seq 1 18); do
+            if curl -fsSL --max-time 20 "$base/" -o /tmp/lotto.html \
+              && grep -qi 'LOTTO LAB' /tmp/lotto.html \
+              && curl -fsSL --max-time 20 "$base/data/powerball.json" -o /tmp/powerball.json \
+              && curl -fsSL --max-time 20 "$base/data/megamillions.json" -o /tmp/megamillions.json \
+              && python -c 'import json; assert all(json.load(open(f"/tmp/{name}.json"))["count"] >= 1000 for name in ("powerball", "megamillions"))'; then
+              echo "OK: sitio y ambos históricos públicos disponibles"
+              exit 0
+            fi
+            echo "Esperando propagación de Pages: intento $attempt/18"
+            sleep 10
+          done
+          echo "::error::Pages no sirve HTML e históricos correctos en /lotto-lab/"
+          exit 1

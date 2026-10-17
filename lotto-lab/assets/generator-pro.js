@@ -213,11 +213,15 @@ function histRows(payload,g){
   }
   return rows;
 }
+function notifyScientificChange(){
+  if(typeof window!=='undefined'&&typeof window.dispatchEvent==='function')
+    window.dispatchEvent(new Event('lotto-science-updated'));
+}
 async function loadVerified(){
   const g=specs[selected],stamp=++loading;verified=[];
   if(!g.source){
     $p('proHistoryStatus').textContent=selected==='chica'?'PANI: historial digital completo sin fuente verificable integrada. No se fabrican resultados.':'Este juego tiene reglas oficiales comprobadas, pero su historial todavía no está incorporado. No se inventan sorteos.';
-    renderProbabilities();return;
+    renderProbabilities();notifyScientificChange();return;
   }
   $p('proHistoryStatus').textContent='Sincronizando biblioteca oficial '+g.name+'…';
   try{
@@ -234,7 +238,7 @@ async function loadVerified(){
     if(stamp!==loading)return;
     $p('proHistoryStatus').textContent='Historial no disponible: '+e.message+'. Se conservan solo probabilidades matemáticas exactas.';
   }
-  renderProbabilities();
+  renderProbabilities();notifyScientificChange();
 }
 function wilson(h,n){
   if(!n)return null;
@@ -298,7 +302,7 @@ function updateGame(){
   $p('proOfficial').href=g.web;
   $p('proOfficial').textContent=selected==='chica'?'Información oficial PANI ↗':selected==='powerball'||selected==='megamillions'?'Consultar premio acumulado oficial ↗':'Consultar reglas y resultados oficiales ↗';
   $p('proTicketNote').textContent=g.kind==='digits'?'Modalidad de '+g.width+' dígitos: para acertar en orden exacto, cada dígito debe coincidir.':selected==='chica'?'La Chica: número de dos cifras (00–99), cálculo bajo equiprobabilidad.':'Prueba un criterio matemático de selección. Los resultados dependen del método elegido.';
-  renderProbabilities();loadVerified();
+  renderProbabilities();loadVerified();notifyScientificChange();
 }
 $p('proGame').addEventListener('change',updateGame);
 $p('proStyle').addEventListener('change',renderProbabilities);
@@ -314,5 +318,6 @@ $p('proCopy').addEventListener('click',async()=>{
   const text=lastNumbers.slice(0,g.k).map(v=>String(v).padStart(g.kind==='digits'?g.width:2,'0')).join(' ') +(g.bonus?' | '+String(lastNumbers.at(-1)).padStart(2,'0'):'');
   try{await navigator.clipboard.writeText(text);$p('proTicketNote').textContent='Copiado: '+text;}catch{$p('proTicketNote').textContent='Selecciona y copia: '+text;}
 });
+window.LottoLabScientificState=()=>({key:selected,game:specs[selected],rows:verified});
 updateGame();
 renderUSComparison();

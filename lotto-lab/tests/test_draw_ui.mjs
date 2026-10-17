@@ -26,7 +26,6 @@ test('el estudio interactivo inicia, anima y analiza sin servidor ni apuestas',a
   };
   const lucky={key:'powerball',main:[1,4,22,37,69],bonus:11};
   const oldWindow=globalThis.window,oldDocument=globalThis.document,oldMatch=globalThis.matchMedia;
-  const oldCrypto=globalThis.crypto;
   try{
     globalThis.window={
       LottoLabScientificState:()=>state,
@@ -44,8 +43,7 @@ test('el estudio interactivo inicia, anima y analiza sin servidor ni apuestas',a
     get('drawSource').value='lucky';
     get('drawMode').value='virtual';
     get('drawSpeed').value='fast';
-    const crypto=await import('node:crypto');
-    globalThis.crypto=crypto.webcrypto;
+    assert.ok(globalThis.crypto?.getRandomValues,'La prueba requiere Web Crypto disponible en Node 22');
     await import('../assets/draw-ui.mjs?integration-smoke');
     assert.match(get('drawYourNumbers').textContent,/69/);
     assert.ok(get('drawStart').listeners.click);
@@ -76,6 +74,5 @@ test('el estudio interactivo inicia, anima y analiza sin servidor ni apuestas',a
     globalThis.window=oldWindow;
     globalThis.document=oldDocument;
     globalThis.matchMedia=oldMatch;
-    globalThis.crypto=oldCrypto;
   }
 });

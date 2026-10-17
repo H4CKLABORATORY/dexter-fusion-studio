@@ -7,6 +7,7 @@ from pathlib import Path
 from .project import create_project,read_json
 from .phase2 import build_timeline,apply_timeline,validate_timeline
 from .engine import export_plan,EFFECTS
+from .creator_mode import analyze_retakes, apply_reviewed_retakes
 from .media import probe
 
 
@@ -31,6 +32,10 @@ def parser():
     q.add_argument('--overwrite',action='store_true')
     q=actions.add_parser('render',help='Exportar MP4 desde un plan')
     q.add_argument('--project',required=True)
+    q.add_argument('--overwrite',action='store_true')
+    q=actions.add_parser('retakes',help='Proponer tomas repetidas a partir de un SRT')
+    q.add_argument('--project',required=True)
+    q.add_argument('--apply',default='',help='Índices revisados separados por coma: 0,2')
     q.add_argument('--overwrite',action='store_true')
     q=actions.add_parser('status',help='Mostrar proyecto sin modificar nada')
     q.add_argument('--project',required=True)
@@ -60,6 +65,16 @@ def main(argv=None):
     elif args.action=='render':
         path=export_plan(args.project,overwrite=args.overwrite)
         response={'export':str(path),'media':probe(path)}
+    elif args.action=='retakes':
+        if args.apply:
+            try:
+                indices=[int(x.strip()) for x in args.apply.split(',')]
+            except ValueError as exc:
+                raise ValueError('Escribe índices numéricos separados por comas.') from exc
+            response=apply_reviewed_retakes(args.project,suggestion_indices=indices,overwrite=args.overwrite)
+        else:
+            response=analyze_retakes(args.project,overwrite=args.overwrite)
+            response['report_file']=str(Path(args.project).expanduser().resolve()/'retakes-report.json')
     elif args.action=='status':
         folder=Path(args.project).expanduser().resolve()
         response={'project':str(folder),'settings':read_json(folder/'project.json'),

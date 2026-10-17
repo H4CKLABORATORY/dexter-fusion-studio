@@ -6,6 +6,10 @@ Editor de escritorio gratuito para producir videos propios de Free Fire, YouTube
 
 La versión 0.2 añade pestaña **Timeline v2**, 17 estilos reales FFmpeg, edición por escena con inicio/fin y zoom, selección heurística de clips, transición crossfade y narración original/subtítulos desde archivo SRT. Hay un motor de transcripción local opcional `faster-whisper` (no viene instalado ni configurado). Más detalles en `docs/ETAPA_2.md`.
 
+## Modo Creador · propuestas de tomas repetidas (rama de mejora)
+
+Con subtítulos SRT existentes o generados localmente con Whisper, el editor puede señalar tomas consecutivas muy similares y crear un informe revisable. Desde Timeline v2 aparece el botón **Analizar tomas repetidas**. Los cortes solo se aplican al timeline mediante CLI si se indican explícitamente las sugerencias revisadas; los originales permanecen intactos. No es el plugin comercial AutoEdit ni una función de Claude incorporada. Guía: [docs/MODO_CREADOR.md](docs/MODO_CREADOR.md).
+
 ## Funcionamiento actual
 
 - Interfaz Windows de 6 pestañas: proyecto, edición automática, efectos y memes, **Timeline v2**, nuevos contenidos e integraciones.

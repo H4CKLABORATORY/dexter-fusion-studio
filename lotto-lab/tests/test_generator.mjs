@@ -9,7 +9,7 @@ const dom={proFavorites:{value:''},proStyle:{value:'balanced',selectedOptions:[{
 const ctx=vm.createContext({document:{getElementById:id=>dom[id]||{value:''}},console});
 const logic=script.split("$p('proGame').addEventListener")[0];
 assert.ok(logic.includes('function createTicket()'),'La lógica debe estar accesible');
-vm.runInContext(logic+';globalThis.T={specs,totalOutcomes,theoretical,theoreticalCoverage,createTicket,parseFav,pickHash,histRows,wilson,renderTicketReveal};',ctx);
+vm.runInContext(logic+';globalThis.T={specs,totalOutcomes,theoretical,theoreticalCoverage,createTicket,parseFav,pickHash,histRows,wilson,renderTicketReveal,rankedUSGames,pctHighPrecision};',ctx);
 const {T}=ctx;
 function select(game,style='balanced',favorites=''){
   dom.proStyle.value=style;dom.proFavorites.value=favorites;
@@ -164,6 +164,15 @@ test('Take 5 de Nueva York conserva dos sesiones por fecha y valida 5/39',()=>{
   assert.equal(new Set(rows.map(x=>x.period)).size,2);
   assert.ok(rows.every(x=>x.bonus===null));
 });
+test('comparador ordena por probabilidades exactas con porcentajes precisos',()=>{
+ const ranked=T.rankedUSGames();
+ assert.equal(ranked.length,9);
+ assert.equal(ranked[0].key,'mdpick3');
+ assert.equal(ranked[ranked.length-1].key,'powerball');
+ assert.ok(ranked.every((g,i)=>i===0||ranked[i-1].total<=g.total));
+ assert.ok(ranked.every(g=>g.key!=='chica'));
+ assert.match(T.pctHighPrecision(1/292201338),/e-/);
+});
 test('catálogo oficial mantiene 48 jurisdicciones y filtros por estado',()=>{
   const catalog=JSON.parse(readFileSync(new URL('../data/us-jurisdictions.json',import.meta.url),'utf8'));
   const jurisdictions=validateJurisdictions(catalog);
@@ -188,6 +197,7 @@ test('diseño primero generador, archivo secundario, fuentes correctas',()=>{
   assert.ok(script.includes('const INTERNAL_SEED='),'El motor debe conservar semilla interna');
   assert.ok(html.includes('id="proCoverage"')&&html.includes('id="proCoverageChance"'),'Debe existir la simulación de cobertura');
   assert.ok(html.includes('id="usDirectory"')&&html.includes('assets/us-catalog-ui.js'));
+  assert.ok(html.includes('id="comparador"')&&html.includes('id="usComparisonRows"'));
   for(const game of ['mdpick3','mdpick4','mdpick5','vapick3','vacash5','cafantasy5','nytake5'])
     assert.ok(html.includes('value="'+game+'"'),'Opción no visible: '+game);
 });

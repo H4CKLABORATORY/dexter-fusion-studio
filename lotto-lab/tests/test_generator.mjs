@@ -8,7 +8,7 @@ const dom={proFavorites:{value:''},proStyle:{value:'balanced',selectedOptions:[{
 const ctx=vm.createContext({document:{getElementById:id=>dom[id]||{value:''}},console});
 const logic=script.split("$p('proGame').addEventListener")[0];
 assert.ok(logic.includes('function createTicket()'),'La lógica debe estar accesible');
-vm.runInContext(logic+';globalThis.T={specs,totalOutcomes,theoretical,createTicket,parseFav,pickHash,histRows,wilson};',ctx);
+vm.runInContext(logic+';globalThis.T={specs,totalOutcomes,theoretical,theoreticalCoverage,createTicket,parseFav,pickHash,histRows,wilson};',ctx);
 const {T}=ctx;
 function select(game,style='balanced',favorites=''){
   dom.proStyle.value=style;dom.proFavorites.value=favorites;
@@ -21,6 +21,15 @@ test('fórmulas combinatorias correctas para los tres juegos',()=>{
   assert.equal(T.theoretical(T.specs.powerball),5/69);
   assert.equal(T.theoretical(T.specs.megamillions),5/70);
   assert.equal(T.theoretical(T.specs.chica),1/100);
+});
+test('cobertura de boletos distintos crece linealmente sin superar el espacio de resultados',()=>{
+  for(const game of ['powerball','megamillions','chica']){
+    const g=T.specs[game];
+    assert.equal(T.theoreticalCoverage(g,10),10/Number(T.totalOutcomes(g)));
+    assert.equal(T.theoreticalCoverage(g,1),1/Number(T.totalOutcomes(g)));
+    assert.throws(()=>T.theoreticalCoverage(g,0));
+    assert.throws(()=>T.theoreticalCoverage(g,T.totalOutcomes(g)+1n));
+  }
 });
 test('la semilla interna produce cálculos reproducibles sin Math.random',()=>{
   assert.ok(!logic.includes('Math.random('));
@@ -67,4 +76,5 @@ test('diseño primero generador, archivo secundario, fuentes correctas',()=>{
   assert.ok(!html.includes('id="proSeed"'),'La semilla no debe ser campo editable');
   assert.ok(!script.includes("$p('proSeed')"),'El motor no debe leer una semilla editable');
   assert.ok(script.includes('const INTERNAL_SEED='),'El motor debe conservar semilla interna');
+  assert.ok(html.includes('id="proCoverage"')&&html.includes('id="proCoverageChance"'),'Debe existir la simulación de cobertura');
 });

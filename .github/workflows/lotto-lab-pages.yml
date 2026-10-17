@@ -1,0 +1,70 @@
+name: LOTTO LAB - historial oficial y sitio para iPhone
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'lotto-lab/**'
+      - '.github/workflows/lotto-lab-pages.yml'
+  schedule:
+    - cron: '27 12 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: lotto-lab-pages
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Comprobar parsing y matematica
+        run: |
+          python -m unittest discover -s lotto-lab/tests -p 'test_data.py' -v
+          node --test lotto-lab/tests/test_core.mjs
+      - name: Descargar biblioteca completa desde NY Open Data
+        run: python lotto-lab/scripts/build_data.py lotto-lab/data
+      - name: Comprobar que ambos archivos existen
+        run: |
+          test -s lotto-lab/data/powerball.json
+          test -s lotto-lab/data/megamillions.json
+          python - <<'PY'
+          import json
+          for game in ('powerball', 'megamillions'):
+              with open(f'lotto-lab/data/{game}.json',encoding='utf-8') as f:
+                  obj=json.load(f)
+              assert obj['count'] >= 1000
+              print(game,obj['count'],obj['first_draw'],obj['last_draw'])
+          PY
+      - name: Archivo web descargable, incluso sin GitHub Pages
+        uses: actions/upload-artifact@v4
+        with:
+          name: LOTTO-LAB-DEXTER-Historial-Completo
+          path: lotto-lab/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Preparar sitio Pages
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: lotto-lab/
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - name: Publicar en GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

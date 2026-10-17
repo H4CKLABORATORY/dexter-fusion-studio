@@ -9,6 +9,7 @@ from .engine import EFFECTS, export_plan
 from .media import probe
 from .project import read_json,safe_write
 from .phase2 import build_timeline, apply_timeline, still_preview, transcribe_local,validate_timeline
+from .creator_mode import analyze_retakes
 
 
 class TimelinePanel:
@@ -59,6 +60,7 @@ class TimelinePanel:
         ttk.Button(row,text='Guardar y preparar edición',command=self.prepare).pack(side='left',padx=10)
         ttk.Button(row,text='Exportar MP4',command=self.render).pack(side='left')
         ttk.Button(parent,text='Subtitular mi voz (Whisper local opcional)',command=self.whisper).pack(anchor='w',pady=7)
+        ttk.Button(parent,text='Analizar tomas repetidas (requiere SRT)',command=self.retakes).pack(anchor='w',pady=5)
         ttk.Label(parent,text='Los originales y guiones no se envían a ningún servicio. Presets no equivalen a los efectos propietarios de otra app.',wraplength=800).pack(anchor='w')
         self.current=None
 
@@ -185,3 +187,17 @@ class TimelinePanel:
         if not messagebox.askyesno('Whisper local','Necesitas faster-whisper instalado y descargar un modelo una vez. ¿Ejecutar si está disponible?'):
             return
         self.app.background('Transcribir voz en PC local',lambda:transcribe_local(folder))
+
+    def retakes(self):
+        try:
+            folder = self.folder()
+            def finished(report):
+                suggestions = report['suggestions']
+                if not suggestions:
+                    messagebox.showinfo('Modo Creador', 'No se detectaron frases repetidas de alta similitud. No se ha recortado nada.')
+                    return
+                brief = '\\n'.join(f"{i}: {s['start']:.1f}-{s['end']:.1f}s — {s['original_text'][:60]}" for i, s in enumerate(suggestions[:8]))
+                messagebox.showinfo('Modo Creador', f"Se detectaron {len(suggestions)} posibles tomas repetidas.\\n\\n{brief}\\n\\nSe guardó retakes-report.json. No se aplicaron cortes; revísalos primero.")
+            self.app.background('Analizar tomas repetidas por subtítulos', lambda:analyze_retakes(folder,overwrite=True),finished)
+        except Exception as exc:
+            messagebox.showerror('Modo Creador',str(exc))

@@ -167,3 +167,29 @@ body{background:radial-gradient(circle at 10% 0%,#174b51 0,transparent 40%),radi
 .compare-table td:nth-child(3){font-variant-numeric:tabular-nums;white-space:nowrap}
 .compare-table td:nth-child(4){color:#b9cbd8;font-size:12px}
 @media(max-width:560px){.compare-section{padding:24px 0}.compare-table th,.compare-table td{padding:11px 12px}}
+
+/* Módulo matemático: plegable para conservar el generador como portada. */
+.scientific-lab{scroll-margin-top:20px;margin:18px 0 22px!important;border-color:#b28e55;background:linear-gradient(140deg,#143447,#152a3f 65%,#322b37)}
+.scientific-lab summary{color:#fff1b0!important;line-height:1.4}
+.scientific-body{padding:4px clamp(15px,2.2vw,25px) 26px}
+.scientific-lead{font-size:14px;color:#d6e3ee;line-height:1.65;margin-bottom:18px}
+.scientific-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:15px 0 22px}
+.scientific-metrics article{background:#0d2638;border:1px solid #3b5866;border-radius:13px;padding:16px;min-width:0}
+.scientific-metrics span,.scientific-metrics small{display:block;color:#c1d1dc;font-size:11px;line-height:1.4}
+.scientific-metrics strong{display:block;color:#fbe198;margin:8px 0;font-size:clamp(18px,2vw,25px);overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.scientific-control{display:grid;grid-template-columns:1fr 1.5fr;gap:15px;align-items:stretch;margin:10px 0 22px}
+.scientific-control>div{background:#15374a;border:1px solid #41677a;border-radius:12px;padding:16px}
+.scientific-control label{font-size:12px;font-weight:750;color:#eff4f8;display:block;margin:0 0 8px}
+.scientific-control select{width:100%;background:#092b3e;color:#fff}
+.scientific-projection span,.scientific-projection small{display:block;color:#c3d3dc;font-size:12px;line-height:1.5}
+.scientific-projection strong{display:block;color:#ffe188;font-size:22px;margin:8px 0;overflow-wrap:anywhere}
+.scientific-tiers,.scientific-evidence{padding:18px;border:1px solid #3a5267;border-radius:14px;background:#102839;margin-top:20px}
+.scientific-tiers .panel-head,.scientific-evidence .panel-head{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.scientific-tiers h3,.scientific-evidence h3{color:#f6fbff;font-size:17px;margin:0 0 8px}
+.scientific-tiers a{font-size:12px;color:#ffe18a;text-decoration:underline}
+.scientific-evidence p{font-size:13px;color:#c8d6e3;line-height:1.7}
+.scientific-evidence #sciRunAudit:disabled{opacity:.48;cursor:not-allowed}
+.scientific-evidence #sciAuditResult{padding-top:8px}
+.scientific-disclosure{font-size:12px;margin-top:18px;color:#e8d7b8;border-left:3px solid #e6bf58;padding-left:12px;line-height:1.7}
+@media(max-width:760px){.scientific-metrics{grid-template-columns:1fr 1fr}.scientific-control{grid-template-columns:1fr}.scientific-body{padding-left:14px;padding-right:14px}}
+@media(max-width:490px){.scientific-metrics{grid-template-columns:1fr}.scientific-tiers,.scientific-evidence{padding:12px}.scientific-tiers .compare-table{min-width:620px}}

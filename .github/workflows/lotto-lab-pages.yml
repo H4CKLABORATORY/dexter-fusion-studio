@@ -31,6 +31,9 @@ jobs:
           node --check lotto-lab/assets/generator-pro.js
           node --check lotto-lab/assets/scientific-math.mjs
           node --check lotto-lab/assets/science-ui.mjs
+          node --check lotto-lab/assets/exact-engine.mjs
+          node --check lotto-lab/assets/lucky-engine.mjs
+          node --check lotto-lab/assets/lucky-ui.mjs
           node --check lotto-lab/scripts/build_science.mjs
           node --check lotto-lab/assets/us-catalog.mjs
           node --input-type=module --check < lotto-lab/assets/us-catalog-ui.js
@@ -77,6 +80,9 @@ jobs:
           mkdir -p _pages/lotto-lab
           cp -a lotto-lab/. _pages/lotto-lab/
           test -s _pages/lotto-lab/index.html
+          test -s _pages/lotto-lab/assets/exact-engine.mjs
+          test -s _pages/lotto-lab/assets/lucky-engine.mjs
+          test -s _pages/lotto-lab/assets/lucky-ui.mjs
           test -s _pages/lotto-lab/data/powerball.json
           test -s _pages/lotto-lab/data/megamillions.json
           test -s _pages/lotto-lab/data/nytake5.json
@@ -112,10 +118,17 @@ jobs:
               && grep -q 'id="generador"' /tmp/lotto.html \
               && grep -q 'id="usDirectory"' /tmp/lotto.html \
               && grep -q 'id="scientificLab"' /tmp/lotto.html \
+              && grep -q 'id="luckyDaily"' /tmp/lotto.html \
               && curl -fsSL --max-time 20 "$base/assets/generator-pro.js" -o /tmp/lotto-generator.js \
               && curl -fsSL --max-time 20 "$base/assets/lottery-pro.css" -o /tmp/lotto-style.css \
               && node --check /tmp/lotto-generator.js \
               && test -s /tmp/lotto-style.css \
+              && curl -fsSL --max-time 20 "$base/assets/exact-engine.mjs" -o /tmp/exact-engine.mjs \
+              && curl -fsSL --max-time 20 "$base/assets/lucky-engine.mjs" -o /tmp/lucky-engine.mjs \
+              && curl -fsSL --max-time 20 "$base/assets/lucky-ui.mjs" -o /tmp/lucky-ui.mjs \
+              && node --check /tmp/exact-engine.mjs \
+              && node --check /tmp/lucky-engine.mjs \
+              && node --check /tmp/lucky-ui.mjs \
               && curl -fsSL --max-time 20 "$base/assets/scientific-math.mjs" -o /tmp/scientific-math.mjs \
               && curl -fsSL --max-time 20 "$base/assets/science-ui.mjs" -o /tmp/science-ui.mjs \
               && node --check /tmp/scientific-math.mjs \

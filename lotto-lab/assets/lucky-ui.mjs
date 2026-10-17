@@ -34,14 +34,20 @@ function refreshLucky(another=false){
   byId('luckyProbability').textContent='Probabilidad de la combinación exacta: '+
     formatInverseOddsExact(1n,outcomeCount(game),0)+'. Igual para todas las combinaciones válidas.';
   byId('luckyCopy').disabled=false;
+  byId('luckyCopy').textContent='Copiar';
 }
 byId('luckyRefresh').addEventListener('click',()=>refreshLucky(true));
-byId('luckyCopy').addEventListener('click',()=>{
+byId('luckyCopy').addEventListener('click',async()=>{
   if(!selection)return;
   const g=selection.game;
   const text=selection.main.map(v=>String(v).padStart(g.kind==='digits'?g.width:2,'0')).join(' ')+
     (selection.bonus?' | '+String(selection.bonus).padStart(2,'0'):'');
-  byId('luckyExplanation').textContent='Números del día: '+text+' · Puedes seleccionarlos para copiarlos.';
+  try{
+    await navigator.clipboard.writeText(text);
+    byId('luckyCopy').textContent='¡Copiados!';
+  }catch{
+    byId('luckyExplanation').textContent='Copia manualmente: '+text;
+  }
 });
 byId('proGame').addEventListener('change',()=>refreshLucky());
 window.addEventListener('lotto-science-updated',()=>refreshLucky());

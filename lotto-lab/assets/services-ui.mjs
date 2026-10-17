@@ -26,7 +26,15 @@ const gameTicketText=(game,ticket)=>{
   return ticket.main.map(n=>String(n).padStart(digits,'0')).join(' ')+
     (ticket.bonus!=null?' | '+String(ticket.bonus).padStart(2,'0'):'');
 };
+const serviceRoutes={check:'revisar.html',scan:'escanear.html',prizes:'premios.html',
+  budget:'presupuesto.html',tax:'impuestos.html'};
 function activateService(key,{focus=false}={}){
+  const activePage=document.body?.dataset?.service;
+  if(activePage&&key!==activePage&&serviceRoutes[key]){
+    const chosen=document.getElementById('proGame')?.value||'powerball';
+    window.location.assign(serviceRoutes[key]+'?game='+encodeURIComponent(chosen));
+    return;
+  }
   const keys=['check','scan','prizes','budget','tax'];
   if(!keys.includes(key))return;
   for(const id of keys){
@@ -361,4 +369,4 @@ $('scanFile').addEventListener('change',async()=>{
     $('scanFile').value='';
   }
 });
-syncGame();updateResultSource();renderTaxes();activateService('check');
+syncGame();updateResultSource();renderTaxes();activateService(document.body?.dataset?.service||'check');

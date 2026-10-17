@@ -1,3 +1,29 @@
+## Navegación por páginas independientes
+
+**Generador primero, siempre.** El inicio del sitio publicado en `/lotto-lab/` muestra el generador matemático y la selección diaria de números de la suerte, seguido de tarjetas que conducen a páginas verdaderamente independientes. Ya no es necesario recorrer toda una página larga para encontrar los servicios.
+
+| Ruta de GitHub Pages | Servicio |
+|---|---|
+| `index.html` | **Portada y generador** (prioridad visual) |
+| `revisar.html` | Verificación numérica contra resultados oficiales disponibles |
+| `escanear.html` | Lectura local de código de barras / QR y enlaces a escáner oficial |
+| `premios.html` | Tabla de premios y probabilidades |
+| `presupuesto.html` | Presupuesto e información de retornos matemáticos |
+| `impuestos.html` | Retenciones y escenario ilustrativo de impuestos finales |
+| `simulador.html` | Plató virtual con sorteo animado, reproducción y pruebas |
+| `matematicas.html` | Auditor científico y cálculo de cobertura |
+| `probabilidades.html` | Comparación de juegos por posibilidades exactas |
+| `historial.html` | Biblioteca histórica y directorio de loterías de Estados Unidos |
+
+### Diseño y mantenimiento
+
+La fuente canónica `lotto-lab/index.html` conserva las secciones originales para facilitar mantenimiento y compatibilidad con pruebas previas. Durante la compilación, `node lotto-lab/scripts/build_pages.mjs lotto-lab _pages/lotto-lab` **genera diez documentos HTML distintos** a partir de esas secciones y sustituye el `index.html` desplegado por la portada enfocada en el generador.
+
+La separación es por URL y documento real: cambiar de pestaña cambia de página. Los módulos `assets/page-context.mjs` y `assets/game-catalog.mjs` comparten reglas y la lotería seleccionada entre páginas; la última combinación calculada se conserva en el almacenamiento temporal de la pestaña cuando el navegador lo permite. `assets/multipage-nav.mjs` mantiene el menú y redirige enlaces antiguos con `#servicesHub`, `#sorteoVirtual` y otros fragmentos a las páginas nuevas.
+
+Los cinco servicios de boletos reutilizan el marcado de los formularios de origen por compatibilidad, pero cada documento está publicado en su propia URL y abre directamente su herramienta activa; las otras pestañas navegan a otro documento. La generación no requiere backend, cuenta ni pago. El sistema de pruebas comprueba los diez archivos separados y la prioridad del generador.
+
+
 # LOTTO LAB DEXTER 2.0
 
 **Sitio estático para iPhone y PC con archivo histórico verificable de sorteos, matemáticas y validación de estrategias sin engaños predictivos.**

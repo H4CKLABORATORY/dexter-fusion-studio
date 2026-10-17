@@ -78,15 +78,62 @@ function createTicket(){
   generation++;
   return {main:chosen,bonus};
 }
+// Animación exclusivamente visual: el boleto calculado NO representa un premio real.
+// Los efectos son reproducibles y no alteran los números ni las probabilidades.
+function renderTicketReveal(container,t,lottery,sequence){
+  const reduceMotion=typeof matchMedia==='function'
+    && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const items=[...t.main.map(value=>({value,bonus:false}))];
+  if(t.bonus!==null&&t.bonus!==undefined)items.push({value:t.bonus,bonus:true});
+
+  // Una generación nueva reemplaza las bolas y efectos anteriores por completo.
+  container.classList.remove('lotto-revealing');
+  container.replaceChildren();
+  items.forEach(({value,bonus},index)=>{
+    const ball=document.createElement('span');
+    ball.className='ticket-ball'
+      +(bonus?' bonus':'')
+      +(lottery==='chica'?' chica':'')
+      +(reduceMotion?'':' lotto-ball-reveal');
+    ball.textContent=String(value).padStart(2,'0');
+    if(bonus)ball.title='Bola especial';
+    if(!reduceMotion)ball.style.setProperty('--ball-delay',(95+index*170)+'ms');
+    container.append(ball);
+  });
+  if(reduceMotion)return;
+
+  // Máximo 15 chispas decorativas y sin sonidos: apto para móviles.
+  const sparkCount=lottery==='chica'?8:15;
+  const revealDelay=440+(items.length-1)*170;
+  const colors=['#ffe28a','#ffffff','#71d7ee','#ffc66c','#8ce8b9'];
+  for(let i=0;i<sparkCount;i++){
+    const spark=document.createElement('span');
+    spark.className='lotto-spark';
+    spark.setAttribute('aria-hidden','true');
+    const hash=pickHash('visual|'+lottery+'|'+sequence+'|'+i);
+    const spreadX=(hash%231)-115;
+    const spreadY=(Math.floor(hash/231)%185)-90;
+    const rotation=(Math.floor(hash/42735)%481)-240;
+    spark.style.setProperty('--spark-x',spreadX+'px');
+    spark.style.setProperty('--spark-y',spreadY+'px');
+    spark.style.setProperty('--spark-rot',rotation+'deg');
+    spark.style.setProperty('--spark-delay',(revealDelay+(i%5)*38)+'ms');
+    spark.style.setProperty('--spark-color',colors[i%colors.length]);
+    spark.addEventListener('animationend',()=>spark.remove(),{once:true});
+    container.append(spark);
+  }
+  // Reinicia el brillo si el usuario vuelve a generar inmediatamente.
+  void container.offsetWidth;
+  container.classList.add('lotto-revealing');
+}
 function outputTicket(t){
-  const g=specs[selected];const div=$p('proTicket');div.replaceChildren();
-  for(const value of t.main){const x=document.createElement('span');x.className='ticket-ball'+(selected==='chica'?' chica':'');x.textContent=String(value).padStart(2,'0');div.append(x)}
-  if(t.bonus){const x=document.createElement('span');x.className='ticket-ball bonus';x.textContent=String(t.bonus).padStart(2,'0');x.title='Bola especial';div.append(x)}
+  const g=specs[selected];const div=$p('proTicket');
+  renderTicketReveal(div,t,selected,generation);
   lastNumbers=t.main.concat(t.bonus?[t.bonus]:[]);
   $p('proTicketCount').textContent='Combinación #'+nf(generation);
   $p('proCopy').disabled=false;
   const b=g.bonus?' · especial '+String(t.bonus).padStart(2,'0'):'';
-  $p('proTicketNote').textContent='Selección por regla «'+$p('proStyle').selectedOptions[0].textContent+'»'+b+'. Este método NO incrementa la probabilidad del próximo sorteo.';
+  $p('proTicketNote').textContent='Combinación calculada y revelada. Selección por regla «'+$p('proStyle').selectedOptions[0].textContent+'»'+b+'. La celebración es visual: no indica un premio ganado ni aumenta la probabilidad del siguiente sorteo.';
   renderProbabilities();
 }
 function histRows(payload,g){

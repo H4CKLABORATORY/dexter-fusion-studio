@@ -2,6 +2,7 @@ import {test} from 'node:test';
 import {strict as assert} from 'node:assert';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
+import {validateJurisdictions,searchJurisdictions,STATES_WITHOUT_LOTTERY} from '../assets/us-catalog.mjs';
 const script=readFileSync(new URL('../assets/generator-pro.js',import.meta.url),'utf8');
 const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const dom={proFavorites:{value:''},proStyle:{value:'balanced',selectedOptions:[{textContent:'Equilibrados'}]}};
@@ -113,6 +114,69 @@ test('revelación animada del boleto y reinicio seguro en clics repetidos',()=>{
     ctx.document.createElement=oldCreate;ctx.matchMedia=oldMatch;
   }
 });
+test('probabilidades verificadas de juegos estatales y nacionales',()=>{
+  const cases={
+    powerball:292201338n,megamillions:290472336n,
+    mdpick3:1000n,mdpick4:10000n,mdpick5:100000n,
+    vapick3:1000n,vacash5:1221759n,cafantasy5:575757n,nytake5:575757n,chica:100n
+  };
+  assert.equal(Object.keys(T.specs).length,Object.keys(cases).length);
+  for(const [game,total] of Object.entries(cases)){
+    assert.equal(T.totalOutcomes(T.specs[game]),total,'Probabilidad incorrecta: '+game);
+    assert.equal(T.theoreticalCoverage(T.specs[game],1),1/Number(total));
+  }
+});
+test('juegos de dígitos en orden exacto sin generar listas gigantes',()=>{
+  for(const [game,width] of [['mdpick3',3],['mdpick4',4],['mdpick5',5],['vapick3',3]]){
+    const g=T.specs[game];select(game,'seed');
+    assert.equal(g.width,width);
+    for(let i=0;i<8;i++){
+      const t=T.createTicket();assert.equal(t.main.length,1);
+      assert.ok(t.main[0]>=0&&t.main[0]<g.n);
+      assert.equal(String(t.main[0]).padStart(width,'0').length,width);
+      assert.equal(t.bonus,null);
+    }
+    for(const [style,valid] of [
+      ['even',v=>v%2===0],['odd',v=>v%2===1],
+      ['low',v=>v<g.n/2],['high',v=>v>=g.n/2]
+    ]){
+      select(game,style);assert.ok(valid(T.createTicket().main[0]),game+' '+style);
+    }
+  }
+  select('mdpick5','seed','00000');
+  assert.equal(T.createTicket().main[0],0);
+  select('mdpick5','seed','99999');
+  assert.equal(T.createTicket().main[0],99999);
+  select('mdpick5','seed','100000');
+  assert.throws(()=>T.createTicket(),/números diferentes/);
+});
+test('Take 5 de Nueva York conserva dos sesiones por fecha y valida 5/39',()=>{
+  select('nytake5');
+  const payload={schema:3,game:'nytake5',rows:[
+    {date:'2026-10-16',period:'midday',main:[1,5,10,20,39]},
+    {date:'2026-10-16',period:'evening',main:[2,6,11,21,33]},
+    {date:'2026-10-16',period:'evening',main:[2,6,11,21,33]},
+    {date:'1991-10-16',period:'evening',main:[1,2,3,4,5]},
+    {date:'2026-10-15',period:'evening',main:[1,2,3,4,41]},
+  ]};
+  const rows=T.histRows(payload,T.specs.nytake5);
+  assert.equal(rows.length,2);
+  assert.equal(new Set(rows.map(x=>x.period)).size,2);
+  assert.ok(rows.every(x=>x.bonus===null));
+});
+test('catálogo oficial mantiene 48 jurisdicciones y filtros por estado',()=>{
+  const catalog=JSON.parse(readFileSync(new URL('../data/us-jurisdictions.json',import.meta.url),'utf8'));
+  const jurisdictions=validateJurisdictions(catalog);
+  assert.equal(jurisdictions.length,48);
+  assert.equal(searchJurisdictions(jurisdictions,'', 'states').length,45);
+  assert.equal(searchJurisdictions(jurisdictions,'', 'territories').length,3);
+  assert.equal(searchJurisdictions(jurisdictions,'Maryland').length,1);
+  assert.equal(searchJurisdictions(jurisdictions,'nueva york').length,1);
+  assert.equal(new Set(STATES_WITHOUT_LOTTERY).size,5);
+  assert.ok(jurisdictions.every(j=>j.source===null||j.source.startsWith('https://')));
+  for(const j of jurisdictions)for(const game of j.verified_game_keys)
+    assert.ok(T.specs[game],'El catálogo menciona un juego inexistente: '+game);
+});
 test('diseño primero generador, archivo secundario, fuentes correctas',()=>{
   assert.ok(html.indexOf('id="generador"')<html.indexOf('id="resumen"'));
   assert.ok(html.indexOf('id="historial"')>html.indexOf('id="premios"'));
@@ -123,4 +187,7 @@ test('diseño primero generador, archivo secundario, fuentes correctas',()=>{
   assert.ok(!script.includes("$p('proSeed')"),'El motor no debe leer una semilla editable');
   assert.ok(script.includes('const INTERNAL_SEED='),'El motor debe conservar semilla interna');
   assert.ok(html.includes('id="proCoverage"')&&html.includes('id="proCoverageChance"'),'Debe existir la simulación de cobertura');
+  assert.ok(html.includes('id="usDirectory"')&&html.includes('assets/us-catalog-ui.js'));
+  for(const game of ['mdpick3','mdpick4','mdpick5','vapick3','vacash5','cafantasy5','nytake5'])
+    assert.ok(html.includes('value="'+game+'"'),'Opción no visible: '+game);
 });

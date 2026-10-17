@@ -110,7 +110,7 @@ function createTicket(){
   const ranked=values.map(v=>{
     const tie=pickHash([seed,selected,style,generation,v].join('|'))/4294967296;
     const frequency=counts[v];
-    const score=style==='hot'?-frequency+tie*.001:style==='cold'?frequency+tie*.001:tie;
+    const score=style==='hot'?-frequency+tie*.001:style==='cold'?frequency+tie*.001:style==='avoidbirthdays'&&g.k===5?(v<=31?1:0)+tie*.001:tie;
     return {v,score};
   }).sort((a,b)=>a.score-b.score||a.v-b.v).map(x=>x.v);
   let pool=ranked;
@@ -292,6 +292,7 @@ function renderProbabilities(){
   const mode=$p('proStyle').value;
   $p('proModeNote').textContent=(mode==='hot'||mode==='cold')
     ?'Ordena números usando frecuencias históricas de las reglas vigentes. La ventaja predictiva NO está demostrada; cada bola conserva la misma probabilidad teórica.'
+    :mode==='avoidbirthdays'&&g.k===5?'Evita números del 1 al 31 cuando la matriz lo permite. Puede disminuir coincidencias con boletos basados en cumpleaños, pero NO aumenta la probabilidad de salir ni garantiza que el premio no se comparta.'
     :'Las probabilidades mostradas son del sorteo, NO la probabilidad que asigna tu filtro a cada boleto. Cambiar paridad, fechas o categorías no mejora las probabilidades de acertar.';
 }
 function updateGame(){

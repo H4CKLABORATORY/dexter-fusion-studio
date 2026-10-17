@@ -17,26 +17,55 @@
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
 
 </style>
-<title>LOTTO LAB DEXTER · Laboratorio de resultados históricos</title>
+<link rel="stylesheet" href="assets/lottery-pro.css">
+<title>LOTTO LAB DEXTER 2.0 · Generador matemático de lotería</title>
 </head>
 <body>
 <a class="skip" href="#contenido">Saltar al contenido</a>
 <div class="app-shell">
 <header class="topbar">
- <a class="wordmark" href="#inicio" aria-label="Lotto Lab Dexter"><span class="brand-icon">L</span><span>LOTTO<span class="brand-blue">LAB</span><small>BY DEXTER</small></span></a>
+ <a class="wordmark" href="#generador" aria-label="Lotto Lab Dexter"><span class="brand-icon">L</span><span>LOTTO<span class="brand-blue">LAB</span><small>BY DEXTER</small></span></a>
  <div class="top-actions"><span class="live-label" id="statusIndicator"><i></i> Cargando fuentes</span><button class="tiny-btn" id="installBtn" hidden>+ Instalar app</button></div>
 </header>
-<nav class="navscroll" aria-label="Secciones"><a href="#resumen">Resumen</a><a href="#estadisticas">Estadísticas</a><a href="#historial">Historial</a><a href="#analisis">Laboratorio</a><a href="#metodo">Método</a></nav>
+<nav class="navscroll" aria-label="Secciones"><a href="#generador">Generador</a><a href="#resumen">Últimos resultados</a><a href="#estadisticas">Porcentajes</a><a href="#analisis">Matemáticas</a><a href="#premios">Grandes premios</a><a href="#archivoDetalle">Archivo histórico</a></nav>
 <main id="contenido">
-<section id="inicio" class="hero">
- <div class="hero-copy"><div class="eyebrow"><span class="dot"></span> Datos públicos · Matemáticas reales · Versión 2.0</div>
- <h1>Los números tienen <em>historia.</em><br>El azar no tiene memoria.</h1>
- <p>Explora los sorteos reales de Powerball y Mega Millions. Compara frecuencias, revisa cada resultado, comprueba probabilidades y pon a prueba estrategias sin inventar predicciones.</p>
- <div class="hero-actions"><a class="primary" href="#resumen">Explorar resultados <span aria-hidden="true">↗</span></a><a class="outline" href="#metodo">Cómo funciona</a></div></div>
- <div class="hero-visual" aria-hidden="true"><div class="hero-ring ring-one"></div><div class="hero-ring ring-two"></div><span class="float-ball ball-big">07</span><span class="float-ball ball-second">29</span><span class="float-ball ball-third">13</span><span class="float-ball ball-special">★</span><span class="orbit-label">DATA / 2026</span></div>
+<section id="generador" aria-label="Generador matemático de lotería">
+ <div class="lotto-stage"><div class="lotto-stage-inner">
+  <div class="lotto-generator">
+   <div class="lotto-kicker">LOTTO LAB DEXTER 2.0 · CALCULADORA CIENTÍFICA</div>
+   <h1>Elige tus números. <span>Conoce las probabilidades.</span></h1>
+   <p class="lotto-lead">Diseña combinaciones con reglas matemáticas reproducibles y consulta porcentajes exactos. Conoce qué dice el historial, sin confundir estadísticas con predicciones.</p>
+   <div class="lotto-form">
+    <div class="lotto-field"><label for="proGame">Lotería</label><select id="proGame"><option value="powerball">🇺🇸 Powerball</option><option value="megamillions">🇺🇸 Mega Millions</option><option value="chica">🇭🇳 La Chica · Honduras (00–99)</option></select></div>
+    <div class="lotto-field"><label for="proStyle">Tipo de números</label><select id="proStyle"><option value="balanced">Equilibrados (pares e impares)</option><option value="even">Solo pares</option><option value="odd">Solo impares</option><option value="low">Números bajos</option><option value="high">Números altos</option><option value="hot">Más frecuentes históricamente</option><option value="cold">Menos frecuentes históricamente</option><option value="seed">Por semilla matemática</option></select></div>
+    <div class="lotto-field"><label for="proSeed">Tu semilla matemática</label><input id="proSeed" type="text" maxlength="90" value="DEXTER-2026" placeholder="Palabra, fecha o clave" autocomplete="off"><small>Con la misma semilla y clic inicial, la elección se reproduce.</small></div>
+    <div class="lotto-field"><label for="proFavorites">Números que quieres incluir</label><input id="proFavorites" type="text" maxlength="90" inputmode="text" placeholder="Ej. 7, 13, 28"><small>Opcional · se validan según las reglas del juego.</small></div>
+    <button id="proGenerate" type="button">★ CALCULAR MI COMBINACIÓN</button>
+   </div>
+  </div>
+  <div class="lotto-ticket-box" aria-live="polite">
+   <div class="ticket-title"><span>MI BOLETO MATEMÁTICO</span><span class="ticket-stamp" id="proTicketCount">LISTO PARA GENERAR</span></div>
+   <div id="proTicket" class="ticket-balls"><span class="ticket-empty">Tu combinación aparecerá aquí.</span></div>
+   <div class="ticket-details">
+    <div class="ticket-metric"><span>Posibilidad de combinación exacta</span><strong id="proOdds">—</strong><small>Bajo sorteo uniforme</small></div>
+    <div class="ticket-metric"><span>Probabilidad por número</span><strong id="proPerNumber">—</strong><small id="proPerNumberLabel">Bola principal individual</small></div>
+   </div>
+   <div class="ticket-actions"><button id="proCopy" type="button" disabled>Copiar boleto</button><span class="lotto-kicker" id="proPrice">—</span></div>
+   <p class="ticket-note" id="proTicketNote">Elige una estrategia para calcular tu combinación.</p>
+   <div class="prize-strip"><a id="proOfficial" href="https://www.powerball.com/" target="_blank" rel="noopener noreferrer">Consultar premio acumulado ↗</a></div>
+  </div>
+ </div></div>
+ <article class="model-panel" aria-label="Probabilidades científicas por número">
+  <h2>Probabilidad científica de cada número</h2>
+  <p>El porcentaje <strong>teórico</strong> se calcula con combinatoria exacta; el <strong>histórico</strong> mide cuántas veces salió en la base verificada. Ninguno es una predicción del siguiente resultado.</p>
+  <div class="science-metrics"><span id="proModel">—</span><span>Especial: <strong id="proSpecialOdds">—</strong></span><span>Información combinatoria: <strong id="proEntropy">—</strong></span></div>
+  <p id="proHistoryStatus" role="status">Revisando datos oficiales…</p>
+  <p id="proModeNote" class="lotto-compact-note">El patrón elegido no altera las probabilidades del sorteo.</p>
+  <div class="ball-probabilities" id="proProbGrid" aria-label="Porcentajes individuales de cada número"></div>
+ </article>
 </section>
 <div class="alertbanner"><span class="alert-icon">ⓘ</span><div><strong>Sin promesas falsas.</strong> En sorteos independientes y justos, los resultados anteriores no permiten conocer el siguiente. Esta herramienta analiza datos y no vende boletos, ni recomienda jugar.</div></div>
-<section id="resumen" class="section">
+<section id="resumen" class="section"><p class="lotto-compact-note">Resultados e históricos oficiales disponibles para Powerball y Mega Millions. Para La Chica, la sección matemática está disponible arriba; su historial requiere una fuente verificable.</p>
  <div class="section-title"><div><span class="overline">01 · PANEL DE CONTROL</span><h2>Explora la lotería</h2></div><div class="controls"><label for="game" class="sr-only">Lotería</label><select id="game"><option value="powerball">Powerball</option><option value="megamillions">Mega Millions</option></select><button id="refresh" class="icon-button" title="Volver a cargar la base de datos" aria-label="Actualizar resultados">↻</button></div></div>
  <div class="metrics">
   <article class="metric"><span>Registros históricos</span><strong id="allDraws">—</strong><small>Hasta la última fecha disponible</small></article>
@@ -55,17 +84,27 @@
  <article class="panel"><div class="panel-head"><h3>Menos frecuentes</h3><span class="mini-note">No están «por salir»</span></div><div id="coldBars" class="bar-list"><p class="muted">Preparando estadísticas…</p></div></article></div>
  <div class="grid-halves secondary-grid"><article class="panel"><div class="panel-head"><h3>Bola especial</h3><span class="mini-note">Las 6 primeras por frecuencia</span></div><div id="bonusBars" class="bar-list"></div></article><article class="panel"><div class="panel-head"><h3>Patrones observados</h3><span class="mini-note">No pronósticos</span></div><div class="sub-metrics"><div><span>Bolitas impares</span><strong id="oddMetric">—</strong></div><div><span>Suma promedio de 5 números</span><strong id="sumMetric">—</strong></div><div><span>Par más repetido</span><strong id="pairMetric">—</strong></div></div></article></div>
 </section>
-<section id="historial" class="section"><div class="section-title"><div><span class="overline">03 · ARCHIVO VERIFICABLE</span><h2>Biblioteca de sorteos</h2><p>Explora el historial del dataset, también las etapas con reglas anteriores.</p></div><button id="downloadCSV" class="outline small-btn">↓ Exportar CSV</button></div>
- <div class="panel"><div class="history-toolbar"><div><label for="year">Año</label><select id="year"><option value="all">Todos los años</option></select></div><div><label for="findDate">Buscar fecha</label><input type="search" id="findDate" placeholder="AAAA-MM-DD" autocomplete="off" inputmode="text"/></div><span class="history-count" id="matchedRows">— resultados</span></div>
- <div class="history-head"><span>FECHA</span><span>NÚMEROS GANADORES</span><span>ESPECIAL</span></div><div id="historyRows" class="history-rows"><p class="muted">Cargando biblioteca…</p></div><div class="history-footer"><span id="historyRange">—</span><button id="loadMore" class="outline small-btn">Mostrar 40 más</button></div></div>
-</section>
+
 <section id="analisis" class="section"><div class="section-title"><div><span class="overline">04 · LABORATORIO MATEMÁTICO</span><h2>Comprueba las posibilidades</h2><p>Experimentos transparentes y resultados reproducibles.</p></div></div>
- <div class="grid-halves"><article class="panel"><div class="panel-head"><h3>Generador imparcial</h3><span class="mini-note">Aleatoriedad criptográfica</span></div><p class="subtle">No considera números calientes: cada combinación válida es igualmente probable.</p><button id="generate" class="primary fill">Generar combinación</button><div id="myTicket" class="balls play-balls"><span class="muted">Aún no generaste una combinación.</span></div><button id="copyTicket" class="outline small-btn" disabled>Copiar números</button></article>
+ <div class="grid-halves"><article class="panel" hidden><div class="panel-head"><h3>Generador clásico (versión anterior)</h3><span class="mini-note">Aleatoriedad criptográfica</span></div><p class="subtle">No considera números calientes: cada combinación válida es igualmente probable.</p><button id="generate" class="primary fill">Generar combinación</button><div id="myTicket" class="balls play-balls"><span class="muted">Aún no generaste una combinación.</span></div><button id="copyTicket" class="outline small-btn" disabled>Copiar números</button></article>
  <article class="panel"><div class="panel-head"><h3>Probabilidad y costo</h3><span class="mini-note">Un solo sorteo</span></div><label for="tickets">Combinaciones distintas</label><input type="number" min="1" max="1000000" id="tickets" value="1"/><div class="sub-metrics"><div><span>Probabilidad de jackpot</span><strong id="chance">—</strong></div><div><span>Costo hipotético</span><strong id="cost">—</strong></div></div><p class="subtle">Repetir una combinación no aumenta la cobertura. El cálculo presupone boletos distintos.</p></article></div>
  <article class="panel backtest"><div class="panel-head"><div><h3>Auditor de «números calientes»</h3><p class="subtle">Prueba retrospectiva progresiva: el algoritmo usa solo el pasado y después compara con resultados reales que todavía no ha visto.</p></div><button id="runBacktest" class="outline small-btn">Ejecutar prueba</button></div><div id="backtestOutput" class="backtest-results"><p class="muted">Pulsa «Ejecutar prueba» para comparar una estrategia de frecuencias con el promedio matemático de elegir números al azar.</p></div></article>
 </section>
 <section id="metodo" class="section"><div class="section-title"><div><span class="overline">05 · TRANSPARENCIA</span><h2>Lo que sí y lo que no sabemos</h2></div></div><div class="grid-halves"><article class="panel"><h3>¿De dónde vienen los números?</h3><p class="subtle">De los conjuntos publicados por la New York State Gaming Commission. Powerball desde 2010 y Mega Millions desde 2002. Los datos completos se descargan durante la actualización de la web; no proceden de un algoritmo inventado.</p><div class="source-links"><a href="https://data.ny.gov/d/d6yy-54nr" target="_blank" rel="noopener noreferrer">Datos oficiales Powerball ↗</a><a href="https://data.ny.gov/d/5xaw-6ayf" target="_blank" rel="noopener noreferrer">Datos oficiales Mega Millions ↗</a></div></article>
  <article class="panel"><h3>¿Cuándo se actualiza?</h3><p class="subtle">La automatización en GitHub intenta actualizar la biblioteca diariamente y publicar la última copia validada. Puede haber demora de publicación en la fuente oficial.</p><p class="subtle"><strong id="freshness">Última actualización: —</strong></p><p class="subtle">Los cambios de reglas se manejan aparte. Frecuencias de diferentes matrices nunca se mezclan en estadísticas de estrategia.</p></article></div></section>
+<section id="premios" class="lotto-historia">
+ <div class="lotto-kicker">HISTORIAS REALES · PREMIOS QUE MARCARON ÉPOCA</div><h2>Grandes premios y curiosidades</h2>
+ <p class="subtle">Estos son premios históricos, no el pozo actual. Para el acumulado de hoy, utiliza el enlace oficial del juego.</p>
+ <div class="prize-history">
+  <article><strong>US$2.040 millones</strong><span>Powerball · California · 2022</span><p>Una sola jugada acertó las seis bolas en el sorteo del 7 de noviembre de 2022.</p><a href="https://www.powerball.com/ticket-california-wins-world-record-204-billion-powerball-jackpot" target="_blank" rel="noopener noreferrer">Fuente oficial Powerball ↗</a></article>
+  <article><strong>US$1.602 millones</strong><span>Mega Millions · Florida · 2023</span><p>El 8 de agosto de 2023, una jugada ganó el premio mayor anunciado por Mega Millions.</p><a href="https://www.megamillions.com/News/2023/Smashing-Jackpot-Run-Ends-With-Big-Florida-Win.aspx" target="_blank" rel="noopener noreferrer">Fuente oficial Mega Millions ↗</a></article>
+  <article><strong>00–99</strong><span>La Chica · Honduras</span><p>Lotería del PANI con números de dos cifras. El cálculo matemático de un número bajo un modelo uniforme es 1 en 100; aún no tenemos su base completa verificable.</p><a href="https://www.pani.gob.hn/" target="_blank" rel="noopener noreferrer">PANI · Información oficial ↗</a></article>
+ </div>
+</section>
+<details id="archivoDetalle" class="lotto-tab-details"><summary>Ver historial de resultados y descargar sorteos anteriores</summary><section id="historial" class="section"><div class="section-title"><div><span class="overline">ARCHIVO VERIFICABLE</span><h2>Sorteos históricos consultables</h2><p>Explora el historial del dataset, también las etapas con reglas anteriores.</p></div><button id="downloadCSV" class="outline small-btn">↓ Exportar CSV</button></div>
+ <div class="panel"><div class="history-toolbar"><div><label for="year">Año</label><select id="year"><option value="all">Todos los años</option></select></div><div><label for="findDate">Buscar fecha</label><input type="search" id="findDate" placeholder="AAAA-MM-DD" autocomplete="off" inputmode="text"/></div><span class="history-count" id="matchedRows">— resultados</span></div>
+ <div class="history-head"><span>FECHA</span><span>NÚMEROS GANADORES</span><span>ESPECIAL</span></div><div id="historyRows" class="history-rows"><p class="muted">Cargando biblioteca…</p></div><div class="history-footer"><span id="historyRange">—</span><button id="loadMore" class="outline small-btn">Mostrar 40 más</button></div></div>
+</section></details>
 </main>
 <footer><div class="wordmark footerbrand"><span class="brand-icon">L</span><span>LOTTO<span class="brand-blue">LAB</span><small>BY DEXTER</small></span></div><p>Estadísticas educativas. No estamos afiliados a Powerball, Mega Millions ni la Lotería de Nueva York. No vendemos boletos.</p><a href="legacy.html">Versión original sin conexión ↗</a><small>© 2026 LOTTO LAB DEXTER · Hecho para aprender, no para predecir el azar.</small></footer>
 </div>
@@ -237,5 +276,6 @@ if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceW
 loadDateFields();fetchRows();
 
 </script>
+<script type="module" src="assets/generator-pro.js"></script>
 </body>
 </html>

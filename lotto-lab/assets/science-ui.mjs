@@ -1,17 +1,20 @@
 import {
   exactSpectrum,prizeSpectrum,outcomeCount,multiDrawChance,historicalAudit,SOURCE_ODDS
 } from './scientific-math.mjs';
+import {fixedPrizeExpectedExact,formatUSDDollarsExact,formatInverseOddsExact,formatPercentExact} from './exact-engine.mjs';
 
 const $=id=>document.getElementById(id);
 const money=n=>new Intl.NumberFormat('es-ES',{style:'currency',currency:'USD',minimumFractionDigits:2,maximumFractionDigits:2}).format(n);
 const number=n=>Number(n).toLocaleString('es-ES',{maximumFractionDigits:2});
-const percentage=p=>{
-  if(!Number.isFinite(p)||p<0)return '—';
-  const value=p*100;
-  if(value===0)return '0 %';
-  if(value<0.000001)return value.toExponential(6).replace('.',',')+' %';
-  return value.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:10})+' %';
+// Porcentajes de cara al usuario: enteros, evitando falsos 0 % para sucesos raros.
+const percentCompact=(p)=>p===0?'0 %':p*100<.5?'<1 %':Math.round(p*100)+' %';
+const pctExactCompact=(numerator,denominator)=>{
+  const n=BigInt(numerator),d=BigInt(denominator);
+  if(n===0n)return '0 %';
+  if(n*200n<d)return '<1 %';
+  return formatPercentExact(n,d,0);
 };
+
 const state=()=>window.LottoLabScientificState?.();
 let auditFor=null,auditSampleCount=-1;
 function cell(text){
@@ -24,11 +27,12 @@ function render(){
   const {key,game,rows}=current;
   if(!game)return;
   const {rows:prizes,anyPrize,expectedFixed,knownPayout}=prizeSpectrum(game,key);
-  $('sciAnyPrize').textContent=anyPrize===null?'Sin tabla completa':percentage(anyPrize);
+  $('sciAnyPrize').textContent=anyPrize===null?'Sin tabla completa':pctExactCompact(prizeSpectrum(game,key).winningWays,outcomeCount(game));
   $('sciPrizeCaution').textContent=anyPrize===null?
     'Aquí mostramos aciertos exactos, no premios sin verificar.':
     '1 entre '+number(1/anyPrize)+(key==='cafantasy5'?' · incluye boleto gratuito':'')+'.';
-  $('sciFixedValue').textContent=knownPayout?money(expectedFixed):'Variable/no publicado';
+  const fixed=knownPayout?fixedPrizeExpectedExact(game,key):null;
+  $('sciFixedValue').textContent=fixed?formatUSDDollarsExact(fixed.n,fixed.d):'Variable/no publicado';
   $('sciExpectedHits').textContent=game.kind==='digits'?
     (game.width/10).toLocaleString('es-ES',{maximumFractionDigits:3})+' dígitos en posición':
     (game.k*game.k/game.n).toLocaleString('es-ES',{maximumFractionDigits:6});
@@ -38,8 +42,8 @@ function render(){
     const tr=document.createElement('tr');
     const title=item.label||item.main+' números';
     const payout=prizes.length?(item.prize||'No especificado'):'Coincidencia matemática · premio no verificado';
-    tr.append(cell(title),cell(payout),cell(percentage(item.probability)),
-      cell(item.probability>0?number(1/item.probability):'—'));
+    tr.append(cell(title),cell(payout),cell(pctExactCompact(item.ways,item.total)),
+      cell(item.ways>0n?formatInverseOddsExact(item.ways,item.total,2):'—'));
     tr.title=number(item.ways)+' de '+number(outcomeCount(game))+' resultados equiprobables.';
     tbody.append(tr);
   }
@@ -54,7 +58,7 @@ function render(){
     'No existe una tabla completa de premios integrada para este juego. Acertar dígitos o bolas parcialmente no siempre genera un premio.';
   const m=Number($('proCoverage').value),draws=Number($('sciDrawCount').value);
   try{
-    $('sciRepeated').textContent=percentage(multiDrawChance(game,m,draws));
+    $('sciRepeated').textContent=percentCompact(multiDrawChance(game,m,draws));
     $('sciRepeatedNote').textContent=
       m+' combinación'+(m===1?'':'es')+' distinta'+(m===1?'':'s')+
       ' por sorteo × '+draws+' sorteo'+(draws===1?'':'s')+
@@ -111,8 +115,8 @@ async function audit(){
       (report.skillPercent>0?'La estrategia histórica mostró una diferencia favorable en esta muestra; NO está demostrado que prediga sorteos futuros.':
        'El modelo histórico NO mejoró la referencia justa en esta evaluación.');
     const band=document.createElement('p');
-    band.textContent='Banda simultánea conservadora (95 %): del '+percentage(report.band.lower)+' al '+
-      percentage(report.band.upper)+' por bola principal. Números fuera de la banda: '+
+    band.textContent='Banda simultánea conservadora (95 %): del '+percentCompact(report.band.lower)+' al '+
+      percentCompact(report.band.upper)+' por bola principal. Números fuera de la banda: '+
       number(report.anomalies.length)+' de '+game.n+
       '. Es un detector de desviaciones descriptivas; ninguna anomalía prueba por sí sola una oportunidad de ganar.';
     const explain=document.createElement('p');explain.className='lotto-compact-note';

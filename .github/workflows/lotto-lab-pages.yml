@@ -40,6 +40,7 @@ jobs:
           node --check lotto-lab/assets/draw-ui.mjs
           node --check lotto-lab/assets/payout-engine.mjs
           node --check lotto-lab/assets/services-ui.mjs
+          node --check lotto-lab/assets/barcode-reader.mjs
           node --check lotto-lab/scripts/build_science.mjs
           node --check lotto-lab/assets/us-catalog.mjs
           node --input-type=module --check < lotto-lab/assets/us-catalog-ui.js
@@ -95,6 +96,7 @@ jobs:
           test -s _pages/lotto-lab/assets/draw-ui.mjs
           test -s _pages/lotto-lab/assets/payout-engine.mjs
           test -s _pages/lotto-lab/assets/services-ui.mjs
+          test -s _pages/lotto-lab/assets/barcode-reader.mjs
           test -s _pages/lotto-lab/data/powerball.json
           test -s _pages/lotto-lab/data/megamillions.json
           test -s _pages/lotto-lab/data/nytake5.json
@@ -145,6 +147,8 @@ jobs:
               && curl -fsSL --max-time 20 "$base/assets/lucky-engine.mjs" -o /tmp/lucky-engine.mjs \
               && curl -fsSL --max-time 20 "$base/assets/draw-simulator.mjs" -o /tmp/draw-simulator.mjs \
               && curl -fsSL --max-time 20 "$base/assets/payout-engine.mjs" -o /tmp/payout-engine.mjs \
+              && curl -fsSL --max-time 20 "$base/assets/barcode-reader.mjs" -o /tmp/barcode-reader.mjs \
+              && node --check /tmp/barcode-reader.mjs \
               && curl -fsSL --max-time 20 "$base/assets/services-ui.mjs" -o /tmp/services-ui.mjs \
               && node --check /tmp/payout-engine.mjs \
               && node --check /tmp/services-ui.mjs \

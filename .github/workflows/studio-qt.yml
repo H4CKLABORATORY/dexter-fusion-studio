@@ -45,10 +45,30 @@ jobs:
             -f lavfi -i testsrc2=s=960x540:r=24 \
             -f lavfi -i sine=frequency=280:sample_rate=48000 \
             -t 7 -c:v mpeg4 -q:v 6 -c:a aac studio-example.mp4
+          ffmpeg -hide_banner -loglevel error -nostdin -y \
+            -f lavfi -i sine=frequency=660:sample_rate=48000:duration=7 \
+            -c:a pcm_s16le studio-background.wav
           python - <<'PY'
           from pathlib import Path
+          import struct,zlib
           from fusion.project import create_project
-          project,_=create_project('ci-demo','Ejemplo de montaje',str(Path('studio-example.mp4').resolve()),profile='freefire_short')
+          from fusion.studio_model import StudioDocument
+          def chunk(name, raw):
+              return struct.pack('>I',len(raw))+name+raw+struct.pack('>I',zlib.crc32(name+raw)&0xffffffff)
+          w,h=120,64
+          raw=(bytes([0])+bytes([50,227,182,255])*w)*h
+          picture=Path('studio-banner.png').resolve()
+          picture.write_bytes(bytes.fromhex('89504e470d0a1a0a')+
+              chunk(b'IHDR',struct.pack('>IIBBBBB',w,h,8,6,0,0,0))+
+              chunk(b'IDAT',zlib.compress(raw))+chunk(b'IEND',b''))
+          project,_=create_project('ci-demo','Ejemplo de montaje',
+              str(Path('studio-example.mp4').resolve()),profile='freefire_short')
+          doc=StudioDocument(project)
+          doc.split(0,2.3)
+          doc.split(1,4.8)
+          doc.add_image(str(picture),start=1.1,end=4.8,width=.28)
+          doc.add_audio(str(Path('studio-background.wav').resolve()),start=0,gain=.35)
+          doc.save()
           Path('ci-project-path.txt').write_text(str(project))
           PY
       - name: Captura auténtica de Qt con video y audio de prueba

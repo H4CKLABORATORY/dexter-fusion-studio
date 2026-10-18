@@ -22,7 +22,7 @@ from PySide6.QtWidgets import (
     QLabel, QPushButton, QFileDialog, QSplitter, QListWidget,
     QListWidgetItem, QComboBox, QDoubleSpinBox, QSlider,
     QMessageBox, QToolBar, QFrame, QProgressBar, QGraphicsScene,
-    QGraphicsView, QGraphicsRectItem, QGraphicsSimpleTextItem,
+    QGraphicsView, QGraphicsRectItem, QGraphicsSimpleTextItem, QGraphicsPixmapItem,
     QSizePolicy, QScrollArea, QGroupBox, QInputDialog, QDockWidget, QStackedWidget,
 )
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
@@ -167,6 +167,7 @@ class TimelineCanvas(QGraphicsView):
         self.pixels_per_second = 48.0
         self.document = None
         self.waveform = []
+        self.thumbnail = None
         self.selected_index = -1
         self.playhead = 0.0
         self.track_names = ['V3  Efectos (próximamente)', 'V2  Overlays (próximamente)',
@@ -236,13 +237,22 @@ class TimelineCanvas(QGraphicsView):
                 y = self.RULER + 2 * self.ROW + 6
                 selected = index == self.selected_index
                 fill = QColor('#236C8C' if not selected else '#2BB7BB')
-                box = QGraphicsRectItem(x, y, w, self.ROW-13)
+                box = QGraphicsRectItem(0, 0, w, self.ROW-13)
+                box.setPos(x, y)
+                box.setFlag(QGraphicsRectItem.GraphicsItemFlag.ItemClipsChildrenToShape, True)
                 box.setBrush(QBrush(fill))
                 box.setPen(QPen(QColor('#8EEFE2' if selected else '#4FA6D3'), 2 if selected else 1))
                 box.setFlag(QGraphicsRectItem.GraphicsItemFlag.ItemIsSelectable, True)
                 box.setData(0, index)
                 box.setToolTip(f'{clip.label}\nFuente {format_time(clip.start)} a {format_time(clip.end)}\nEfecto: {clip.effect}')
                 scene.addItem(box)
+                if self.thumbnail is not None and not self.thumbnail.isNull() and w >= 45:
+                    pic = self.thumbnail.scaled(
+                        QSize(int(w), self.ROW-13),
+                        Qt.AspectRatioMode.KeepAspectRatioByExpanding,
+                        Qt.TransformationMode.SmoothTransformation)
+                    visual = QGraphicsPixmapItem(pic, box)
+                    visual.setOpacity(.34)
                 title = QGraphicsSimpleTextItem('▣  ' + clip.label[:25], box)
                 title.setBrush(QBrush(QColor('#FFFFFF')))
                 title.setFont(QFont('Segoe UI', 10, QFont.Weight.DemiBold))
@@ -571,11 +581,16 @@ class StudioWindow(QMainWindow):
                 self._wave_worker.wait(1500)
             self.document = StudioDocument(folder)
             self.player.setSource(QUrl.fromLocalFile(str(self.document.source)))
-            self._source_poster()
+            poster_image = self._source_poster()
             self.media_list.clear()
             info=self.document.media_info
             item=QListWidgetItem('▣  '+self.document.source.name)
             item.setToolTip(str(self.document.source))
+            if poster_image is not None and not poster_image.isNull():
+                item.setIcon(QIcon(poster_image))
+                self.timeline.thumbnail = poster_image
+            else:
+                self.timeline.thumbnail = None
             self.media_list.addItem(item)
             self.media_list.addItem(f"◷  {info['width']}×{info['height']} · {info['duration']:.1f}s")
             self.timeline.set_document(self.document)
@@ -607,8 +622,10 @@ class StudioWindow(QMainWindow):
                     QSize(730,410),Qt.AspectRatioMode.KeepAspectRatio,
                     Qt.TransformationMode.SmoothTransformation))
                 self.preview_stack.setCurrentWidget(self.poster)
+                return pic
         except Exception:
             self.poster.setText('Vista previa disponible al reproducir')
+        return None
 
     def _refresh(self):
         doc=self.document

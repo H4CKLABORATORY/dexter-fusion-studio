@@ -6,7 +6,7 @@
 - Ollama local: `fusion/tokenlab_ollama.py` permite resumen y embeddings reales; `fusion/tokenlab_stream.py` transmite tokens desde `/api/generate` con `QNetworkAccessManager` **sin bloquear el hilo Qt**.
 - El botón **CANCELAR HTTP** ejecuta `QNetworkReply.abort()`; los timeouts, errores de proveedor, NDJSON inválido y conexión rechazada muestran códigos explícitos. Los tokens progresivos son tentativos hasta `done=true`.
 - `fusion/tokenlab_context_async.py` compacta contexto mediante streams y conserva la memoria previa completa cuando ocurre cancelación, timeout o error. No se publican resúmenes parciales como hechos terminados.
-- Las llamadas de embeddings directas aún son síncronas: en deduplicación semántica la interfaz puede esperar mientras Ollama responde. Falta migrar ese endpoint a red asíncrona para cobertura total.
+- La GUI usa ahora fusion/tokenlab_embed_async.py para consultar /api/embed mediante QNetworkAccessManager, cancelar peticiones y manejar timeout sin bloquear la interfaz. El cliente de scripts embed_ollama conserva su modo síncrono.
 
 ## Instalar/ejecutar (Windows)
 ```powershell

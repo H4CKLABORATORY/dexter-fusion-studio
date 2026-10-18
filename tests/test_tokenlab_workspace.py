@@ -68,6 +68,21 @@ class TokenLabFullTests(unittest.TestCase):
                 self.assertEqual(reg.execute("contar_tokens",params)["data"]["tokens"],5)
                 self.assertEqual(len(reg.cache),2)
 
+    def test_local_ollama_adapter_rejects_redirecting_url_userinfo(self):
+        import os
+        from fusion.tokenlab_ollama import _url
+        for bad in ("http://127.0.0.1:11434@evil.example",
+                    "http://evil.example:11434",
+                    "https://127.0.0.1:11434",
+                    "http://localhost:11434/api",
+                    "http://user:pass@localhost:11434"):
+            with self.subTest(url=bad):
+                with patch.dict(os.environ, {"OLLAMA_URL":bad}):
+                    with self.assertRaises(ValueError):
+                        _url()
+        with patch.dict(os.environ, {"OLLAMA_URL":"http://127.0.0.1:11434"}):
+            self.assertEqual(_url(),"http://127.0.0.1:11434")
+
     def test_search_finds_markdown_and_javascript_but_skips_build(self):
         with tempfile.TemporaryDirectory() as tmp:
             Path(tmp,"guide.md").write_text("TOKENLAB_NEEDLE in docs",encoding="utf-8")

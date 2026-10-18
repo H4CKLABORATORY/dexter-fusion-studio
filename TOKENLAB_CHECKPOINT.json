@@ -1,7 +1,7 @@
 {
   "task_id": "tokenlab-qt-count-ab",
   "source_base_sha": "97b088f7776a4433d82001308bd6e08c5453f53b",
-  "last_completed_commit_sha": "db9cd351714c31e0d9a7188f12d83d39aaa04259",
+  "last_completed_commit_sha": "7578aae992ab16366a060f4246dd006ec765f8de",
   "updated": "2026-10-18",
   "verified_locally": [
     "core_checkpoint_resume",
@@ -10,10 +10,10 @@
     "python_compileall"
   ],
   "pending_external": [
-    "OpenAI API real smoke using repository Actions secret OPENAI_API_KEY; workflow exists and labeled trigger requires explicit opt-in",
-    "MIRA own repository creation; connected GitHub tools cannot create a new repository",
-    "Review full CI and PR readiness; keep draft, do not merge unverified",
-    "Semantic embedding request remains synchronous in Qt"
+    "One real OpenAI API request with Actions secret OPENAI_API_KEY and explicit opt-in PR label (not yet run)",
+    "MIRA new repository creation under H4CKLABORATORY (no create_repository connector action)",
+    "Final PR review and authorized merge after remaining dependencies",
+    "Asynchronous semantic embedding GUI operation not yet implemented"
   ],
   "analyzed_files": [
     "fusion/studio_qt.py",
@@ -35,7 +35,7 @@
     "tests/test_tokenlab_live_probe_contract.py",
     ".github/workflows/tokenlab-openai.yml"
   ],
-  "next_step": "Read this checkpoint and CONTINUIDAD.md; check GitHub CI of current head, then validate opt-in OpenAI only after user configures secret and trigger; request MIRA repo creation via GitHub UI.",
+  "next_step": "Read this checkpoint and CONTINUIDAD.md, then check current PR #12 CI. Wait for user to set repository secret OPENAI_API_KEY and opt in via PR label tokenlab-openai-smoke; the existing MIRA ZIP still requires the user to create a dedicated repository. Keep PR DRAFT until verified.",
   "verified_code_commit_sha": "77a098d7284b78ff2480186358cc62a13c3c3b7c",
   "verified_ci_runs": {
     "qt": {
@@ -72,12 +72,18 @@
       "status": "success",
       "model": "llama3.2:1b",
       "embedding_model": "nomic-embed-text"
+    },
+    "latest_windows": {
+      "id": 39139460329,
+      "status": "success"
+    },
+    "latest_ollama": {
+      "id": 39139460263,
+      "status": "success",
+      "real_inference": true
     }
   },
   "source_previous_sha": "b0ff8db1e8078bf9eacf9bf524827c847c904982",
   "last_task": "Real Qt HTTP streaming, abort, network errors and transactional context compaction; verified general and Qt CI, Ollama and Windows revalidation underway.",
-  "pending_ci_runs": {
-    "latest_windows": 39139460329,
-    "latest_ollama": 39139460263
-  }
+  "pending_ci_runs": {}
 }

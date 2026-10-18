@@ -5,7 +5,6 @@ published; aborting, timing out, or a provider error preserves prior messages.
 """
 from __future__ import annotations
 
-import json
 from PySide6.QtCore import QObject, Signal
 from .tokenlab_context import tokens
 

@@ -4,13 +4,14 @@ import json
 import os
 from pathlib import Path
 import tkinter as tk
-from tkinter import ttk, messagebox, simpledialog
+from tkinter import ttk, messagebox, simpledialog, filedialog
 from .engine import EFFECTS, export_plan
 from .media import probe
 from .project import read_json,safe_write
 from .phase2 import build_timeline, apply_timeline, still_preview, transcribe_local,validate_timeline
 from .caption_styles import CAPTION_STYLES
 from .creator_mode import analyze_retakes
+from .director import parse_prompt, render_motion, reference_to_timeline
 
 
 class TimelinePanel:
@@ -23,6 +24,7 @@ class TimelinePanel:
         self.crossfade=tk.BooleanVar(value=True)
         self.effect=tk.StringVar(value='hype')
         self.caption_style=tk.StringVar(value='classic')
+        self.director_prompt=tk.StringVar(value='Intro cinematográfica verde neón con texto «DEXTER FF» de 4 segundos')
         self.zoom=tk.StringVar(value='1.0')
         self.window=tk.StringVar(value='12')
         self.limit=tk.StringVar(value='4')
@@ -67,7 +69,12 @@ class TimelinePanel:
         ttk.Label(caprow,text='Karaoke/Punch usan tiempos estimados desde SRT; revisa la sincronía.').pack(side='left')
         ttk.Button(parent,text='Subtitular mi voz (Whisper local opcional)',command=self.whisper).pack(anchor='w',pady=7)
         ttk.Button(parent,text='Analizar tomas repetidas (requiere SRT)',command=self.retakes).pack(anchor='w',pady=5)
-        ttk.Label(parent,text='Los originales y guiones no se envían a ningún servicio. Presets no equivalen a los efectos propietarios de otra app.',wraplength=800).pack(anchor='w')
+        director=ttk.Frame(parent);director.pack(fill='x',pady=(8,2))
+        ttk.Label(director,text='Director creativo (local):').pack(side='left')
+        ttk.Entry(director,textvariable=self.director_prompt,width=58).pack(side='left',padx=5)
+        ttk.Button(director,text='Crear intro MP4',command=self.make_motion).pack(side='left',padx=3)
+        ttk.Button(parent,text='Aplicar cortes de video de referencia al proyecto',command=self.use_reference).pack(anchor='w',pady=3)
+        ttk.Label(parent,text='Director creativo usa plantillas locales y cortes aproximados; no genera escenas IA. Tus originales no salen de tu PC.',wraplength=800).pack(anchor='w')
         self.current=None
 
     def folder(self):
@@ -209,3 +216,37 @@ class TimelinePanel:
             self.app.background('Analizar tomas repetidas por subtítulos', lambda:analyze_retakes(folder,overwrite=True),finished)
         except Exception as exc:
             messagebox.showerror('Modo Creador',str(exc))
+
+    def make_motion(self):
+        try:
+            folder=self.folder()
+            spec=parse_prompt(self.director_prompt.get())
+            output=folder/'output'/'intro-director.mp4'
+            if output.exists() and not messagebox.askyesno('Reemplazar intro','La intro ya existe. ¿Reemplazar solo ese archivo?'):
+                return
+            self.app.background('Crear intro con FFmpeg local',
+                                lambda:render_motion(spec,output,overwrite=True),
+                                lambda path:messagebox.showinfo('Intro preparada',f'Archivo generado:\\n{path}'))
+        except Exception as exc:
+            messagebox.showerror('Director creativo',str(exc))
+
+    def use_reference(self):
+        try:
+            folder=self.folder()
+            ref=filedialog.askopenfilename(title='Elige un video de referencia autorizado',
+                filetypes=[('Videos MP4, MOV, MKV','*.mp4 *.mov *.mkv'),('Todos los archivos','*.*')])
+            if not ref:
+                return
+            if (folder/'timeline-v2.json').exists() and not messagebox.askyesno(
+                'Reemplazar timeline','Se reemplazará la línea de tiempo (no el video original). ¿Continuar?'):
+                return
+            def done(timeline):
+                self.current=timeline
+                self.caption_style.set(timeline.get('caption_style','classic'))
+                self.crossfade.set(False)
+                self.display()
+                messagebox.showinfo('Referencia analizada','Cortes aproximados cargados en la línea de tiempo. Revisa antes de exportar.')
+            self.app.background('Analizar cortes de referencia',
+                lambda:reference_to_timeline(folder,ref,prompt=self.director_prompt.get(),overwrite=True),done)
+        except Exception as exc:
+            messagebox.showerror('Director creativo',str(exc))

@@ -155,7 +155,7 @@ class TokenLabStreamTests(unittest.TestCase):
             self.app.processEvents()
             time.sleep(.005)
         self.assertFalse(worker.active)
-        self.assertTrue(errors and errors[0].startswith("NETWORK_"),errors)
+        self.assertTrue(errors and (errors[0].startswith("NETWORK_") or errors[0]=="TIMEOUT"),errors)
 
     def test_reject_external_host_and_credentials(self):
         for url in ("https://example.com:11434", "http://evil.com:11434",

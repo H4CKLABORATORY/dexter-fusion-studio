@@ -59,6 +59,17 @@ jobs:
           "Dexter Fusion Studio contiene componentes Qt/PySide6 (LGPLv3) y FFmpeg de terceros; consulte sus condiciones de distribución. No modifique ni quite sus avisos de copyright y licencia." | Out-File dist\DexterFusionStudio\AVISOS_LICENCIAS.txt -Encoding utf8
           if (-not (Test-Path dist\DexterFusionStudio\DexterFusionStudio.exe)) { throw 'Missing packaged executable' }
           if (-not (Test-Path dist\DexterFusionStudio\ffmpeg.exe)) { throw 'Missing bundled ffmpeg.exe' }
+      - name: Ejecutar EXE empaquetado y verificar captura real
+        shell: pwsh
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          $exe = (Resolve-Path 'dist/DexterFusionStudio/DexterFusionStudio.exe').Path
+          $shot = Join-Path $PWD 'exe-smoke-test.png'
+          $p = Start-Process -FilePath $exe -ArgumentList @('--screenshot', $shot) -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "EXE failed with exit code $($p.ExitCode)" }
+          if (-not (Test-Path $shot)) { throw 'EXE did not generate GUI screenshot' }
+          if ((Get-Item $shot).Length -lt 1000) { throw 'EXE screenshot is suspiciously small' }
       - name: Publicar EXE portable
         uses: actions/upload-artifact@v4
         with:

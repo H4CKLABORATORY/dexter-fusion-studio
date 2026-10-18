@@ -25,7 +25,8 @@
 | A3 música con inicio, recorte y ganancia, mezclada con audio original | Implementado, se guarda y exporta en MP4 |
 | V3 y A2 | Pendientes, no editables ni exportables |
 | Formas de onda A3 individuales | Pendiente; la forma de onda verificada es la del audio original A1 |
-| Previsualización compuesta en tiempo real | Pendiente |
+| Reproducción del resultado compuesto después de exportar | Disponible: botón **Ver resultado MP4** tras render |
+| Previsualización compuesta en tiempo real | Pendiente; requiere caché de composición |
 | Edición multifuente y mezcla multipista | Pendiente |
 | Fotogramas clave, curvas de animación, máscara, motion tracking, keying, 3D | Pendiente |
 | Motor de IA capaz de interpretar instrucciones arbitrarias como Katana | Pendiente |
@@ -33,7 +34,7 @@
 
 **Importante:** ahora V2 y A3 sí afectan el MP4. Las imágenes y pistas musicales se editan desde la lista «Pistas reales V2 · A3» del inspector (doble clic para modificar duración, posición, opacidad y ganancia). Se muestra la duración de A3, pero todavía no dibuja su forma de onda individual. Los clips principales continúan usando una sola fuente de video.
 
-Las pistas pendientes están **rotuladas expresamente** para no simular capacidades. El visor reproduce el medio original; la composición definitiva se conoce después de exportar el MP4.
+Las pistas pendientes están **rotuladas expresamente** para no simular capacidades. El visor reproduce el medio original hasta que se exporte el MP4. Después puede alternar con el resultado ya compuesto y renderizado usando «Ver resultado MP4» / «Ver original». No es reproducción del timeline compuesto en tiempo real.
 
 ## Windows
 

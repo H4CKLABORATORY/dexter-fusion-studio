@@ -8,6 +8,7 @@ from .project import create_project,read_json
 from .phase2 import build_timeline,apply_timeline,validate_timeline
 from .engine import export_plan,EFFECTS
 from .creator_mode import analyze_retakes, apply_reviewed_retakes
+from .director import parse_prompt, render_motion, reference_to_timeline, reference_cuts
 from .media import probe
 
 
@@ -36,6 +37,19 @@ def parser():
     q=actions.add_parser('retakes',help='Proponer tomas repetidas a partir de un SRT')
     q.add_argument('--project',required=True)
     q.add_argument('--apply',default='',help='Índices revisados separados por coma: 0,2')
+    q.add_argument('--overwrite',action='store_true')
+    q=actions.add_parser('motion',help='Crear intro animada a partir de instrucciones en español')
+    q.add_argument('--prompt',required=True)
+    q.add_argument('--output',required=True)
+    q.add_argument('--title')
+    q.add_argument('--seconds',type=float)
+    q.add_argument('--platform',choices=['youtube','shorts','tiktok'])
+    q.add_argument('--overwrite',action='store_true')
+    q=actions.add_parser('reference',help='Usar los cortes aproximados de un video de referencia')
+    q.add_argument('--project',required=True)
+    q.add_argument('--reference',required=True)
+    q.add_argument('--prompt',default='estilo neón')
+    q.add_argument('--analyze-only',action='store_true')
     q.add_argument('--overwrite',action='store_true')
     q=actions.add_parser('status',help='Mostrar proyecto sin modificar nada')
     q.add_argument('--project',required=True)
@@ -75,6 +89,18 @@ def main(argv=None):
         else:
             response=analyze_retakes(args.project,overwrite=args.overwrite)
             response['report_file']=str(Path(args.project).expanduser().resolve()/'retakes-report.json')
+    elif args.action=='motion':
+        spec=parse_prompt(args.prompt,title=args.title,seconds=args.seconds,platform=args.platform)
+        path=render_motion(spec,args.output,overwrite=args.overwrite)
+        response={'export':str(path),'settings':spec,'media':probe(path)}
+    elif args.action=='reference':
+        if args.analyze_only:
+            response=reference_cuts(args.reference)
+        else:
+            tl=reference_to_timeline(args.project,args.reference,prompt=args.prompt,overwrite=args.overwrite)
+            response={'timeline':str(Path(args.project)/'timeline-v2.json'),
+                      'clips':len(tl['clips']),'analysis':tl['reference_analysis'],
+                      'review_required':True}
     elif args.action=='status':
         folder=Path(args.project).expanduser().resolve()
         response={'project':str(folder),'settings':read_json(folder/'project.json'),

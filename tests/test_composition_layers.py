@@ -46,7 +46,7 @@ def _pixel(video,time):
 
 def _tone_energy(video,frequency):
     raw=_run(['ffmpeg','-hide_banner','-loglevel','error','-nostdin',
-        '-ss','.7','-t','.25','-i',str(video),'-vn','-ac','1','-ar','8000',
+        '-ss','0.7','-t','0.25','-i',str(video),'-vn','-ac','1','-ar','8000',
         '-f','s16le','pipe:1'])
     samples=struct.unpack('<'+'h'*(len(raw)//2),raw)
     n=len(samples)

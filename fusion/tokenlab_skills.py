@@ -59,8 +59,11 @@ class RegistroSkills:
                 if len(self.cache)>=128:self.cache.pop(next(iter(self.cache)))
                 self.cache[key]=data
             return result
+        except (TypeError,ValueError) as exc:
+            return {"ok":False,"error":{"code":type(exc).__name__,"message":str(exc)[:180]}}
         except Exception as exc:
-            return {"ok":False,"error":{"code":type(exc).__name__}}
+            return {"ok":False,"error":{"code":type(exc).__name__,
+                                      "message":"Comprueba el proveedor o las dependencias del entorno"}}
     def execute_json(self,name,args):
         return json.dumps(self.execute(name,args),ensure_ascii=False,allow_nan=False)
     def _search(self,query,limit):

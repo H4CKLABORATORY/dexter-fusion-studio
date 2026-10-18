@@ -32,7 +32,7 @@ class MotionPromptTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             parse_prompt('intro de 25 segundos')
         with self.assertRaises(ValueError):
-            parse_prompt('video',title='malo\\notro')
+            parse_prompt('video',title='malo' + chr(10) + 'otro')
         with self.assertRaises(ValueError):
             parse_prompt('video',platform='instagram')
 

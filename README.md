@@ -1,6 +1,14 @@
 # DEXTER FUSION STUDIO · Editor personal de videos
 
-Editor de escritorio gratuito para producir videos propios de Free Fire, YouTube, Shorts y TikTok. Proyecto original preparado para un repositorio privado; **no incluye código copiado de Concat, FilmCraft, EffectCraft ni OpenCreator**.
+Editor de escritorio gratuito para producir videos propios de Free Fire, YouTube, Shorts y TikTok. **El repositorio GitHub actual es público: nunca subas grabaciones, voces privadas, contraseñas ni tokens.** Proyecto original; **no incluye código copiado de Concat, FilmCraft, EffectCraft ni OpenCreator**.
+
+## Compositor V2 + A3 real (desarrollo en PR #11)
+
+El editor Qt incorpora **imágenes superpuestas V2** (tiempos, tamaño, posición y transparencia) y **música A3 independiente** (ganancia, recorte, inicio). Se guarda en el proyecto y se compone realmente en el MP4 con FFmpeg, preservando los medios originales. Permite seleccionar las capas desde el timeline y editar sus propiedades, así como reproducir el resultado ya exportado. **No ofrece aún composición en vivo ni múltiples videos superpuestos.**
+
+- Código y pruebas integrales de audio/video: [PR #11](https://github.com/H4CKLABORATORY/dexter-fusion-studio/pull/11).
+- Estado verificable: [PROJECT_STATUS.md](PROJECT_STATUS.md).
+- Próxima tarea concreta: [NEXT_TASK.md](NEXT_TASK.md).
 
 ## Nuevo espacio de edición Qt para Windows (beta)
 

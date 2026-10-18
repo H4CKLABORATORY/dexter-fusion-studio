@@ -34,3 +34,14 @@ Revisadas las instrucciones activas del proyecto; reglas más recientes priman s
 
 ### Próximo checkpoint
 El siguiente trabajo es conectar el resto de las capacidades de `GestorContexto`, skills y resúmenes con pruebas de comportamiento, evaluar costes de inferencia y añadir diagnósticos de cancelación con proveedor real; conservar cambios incrementales basados en el SHA anterior.
+
+## 2026-10-18 — TokenLab full UI and real Ollama proof
+
+- Start checkpoint/head: `97bc8a966baa18c2b7d8c1bf7f64b0a78510f121`.
+- Work includes: `tests/tokenlab_live_probes.py`, `.github/workflows/tokenlab-ollama.yml`, `fusion/tokenlab_context.py`, `fusion/tokenlab_skills.py`, `fusion/tokenlab_advanced.py`, `fusion/tokenlab_ollama.py`, `tests/test_tokenlab_workspace.py`; modified `fusion/tokenlab_dialog.py` and Windows test workflow.
+- UI: three-layer memory, checkpoint restore, exact/real semantic dedup, prioritization JSON 60/30/10, four strict JSON skills; memory compaction and semantic embeddings use a real localhost Ollama adapter, never fake outputs.
+- Successful real Ollama run [39093243927](https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39093243927): install Ollama, pull `llama3.2:1b` and `nomic-embed-text`, summary and embeddings real SUCCESS, A/B prompt input 35/36 tokens, output 3/24, latencies 1248.99/999.81 ms.
+- Successful Ubuntu verify run [39093243883](https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39093243883): 50 tests SUCCESS, four Qt tests skipped in runner without Qt. Qt dedicated run [39093243896](https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39093243896): 50 tests SUCCESS including tabbed workspace.
+- Additional context enhancements: preserve permanent facts and reject compaction when protected facts disappear; no GUI claims of real cancellation or streaming yet.
+- Current source code head for the provider addition: `054d86a5bb3a034dcd80c3e837063c1a3b771470`. Later commits may be needed before merge.
+- Remaining: real authenticated cloud-provider smoke test via private repository secret, independent MIRA repo creation, optional responsive/cancellable GUI request handling, then PR readiness and merge SHA. The connected GitHub integration has no new-repository action. Do not merge until evidence exists.

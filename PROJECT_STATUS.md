@@ -8,7 +8,7 @@ Editor audiovisual Windows de nivel profesional. El sistema aún NO es equivalen
 - Herramientas de cortar, reordenar, recortar, undo/redo, 17 efectos FFmpeg, subtítulos, exportación MP4 y Director Creativo de intros independientes.
 - Compilación portátil Windows mediante GitHub Actions. Las pruebas automáticas validan arranque de GUI y render; instalación en hardware del usuario pendiente.
 
-## Cambio actual: pull request #11 (espera de integración)
+## Cambio incorporado a main: pull request #11 (commit 0ff9445)
 - Capas V2 de imágenes con tamaño, posición, transparencia y duración.
 - Pistas A3 de música con duración, comienzo, recorte, volumen y mezcla real con el audio de V1/A1.
 - Línea de tiempo Qt muestra imágenes y audio exportables, con edición de parámetros desde inspector.
@@ -32,4 +32,4 @@ Editor audiovisual Windows de nivel profesional. El sistema aún NO es equivalen
 5. Documentación actualizada y degradación segura ante medios faltantes.
 
 ## Continuidad
-Consultar `NEXT_TASK.md`, `docs/WORKSPACE_QT.md`, el PR #11 y el issue #10 antes de empezar nuevas funcionalidades. Todo avance debe citar commit, resultado de prueba y limitaciones.
+Consultar `NEXT_TASK.md`, `docs/WORKSPACE_QT.md`, el PR #11 (integrado) y el issue #10 antes de empezar nuevas funcionalidades. Todo avance debe citar commit, resultado de prueba y limitaciones.

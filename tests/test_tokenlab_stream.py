@@ -110,6 +110,53 @@ class TokenLabStreamTests(unittest.TestCase):
         self.assertEqual(result["error"], ["INVALID_NDJSON"])
         self.assertFalse(result["done"])
 
+    def test_gui_streaming_updates_real_qt_controls(self):
+        from fusion.tokenlab_dialog import TokenLabDialog
+        dialog=TokenLabDialog()
+        try:
+            dialog.workspace.live_stream.server=self.url
+            dialog.workspace.start_live("infer",prompt="HELLO")
+            self.assertTrue(dialog.workspace.live_stream.active)
+            deadline=time.monotonic()+3
+            while dialog.workspace.live_stream.active and time.monotonic()<deadline:
+                self.app.processEvents()
+                time.sleep(.005)
+            self.app.processEvents()
+            self.assertEqual(dialog.workspace.live_output.toPlainText(),"Hola mundo")
+            self.assertIn("Completado",dialog.workspace.live_info.text())
+        finally:
+            if dialog.workspace.live_stream.active:
+                dialog.workspace.live_stream.cancel()
+            dialog.close()
+
+    def test_gui_cancel_does_not_claim_success(self):
+        from fusion.tokenlab_dialog import TokenLabDialog
+        dialog=TokenLabDialog()
+        try:
+            dialog.workspace.live_stream.server=self.url
+            dialog.workspace.start_live("summarize",prompt="SLOW_REQUEST")
+            dialog.workspace.live_stream.cancel()
+            deadline=time.monotonic()+3
+            while dialog.workspace.live_stream.active and time.monotonic()<deadline:
+                self.app.processEvents()
+                time.sleep(.005)
+            self.app.processEvents()
+            self.assertEqual(dialog.workspace.live_info.text(),"ERROR: CANCELLED")
+        finally:
+            dialog.close()
+
+    def test_network_offline_error(self):
+        worker=OllamaStream(timeout_ms=500,server="http://127.0.0.1:1")
+        errors=[]
+        worker.failed.connect(errors.append)
+        worker.start("HELLO")
+        deadline=time.monotonic()+3
+        while worker.active and time.monotonic()<deadline:
+            self.app.processEvents()
+            time.sleep(.005)
+        self.assertFalse(worker.active)
+        self.assertTrue(errors and errors[0].startswith("NETWORK_"),errors)
+
     def test_reject_external_host_and_credentials(self):
         for url in ("https://example.com:11434", "http://evil.com:11434",
                     "http://me:pass@127.0.0.1:11434", "http://127.0.0.1:11434/api"):

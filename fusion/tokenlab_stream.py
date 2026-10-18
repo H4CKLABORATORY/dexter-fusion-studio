@@ -146,7 +146,7 @@ class OllamaStream(QObject):
         elif status is not None and int(status) >= 400:
             self.failed.emit("HTTP_" + str(status))
         elif response.error() != QNetworkReply.NetworkError.NoError:
-            self.failed.emit("NETWORK_" + str(int(response.error())))
+            self.failed.emit("NETWORK_" + response.error().name)
         elif not self.done or not "".join(self.parts).strip():
             self.failed.emit("INCOMPLETE_RESPONSE")
         else:

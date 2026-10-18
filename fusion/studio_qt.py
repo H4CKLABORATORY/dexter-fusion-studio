@@ -171,6 +171,7 @@ class MotionWorker(QThread):
 
 class TimelineCanvas(QGraphicsView):
     clip_picked = Signal(int)
+    layer_picked = Signal(str,int)
     seek_requested = Signal(float)
 
     HEAD = 138
@@ -304,15 +305,17 @@ class TimelineCanvas(QGraphicsView):
                                               QPen(QColor('#3DF5CC'), 1.6))
                 current += duration
         if self.document:
-            for image in self.document.layers['images']:
+            for layer_index,image in enumerate(self.document.layers['images']):
                 x=self.HEAD+image['start']*self.pixels_per_second
                 w=max(2,(image['end']-image['start'])*self.pixels_per_second)
                 y=self.RULER+self.ROW+6
                 node=scene.addRect(x,y,w,self.ROW-12,
                     QPen(QColor('#D1A4FF')),QBrush(QColor('#7549A8')))
                 node.setToolTip('Overlay exportable: '+Path(image['path']).name)
-                self._t('▧  '+Path(image['path']).name[:23],x+6,y+7,'#FFFFFF',9,True)
-            for music in self.document.layers['audio']:
+                node.setData(1,('images',layer_index))
+                label_item=self._t('▧  '+Path(image['path']).name[:23],x+6,y+7,'#FFFFFF',9,True)
+                label_item.setData(1,('images',layer_index))
+            for layer_index,music in enumerate(self.document.layers['audio']):
                 x=self.HEAD+music['start']*self.pixels_per_second
                 w=max(2,music['duration']*self.pixels_per_second)
                 y=self.RULER+5*self.ROW+6
@@ -320,8 +323,10 @@ class TimelineCanvas(QGraphicsView):
                     QPen(QColor('#3DEFC8')),QBrush(QColor('#17675C')))
                 node.setToolTip('Música exportable: '+Path(music['path']).name+
                     f' · volumen {music["gain"]:.2f}')
-                self._t('♫  '+Path(music['path']).name[:22]+f'  {music["gain"]:.0%}',
+                node.setData(1,('audio',layer_index))
+                label_item=self._t('♫  '+Path(music['path']).name[:22]+f'  {music["gain"]:.0%}',
                     x+6,y+8,'#EDFFFA',9,True)
+                label_item.setData(1,('audio',layer_index))
         self._playline = scene.addLine(self.HEAD + self.playhead*self.pixels_per_second, 0,
                                        self.HEAD + self.playhead*self.pixels_per_second, height,
                                        QPen(QColor('#FFCE72'), 2))
@@ -331,6 +336,10 @@ class TimelineCanvas(QGraphicsView):
             item = self.itemAt(event.pos())
             cursor = item
             while cursor is not None:
+                layer=cursor.data(1)
+                if layer is not None:
+                    self.layer_picked.emit(layer[0],layer[1])
+                    return
                 index = cursor.data(0)
                 if index is not None:
                     self.selected_index = int(index)
@@ -624,6 +633,7 @@ class StudioWindow(QMainWindow):
         self.timeline.setMinimumHeight(355)
         self.timeline_zoom.valueChanged.connect(self.timeline.set_scale)
         self.timeline.clip_picked.connect(self.select_clip)
+        self.timeline.layer_picked.connect(self.select_layer)
         self.timeline.seek_requested.connect(self.seek_timeline)
         box.addWidget(self.timeline)
         footer=QHBoxLayout()
@@ -819,6 +829,14 @@ class StudioWindow(QMainWindow):
             self._refresh()
         except Exception as exc:
             QMessageBox.warning(self,'Actualizar pista',str(exc))
+
+    def select_layer(self, kind, index):
+        for i in range(self.layer_list.count()):
+            item=self.layer_list.item(i)
+            if item.data(Qt.ItemDataRole.UserRole)==(kind,index):
+                self.layer_list.setCurrentItem(item)
+                self.statusBar().showMessage('Pista seleccionada; usa Editar o doble clic para sus propiedades',4000)
+                return
 
     def select_clip(self, index):
         if self.document and 0 <= index < len(self.document.clips):

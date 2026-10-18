@@ -1,0 +1,14 @@
+{
+  "codex_context": {
+    "sha256": "74dd629844bb72b601297a5dd2971bda2494f3a221057e91af4c91de83e7cae1",
+    "url": "https://developers.openai.com/cookbook/examples/codex/iterating-development-workflows-with-codex.md"
+  },
+  "context_compaction": {
+    "sha256": "f830069a05cd8c3841de81e70b4d2d5bd11c171baaddb74ea81081378a432b2a",
+    "url": "https://developers.openai.com/api/docs/guides/compaction.md"
+  },
+  "prompt_caching": {
+    "sha256": "8c9048f24e2352ce4a2038bb7ab5284bc91697b004f8e2e1a0417c96ff43a532",
+    "url": "https://developers.openai.com/api/docs/guides/prompt-caching.md"
+  }
+}

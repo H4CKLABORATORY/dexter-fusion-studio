@@ -1,7 +1,7 @@
 {
   "task_id": "tokenlab-qt-count-ab",
   "source_base_sha": "97b088f7776a4433d82001308bd6e08c5453f53b",
-  "last_completed_commit_sha": "7578aae992ab16366a060f4246dd006ec765f8de",
+  "last_completed_commit_sha": "9280bae8bf405493e0a8d5316bb5be6a5ec8c12e",
   "updated": "2026-10-18",
   "verified_locally": [
     "core_checkpoint_resume",
@@ -12,8 +12,7 @@
   "pending_external": [
     "One real OpenAI API request with Actions secret OPENAI_API_KEY and explicit opt-in PR label (not yet run)",
     "MIRA new repository creation under H4CKLABORATORY (no create_repository connector action)",
-    "Final PR review and authorized merge after remaining dependencies",
-    "Asynchronous semantic embedding GUI operation not yet implemented"
+    "Final PR review and authorized merge after remaining dependencies"
   ],
   "analyzed_files": [
     "fusion/studio_qt.py",
@@ -33,10 +32,12 @@
     "tests/test_tokenlab_stream.py",
     "tests/test_tokenlab_compactor.py",
     "tests/test_tokenlab_live_probe_contract.py",
-    ".github/workflows/tokenlab-openai.yml"
+    ".github/workflows/tokenlab-openai.yml",
+    "fusion/tokenlab_embed_async.py",
+    "tests/test_tokenlab_embed_async.py"
   ],
-  "next_step": "Read this checkpoint and CONTINUIDAD.md, then check current PR #12 CI. Wait for user to set repository secret OPENAI_API_KEY and opt in via PR label tokenlab-openai-smoke; the existing MIRA ZIP still requires the user to create a dedicated repository. Keep PR DRAFT until verified.",
-  "verified_code_commit_sha": "77a098d7284b78ff2480186358cc62a13c3c3b7c",
+  "next_step": "GitHub PR #12 stays DRAFT; after owner creates GitHub Actions secret OPENAI_API_KEY, explicitly trigger one-call smoke with PR label tokenlab-openai-smoke; after owner creates H4CKLABORATORY/mira-neural-prompt-studio, publish verified ZIP there and verify SHA. No work continues without a new user message.",
+  "verified_code_commit_sha": "25306166cbb1b63a94962735774f742cf9abadbc",
   "verified_ci_runs": {
     "qt": {
       "id": 39092395492,
@@ -55,12 +56,13 @@
       "tests": 14
     },
     "latest_general": {
-      "id": 39139460278,
+      "id": 39141134244,
       "status": "success"
     },
     "latest_qt": {
-      "id": 39139460267,
-      "status": "success"
+      "id": 39141134257,
+      "status": "success",
+      "tests": 73
     },
     "openai_contract": {
       "id": 39139460267,
@@ -74,16 +76,18 @@
       "embedding_model": "nomic-embed-text"
     },
     "latest_windows": {
-      "id": 39139460329,
-      "status": "success"
+      "id": 39141134275,
+      "status": "success",
+      "tests": 40,
+      "portable_exe": true
     },
     "latest_ollama": {
-      "id": 39139460263,
+      "id": 39141134214,
       "status": "success",
       "real_inference": true
     }
   },
   "source_previous_sha": "b0ff8db1e8078bf9eacf9bf524827c847c904982",
-  "last_task": "Real Qt HTTP streaming, abort, network errors and transactional context compaction; verified general and Qt CI, Ollama and Windows revalidation underway.",
+  "last_task": "Eliminada llamada sincrónica de embeddings de la GUI Qt con petición cancelable y pruebas independientes",
   "pending_ci_runs": {}
 }

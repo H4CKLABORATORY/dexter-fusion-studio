@@ -8,6 +8,7 @@ from .tokenlab_context import GestorContexto,deduplicate,prioritize
 from .tokenlab_skills import RegistroSkills
 from .tokenlab_ollama import summarize_ollama,embed_ollama
 from .tokenlab_stream import OllamaStream
+from .tokenlab_embed_async import OllamaEmbeddings
 from .tokenlab_context_async import AsyncContextCompactor
 
 def field(parent,title,height=80):
@@ -29,6 +30,11 @@ class TokenLabAdvanced(QWidget):
         self.compactor.progress.connect(self.mem_info_update)
         self.compactor.failed.connect(self.mem_error)
         self.compactor.cancelled.connect(lambda: self.mem_error("CANCELLED"))
+        self.embed_stream=OllamaEmbeddings(self)
+        self.embed_stream.completed.connect(self._embed_completed)
+        self.embed_stream.failed.connect(self._embed_failed)
+        self.embed_stream.cancelled.connect(self._embed_cancelled)
+        self.pending_dedup=None
         self.live_stream=OllamaStream(self)
         self.live_stream.chunk.connect(self._live_chunk)
         self.live_stream.completed.connect(self._live_completed)

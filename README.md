@@ -14,6 +14,10 @@ Con subtítulos SRT existentes o generados localmente con Whisper, el editor pue
 
 En Timeline v2, **Estilo de subtítulos** permite `classic` (SRT tradicional), `karaoke` (palabras resaltadas) y `punch` (resaltado y aparición animada). Se renderizan localmente usando ASS/FFmpeg sin APIs de pago. La sincronía por palabra es aproximada porque el SRT contiene tiempos por frase. Ver [docs/SUBTITULOS_ANIMADOS.md](docs/SUBTITULOS_ANIMADOS.md).
 
+## Director creativo · intros desde texto y cortes por referencia
+
+Nuevo prototipo local en **Timeline v2**. Describe una intro en español y genera un MP4 original con títulos animados usando FFmpeg; o importa un video de referencia y reutiliza **solo la duración aproximada de sus cortes** en el timeline editable. No genera personajes ni reproduce efectos propietarios de Higgsfield Katana, y el original permanece intacto. [Uso y limitaciones](docs/DIRECTOR_CREATIVO.md).
+
 ## Funcionamiento actual
 
 - Interfaz Windows de 6 pestañas: proyecto, edición automática, efectos y memes, **Timeline v2**, nuevos contenidos e integraciones.

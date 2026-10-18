@@ -70,6 +70,7 @@ class GestorContexto:
     reserva_respuesta: int=256
     resumen_max_tokens: int=512
     resumidor: object=None
+    hechos_obligatorios: list=field(default_factory=list)
     resumen_sesion: str=""
     ventana_volatil: list=field(default_factory=list)
 
@@ -103,6 +104,8 @@ class GestorContexto:
             updated=self.resumidor(old_text,self.resumen_max_tokens)
             if not isinstance(updated,str) or not updated.strip():
                 raise ValueError("Resumidor no devolvió texto")
+            if any(not isinstance(f,str) or (f and f not in updated) for f in self.hechos_obligatorios):
+                raise ValueError("El resumen perdió un hecho protegido")
             if tokens(updated,self.modelo)>self.resumen_max_tokens:
                 raise ValueError("Resumen supera límite")
             summary=updated

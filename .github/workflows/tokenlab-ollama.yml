@@ -30,5 +30,23 @@ jobs:
           exit 1
       - name: Pull 1B real model
         run: ollama pull llama3.2:1b
+      - name: Download embedding model for real semantic deduplication
+        run: ollama pull nomic-embed-text
+      - name: Test real local summarizer and embeddings
+        env:
+          TOKENLAB_OLLAMA_MODEL: llama3.2:1b
+          TOKENLAB_EMBED_MODEL: nomic-embed-text
+        run: |
+          python - <<'PY'
+          from fusion.tokenlab_ollama import summarize_ollama,embed_ollama
+          from fusion.tokenlab_context import cosine,deduplicate
+          result=summarize_ollama("Dexter conserva la decisión ZX-731.",max_tokens=64)
+          assert result.strip(), "Real summary empty"
+          vectors=embed_ollama(["Hola mundo","Hola mundo","Texto diferente"])
+          assert len(vectors)==3 and len(vectors[0])>10
+          assert cosine(vectors[0],vectors[1])>0.999
+          assert len(deduplicate(["Hola mundo","Hola mundo","Texto diferente"],vectors))==2
+          print("OLLAMA_SUMMARIZER_AND_EMBEDDINGS_REAL_OK")
+          PY
       - name: Real A/B inference latency and token counts
         run: python tests/tokenlab_live_probes.py

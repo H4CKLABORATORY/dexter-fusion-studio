@@ -23,7 +23,7 @@ from PySide6.QtWidgets import (
     QListWidgetItem, QComboBox, QDoubleSpinBox, QSlider,
     QMessageBox, QToolBar, QFrame, QProgressBar, QGraphicsScene,
     QGraphicsView, QGraphicsRectItem, QGraphicsSimpleTextItem,
-    QSizePolicy, QScrollArea, QGroupBox, QInputDialog, QDockWidget,
+    QSizePolicy, QScrollArea, QGroupBox, QInputDialog, QDockWidget, QStackedWidget,
 )
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PySide6.QtMultimediaWidgets import QVideoWidget
@@ -357,7 +357,7 @@ class StudioWindow(QMainWindow):
         split_v.addWidget(self._make_timeline())
         split_v.setStretchFactor(0, 5)
         split_v.setStretchFactor(1, 4)
-        split_v.setSizes([490, 360])
+        split_v.setSizes([415, 430])
         root.addWidget(split_v)
         self.statusBar().showMessage('Listo · Motor FFmpeg local · Crea o abre un proyecto para comenzar')
         self._refresh()
@@ -423,9 +423,16 @@ class StudioWindow(QMainWindow):
         playerbox = QVBoxLayout(black)
         playerbox.setContentsMargins(4,4,4,4)
         self.video = QVideoWidget()
-        self.video.setMinimumHeight(160)
+        self.video.setMinimumHeight(120)
         self.player.setVideoOutput(self.video)
-        playerbox.addWidget(self.video)
+        self.preview_stack=QStackedWidget()
+        self.poster=QLabel('IMPORTA UNA GRABACIÓN PARA PREVISUALIZAR')
+        self.poster.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.poster.setStyleSheet('background:#060B14;color:#7788A2;font-weight:700;font-size:14px;')
+        self.preview_stack.addWidget(self.poster)
+        self.preview_stack.addWidget(self.video)
+        self.preview_stack.setCurrentWidget(self.poster)
+        playerbox.addWidget(self.preview_stack)
         box.addWidget(black, 1)
         self.scrub = QSlider(Qt.Orientation.Horizontal)
         self.scrub.setRange(0,0)
@@ -497,7 +504,13 @@ class StudioWindow(QMainWindow):
         ex.addWidget(self.export_button)
         box.addWidget(export_box)
         box.addStretch(1)
-        return panel
+        scroll=QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setWidget(panel)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setMinimumHeight(225)
+        scroll.setMinimumWidth(250)
+        return scroll
 
     def _make_timeline(self):
         panel=QFrame()
@@ -551,6 +564,7 @@ class StudioWindow(QMainWindow):
                 self._wave_worker.wait(1500)
             self.document = StudioDocument(folder)
             self.player.setSource(QUrl.fromLocalFile(str(self.document.source)))
+            self._source_poster()
             self.media_list.clear()
             info=self.document.media_info
             item=QListWidgetItem('▣  '+self.document.source.name)
@@ -568,6 +582,26 @@ class StudioWindow(QMainWindow):
             self.statusBar().showMessage('Proyecto cargado · Archivo original protegido',5000)
         except Exception as exc:
             QMessageBox.critical(self,'No se pudo abrir',str(exc))
+
+    def _source_poster(self):
+        """Show an actual frame extracted from this recording, never a fabricated demo."""
+        try:
+            path=self.document.folder/'previews'/'studio-poster.jpg'
+            path.parent.mkdir(parents=True,exist_ok=True)
+            if not path.is_file():
+                subprocess.run([
+                    required('ffmpeg'),'-hide_banner','-loglevel','error',
+                    '-nostdin','-y','-ss','0.7','-i',str(self.document.source),
+                    '-frames:v','1','-vf','scale=960:-2',str(path)
+                ],capture_output=True,check=True,timeout=15)
+            pic=QPixmap(str(path))
+            if not pic.isNull():
+                self.poster.setPixmap(pic.scaled(
+                    QSize(1060,620),Qt.AspectRatioMode.KeepAspectRatio,
+                    Qt.TransformationMode.SmoothTransformation))
+                self.preview_stack.setCurrentWidget(self.poster)
+        except Exception:
+            self.poster.setText('Vista previa disponible al reproducir')
 
     def _refresh(self):
         doc=self.document
@@ -753,6 +787,7 @@ class StudioWindow(QMainWindow):
         if self.player.playbackState()==QMediaPlayer.PlaybackState.PlayingState:
             self.player.pause()
         else:
+            self.preview_stack.setCurrentWidget(self.video)
             self.player.play()
 
     def back_5(self):

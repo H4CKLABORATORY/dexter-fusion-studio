@@ -54,7 +54,10 @@ class TokenLabFullTests(unittest.TestCase):
             self.assertTrue(call("contar_tokens",texto="Hola")["ok"])
             self.assertTrue(call("comparar_prompts",a="Hola",b="Hola mundo")["ok"])
             self.assertFalse(call("resumir",texto="Hola")["ok"])
-            self.assertFalse(skills.execute("contar_tokens",{"texto":"hola","max_results":5,"max_tokens":5})["ok"])
+            invalid=skills.execute("contar_tokens",{"texto":"hola","max_results":5,"max_tokens":5})
+            self.assertFalse(invalid["ok"])
+            self.assertEqual(invalid["error"]["code"],"ValueError")
+            self.assertIn("Límites inválidos",invalid["error"]["message"])
 
     def test_model_change_invalidates_skill_cache(self):
         with tempfile.TemporaryDirectory() as tmp:

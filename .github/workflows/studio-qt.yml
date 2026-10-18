@@ -39,9 +39,21 @@ jobs:
         run: |
           python -m compileall -q fusion studio.py
           python -m unittest discover -s tests -v
-      - name: Captura auténtica de Qt, sin medios privados
+      - name: Generar medio sintético para screenshot sin usar videos privados
         run: |
-          python studio.py --screenshot qt-studio-real.png
+          ffmpeg -hide_banner -loglevel error -nostdin -y \
+            -f lavfi -i testsrc2=s=960x540:r=24 \
+            -f lavfi -i sine=frequency=280:sample_rate=48000 \
+            -t 7 -c:v mpeg4 -q:v 6 -c:a aac studio-example.mp4
+          python - <<'PY'
+          from pathlib import Path
+          from fusion.project import create_project
+          project,_=create_project('ci-demo','Ejemplo de montaje',str(Path('studio-example.mp4').resolve()),profile='freefire_short')
+          Path('ci-project-path.txt').write_text(str(project))
+          PY
+      - name: Captura auténtica de Qt con video y audio de prueba
+        run: |
+          python studio.py --project "$(cat ci-project-path.txt)" --screenshot qt-studio-real.png
           test -s qt-studio-real.png
       - uses: actions/upload-artifact@v4
         with:

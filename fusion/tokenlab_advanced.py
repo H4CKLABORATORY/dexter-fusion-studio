@@ -229,7 +229,8 @@ class TokenLabAdvanced(QWidget):
         self.skill_select.addItems(["buscar_repositorio","resumir","contar_tokens","comparar_prompts"])
         v.addWidget(self.skill_select)
         self.skill_args=field(v,'PARÁMETROS JSON (incluye max_results y max_tokens)',100)
-        self.skill_args.setPlainText('{"texto":"Hola Dexter","max_results":5,"max_tokens":512}')
+        self.skill_select.currentTextChanged.connect(self._suggest_skill_args)
+        self._suggest_skill_args(self.skill_select.currentText())
         action=QPushButton("EJECUTAR SKILL JSON");action.clicked.connect(self.run_skill)
         v.addWidget(action)
         self.skill_result=field(v,"RESPUESTA ESTRUCTURADA JSON",120)
@@ -237,6 +238,17 @@ class TokenLabAdvanced(QWidget):
         v.addWidget(QLabel("Resumen: Ollama local real (TOKENLAB_OLLAMA_MODEL). Si no está conectado, devuelve error JSON."))
         self._stream_ui(v)
         self.tabs.addTab(tab,"4 skills")
+    def _suggest_skill_args(self, skill):
+        """Use a valid bounded JSON example for the selected skill."""
+        defaults={
+            "buscar_repositorio":{"query":"TokenLab","max_results":5,"max_tokens":512},
+            "resumir":{"texto":"Texto que deseas resumir","max_results":5,"max_tokens":512},
+            "contar_tokens":{"texto":"Hola Dexter","max_results":5,"max_tokens":512},
+            "comparar_prompts":{"a":"Versión A","b":"Versión B","max_results":5,"max_tokens":512}
+        }
+        if skill in defaults:
+            self.skill_args.setPlainText(json.dumps(defaults[skill],ensure_ascii=False))
+
     def _stream_ui(self, parent):
         parent.addWidget(QLabel("INFERENCIA / RESUMEN EN STREAMING REAL · Ollama localhost"))
         self.live_prompt=field(parent,"PROMPT PARA EL MOTOR LOCAL",55)

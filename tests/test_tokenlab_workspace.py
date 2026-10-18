@@ -143,6 +143,24 @@ class FullQtSmoke(unittest.TestCase):
             ui.compactor.pending=None
             dialog.close()
 
+    def test_each_skill_ui_starts_with_valid_schema(self):
+        dialog=TokenLabDialog()
+        try:
+            ui=dialog.workspace
+            expected={
+                "buscar_repositorio":{"query","max_results","max_tokens"},
+                "resumir":{"texto","max_results","max_tokens"},
+                "contar_tokens":{"texto","max_results","max_tokens"},
+                "comparar_prompts":{"a","b","max_results","max_tokens"}
+            }
+            for name,keys in expected.items():
+                ui.skill_select.setCurrentText(name)
+                data=json.loads(ui.skill_args.toPlainText())
+                self.assertEqual(set(data),keys)
+                self.assertGreaterEqual(data["max_tokens"],64)
+        finally:
+            dialog.close()
+
     def test_bad_checkpoint_never_replaces_live_session(self):
         dialog=TokenLabDialog()
         try:

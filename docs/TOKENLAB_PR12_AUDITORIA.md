@@ -19,7 +19,7 @@ No se detectaron marcadores TODO/FIXME añadidos por los 26 archivos iniciales e
 
 ## CI y evidencia
 
-- Baseline del usuario comprobado antes de esta auditoría: SHA `c32e6737f611082c090481c5f427a8d34103f6ff` y 4 CI SUCCESS: Qt run **39141401432**, Ollama run **39141401424**, Windows run **39141401433**, general run **39141401427**.
+- Baseline del usuario comprobado antes de esta auditoría: SHA `c32e6737f611082c090481c5f427a8d34103f6ff` y 4 CI SUCCESS: Qt run **39139681210**, Ollama run **39139681256**, Windows run **39139681212**, general run **39139681213**.
 - CI sobre correcciones: registrar el nuevo SHA de código y **sólo** resultados efectivos revisando jobs/logs en GitHub Actions. No inferir que la suite es verde por el estado anterior ni por pruebas de contrato.
 - El workflow OpenAI opt-in no equivale a llamada autenticada. `SKIPPED_NO_OPENAI_API_KEY` es ausencia de prueba, no éxito de proveedor.
 

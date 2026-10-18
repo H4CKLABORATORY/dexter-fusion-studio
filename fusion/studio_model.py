@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from .engine import EFFECTS
 from .project import read_json, safe_write
+from .composition_layers import validate_layers, audio_length
 
 
 @dataclass
@@ -62,6 +63,7 @@ class StudioDocument:
                        self.project.get('effects', 'clean'), 1.0, 'Grabación original')
         ]
         self.caption_style = saved.get('caption_style', 'classic') if saved else 'classic'
+        self.layers = deepcopy(saved.get('layers', {'images': [], 'audio': []})) if saved else {'images': [], 'audio': []}
         self._undo = []
         self._redo = []
         self.validate()
@@ -79,19 +81,56 @@ class StudioDocument:
                 raise ValueError('Segmento fuera de los límites del video.')
             if clip.effect not in EFFECTS or not 1 <= clip.zoom <= 1.6:
                 raise ValueError('Efecto o zoom no compatible.')
+        self.layers = validate_layers(self.layers, self.output_duration)
         return True
 
+    def snapshot(self):
+        return (deepcopy(self.clips), deepcopy(self.layers))
+
+    def restore(self, state):
+        self.clips, self.layers = deepcopy(state)
+
     def change(self, action):
-        before = deepcopy(self.clips)
+        before = self.snapshot()
         action()
         try:
             self.validate()
         except Exception:
-            self.clips = before
+            self.restore(before)
             raise
         self._undo.append(before)
         self._undo = self._undo[-40:]
         self._redo.clear()
+
+    def add_image(self, source, *, start=0, end=None, width=.24, x=.5, y=.8, opacity=1):
+        if end is None:
+            end = self.output_duration
+        entry = {'path': str(source), 'start': start, 'end': end,
+                 'width': width, 'x': x, 'y': y, 'opacity': opacity}
+        self.change(lambda: self.layers['images'].append(entry))
+
+    def add_audio(self, source, *, start=0, source_start=0, duration=None, gain=.35):
+        if duration is None:
+            duration = min(self.output_duration-float(start),
+                           audio_length(str(source))-float(source_start))
+        entry = {'path': str(source), 'start': start, 'source_start': source_start,
+                 'duration': duration, 'gain': gain}
+        self.change(lambda: self.layers['audio'].append(entry))
+
+    def remove_layer(self, kind, index):
+        if kind not in ('audio','images'):
+            raise ValueError('Tipo de pista inválido')
+        self.change(lambda: self.layers[kind].pop(index))
+
+    def update_layer(self, kind, index, **changes):
+        if kind not in ('audio','images'):
+            raise ValueError('Tipo de pista inválido')
+        def change():
+            for key,value in changes.items():
+                if key not in self.layers[kind][index] or key == 'path':
+                    raise ValueError('Propiedad de pista no editable.')
+                self.layers[kind][index][key] = value
+        self.change(change)
 
     def split(self, index, at):
         if not 0 <= index < len(self.clips):
@@ -141,15 +180,15 @@ class StudioDocument:
     def undo(self):
         if not self._undo:
             return False
-        self._redo.append(deepcopy(self.clips))
-        self.clips = self._undo.pop()
+        self._redo.append(self.snapshot())
+        self.restore(self._undo.pop())
         return True
 
     def redo(self):
         if not self._redo:
             return False
-        self._undo.append(deepcopy(self.clips))
-        self.clips = self._redo.pop()
+        self._undo.append(self.snapshot())
+        self.restore(self._redo.pop())
         return True
 
     def save(self):
@@ -169,6 +208,7 @@ class StudioDocument:
             'cut_style': 'hard', 'transition_seconds': 0.25,
             'caption_style': self.caption_style,
             'clips': [c.as_dict(i) for i, c in enumerate(self.clips, 1)],
+            'layers': deepcopy(self.layers),
             'candidates': prior.get('candidates', []),
             'scene_times': prior.get('scene_times', []),
             'subtitle_file': self.project.get('subtitle_file'),
@@ -176,7 +216,7 @@ class StudioDocument:
             'narration_file': self.project.get('narration_file'),
             'review_required': True,
             'notes': ['UI Qt: montaje de video V1 con audio original sincronizado.',
-                      'Las pistas adicionales visualizadas no se exportan en esta etapa.'],
+                      'V2 admite imágenes y A3 música real; V3/A2 y pistas multivideo aún no se exportan.'],
         }
         from .phase2 import validate_timeline
         validate_timeline(timeline)

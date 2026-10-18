@@ -2,10 +2,11 @@
 import json
 from pathlib import Path
 from PySide6.QtWidgets import (QWidget,QVBoxLayout,QHBoxLayout,QLabel,QPlainTextEdit,
-                               QPushButton,QComboBox,QSpinBox,QDoubleSpinBox,QTabWidget)
+                               QPushButton,QComboBox,QSpinBox,QDoubleSpinBox,QTabWidget,QCheckBox)
 from .tokenlab_tools import AtomicTaskCheckpoint
 from .tokenlab_context import GestorContexto,deduplicate,prioritize
 from .tokenlab_skills import RegistroSkills
+from .tokenlab_ollama import summarize_ollama,embed_ollama
 
 def field(parent,title,height=80):
     parent.addWidget(QLabel(title))
@@ -20,7 +21,7 @@ class TokenLabAdvanced(QWidget):
         self.model_combo=model_combo
         self.storage=AtomicTaskCheckpoint()
         self.manager=None
-        self.registry=RegistroSkills(Path(__file__).parent.parent)
+        self.registry=RegistroSkills(Path(__file__).parent.parent,summarizer=summarize_ollama)
         layout=QVBoxLayout(self)
         self.tabs=QTabWidget()
         layout.addWidget(self.tabs)
@@ -53,7 +54,7 @@ class TokenLabAdvanced(QWidget):
         try:
             self.manager=GestorContexto(self.permanent.toPlainText(),self.budget.value(),
                                         modelo=self.model_combo.currentText(),
-                                        reserva_respuesta=128)
+                                        reserva_respuesta=128,resumidor=summarize_ollama)
             self.refresh_memory()
         except Exception as exc:
             self.mem_info.setText("ERROR: "+str(exc))
@@ -62,7 +63,7 @@ class TokenLabAdvanced(QWidget):
             state=self.manager.export()
             self.summary.setPlainText(state["resumen_sesion"])
             self.volatile.setPlainText(json.dumps(state["ventana_volatil"],ensure_ascii=False,indent=2))
-            self.mem_info.setText("USO: {tokens}/{presupuesto} tokens. Compresión requiere resumidor real configurado.".format(**state))
+            self.mem_info.setText("USO: {tokens}/{presupuesto} tokens. Resumen automático: Ollama local, modelo TOKENLAB_OLLAMA_MODEL.".format(**state))
     def add_message(self):
         try:
             if self.manager is None:self.new_context()
@@ -95,16 +96,19 @@ class TokenLabAdvanced(QWidget):
         self.threshold=QDoubleSpinBox();self.threshold.setRange(0.5,1.0)
         self.threshold.setSingleStep(.01);self.threshold.setValue(.92)
         row.addWidget(QLabel("Umbral coseno"));row.addWidget(self.threshold)
+        self.semantic=QCheckBox("Semántica real (Ollama /api/embed)")
+        row.addWidget(self.semantic)
         button=QPushButton("ELIMINAR DUPLICADOS");button.clicked.connect(self.run_dedup)
         row.addWidget(button);v.addLayout(row)
         self.dup_result=field(v,"RESULTADOS ÚNICOS · exactos SHA-256",105)
         self.dup_result.setReadOnly(True)
-        v.addWidget(QLabel("Deduplicación semántica requiere embeddings reales configurados. No se simula con palabras."))
+        v.addWidget(QLabel("Para semántica: instala un modelo de embeddings real, por ejemplo: ollama pull nomic-embed-text."))
         self.tabs.addTab(tab,"Deduplicación")
     def run_dedup(self):
         try:
             items=[p for p in self.dup_lines.toPlainText().splitlines() if p.strip()]
-            self.dup_result.setPlainText("\n".join(deduplicate(items,threshold=self.threshold.value())))
+            vectors=embed_ollama(items) if self.semantic.isChecked() else None
+            self.dup_result.setPlainText("\n".join(deduplicate(items,embeddings=vectors,threshold=self.threshold.value())))
         except Exception as exc:self.dup_result.setPlainText("ERROR: "+str(exc))
 
     def _priority(self):
@@ -138,7 +142,7 @@ class TokenLabAdvanced(QWidget):
         v.addWidget(action)
         self.skill_result=field(v,"RESPUESTA ESTRUCTURADA JSON",120)
         self.skill_result.setReadOnly(True)
-        v.addWidget(QLabel("La skill de resumen requiere un modelo real. Sin él devuelve un error JSON."))
+        v.addWidget(QLabel("Resumen: Ollama local real (TOKENLAB_OLLAMA_MODEL). Si no está conectado, devuelve error JSON."))
         self.tabs.addTab(tab,"4 skills")
     def run_skill(self):
         try:

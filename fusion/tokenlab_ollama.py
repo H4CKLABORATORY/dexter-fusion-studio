@@ -5,11 +5,22 @@ Requests are sent to configured local Ollama only, without third-party proxy.
 import json
 import os
 import urllib.request
+from urllib.parse import urlsplit
 
 def _url():
+    """Reject non-loopback hosts, URL credentials, paths and redirects."""
     endpoint=os.getenv("OLLAMA_URL","http://127.0.0.1:11434").rstrip("/")
-    if not endpoint.startswith(("http://127.0.0.1:","http://localhost:","http://[::1]:")):
-        raise ValueError("TokenLab por defecto solamente usa Ollama local")
+    parsed=urlsplit(endpoint)
+    try:
+        valid=(parsed.scheme=="http"
+               and parsed.hostname in ("127.0.0.1","localhost","::1")
+               and parsed.port is not None
+               and parsed.username is None and parsed.password is None
+               and parsed.path in ("","/") and not parsed.query and not parsed.fragment)
+    except ValueError:
+        valid=False
+    if not valid:
+        raise ValueError("Ollama debe ser una URL HTTP loopback sin credenciales")
     return endpoint
 
 def _post(path,payload,timeout=90):

@@ -1,0 +1,26 @@
+{
+  "task_id": "tokenlab-qt-count-ab",
+  "source_base_sha": "97b088f7776a4433d82001308bd6e08c5453f53b",
+  "last_completed_commit_sha": "83869162906562a98969479ad84a5db6b90032fe",
+  "updated": "2026-10-18",
+  "verified_locally": [
+    "core_checkpoint_resume",
+    "checkpoint_path_validation",
+    "sha256_distinctness",
+    "python_compileall"
+  ],
+  "pending_external": [
+    "official_tiktoken_parity_on_github_ci",
+    "Qt_window_action_runtime",
+    "Windows_portable_build",
+    "real_Ollama_and_OpenAI_inference"
+  ],
+  "analyzed_files": [
+    "fusion/studio_qt.py",
+    "studio.py",
+    "studio-requirements.txt",
+    ".github/workflows/studio-qt.yml",
+    ".github/workflows/studio-windows.yml"
+  ],
+  "next_step": "Run CI in PR; if failing inspect logs and fix only changed code."
+}

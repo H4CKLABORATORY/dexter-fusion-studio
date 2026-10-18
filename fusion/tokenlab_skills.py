@@ -38,7 +38,7 @@ class RegistroSkills:
             if (type(args["max_results"]) is not int or not 1<=args["max_results"]<=50 or
                 type(args["max_tokens"]) is not int or not 64<=args["max_tokens"]<=8192):
                 raise ValueError("Límites inválidos")
-            key=hashlib.sha256((name+json.dumps(args,ensure_ascii=False,sort_keys=True)).encode()).hexdigest()
+            key=hashlib.sha256((name+"\0"+self.model+"\0"+json.dumps(args,ensure_ascii=False,sort_keys=True)).encode()).hexdigest()
             deterministic=name in ("contar_tokens","comparar_prompts")
             if deterministic and key in self.cache:
                 data=self.cache[key]

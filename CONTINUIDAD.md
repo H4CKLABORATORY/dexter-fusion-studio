@@ -65,3 +65,9 @@ El siguiente trabajo es conectar el resto de las capacidades de `GestorContexto`
 2. Verificar una ejecución de OpenAI con `OPENAI_API_KEY` (usuario lo configura directamente en Settings, nunca pegar al chat) y disparador etiquetado.
 3. Cuando el usuario cree `H4CKLABORATORY/mira-neural-prompt-studio`, publicar el ZIP validado con commit verificable en ese repositorio y CI, sin usar 1UP-ANIME.
 4. Revisar el PR para retirar DRAFT, efectuar merge autorizado tras pruebas y registrar SHA real de `main`. No generar valores ficticios.
+
+### Validación final del incremento de código `77a098d7284b78ff2480186358cc62a13c3c3b7c`
+
+Los cuatro workflows concluyeron **SUCCESS** al consultar GitHub: general [39139460278](https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39139460278), Qt [39139460267](https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39139460267), Ollama real [39139460263](https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39139460263) y Windows EXE [39139460329](https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39139460329). Las actualizaciones posteriores son de documentos y checkpoint, no del motor de código.
+
+**Bloqueos externos confirmados:** no existe todavía ejecución autenticada OpenAI verificable; secret `OPENAI_API_KEY` requiere configuración por el propietario y la etiqueta `tokenlab-openai-smoke` habilita una solicitud controlada. El repo MIRA propio tampoco ha sido creado y la conexión de GitHub no incluye la operación de crear repositorios; el usuario debe crearlo antes de que se pueda publicar código en una ubicación autorizada.

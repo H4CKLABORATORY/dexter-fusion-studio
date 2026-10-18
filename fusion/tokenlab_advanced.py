@@ -6,7 +6,7 @@ from PySide6.QtWidgets import (QWidget,QVBoxLayout,QHBoxLayout,QLabel,QPlainText
 from .tokenlab_tools import AtomicTaskCheckpoint
 from .tokenlab_context import GestorContexto,deduplicate,prioritize
 from .tokenlab_skills import RegistroSkills
-from .tokenlab_ollama import summarize_ollama,embed_ollama
+from .tokenlab_ollama import summarize_ollama
 from .tokenlab_stream import OllamaStream
 from .tokenlab_embed_async import OllamaEmbeddings
 from .tokenlab_context_async import AsyncContextCompactor

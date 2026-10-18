@@ -134,14 +134,15 @@ class ExportWorker(QThread):
     completed = Signal(str)
     failed = Signal(str)
 
-    def __init__(self, folder):
+    def __init__(self, folder, overwrite=False):
         super().__init__()
         self.folder = folder
+        self.overwrite = overwrite
 
     def run(self):
         try:
             apply_timeline(self.folder, overwrite=True)
-            output = export_plan(self.folder, overwrite=False)
+            output = export_plan(self.folder, overwrite=self.overwrite)
             self.completed.emit(str(output))
         except Exception as exc:
             self.failed.emit(str(exc))
@@ -222,7 +223,7 @@ class TimelineCanvas(QGraphicsView):
         for i, name in enumerate(self.track_names):
             y = self.RULER + i*self.ROW
             tint = '#141E2C' if i%2 == 0 else '#101825'
-            scene.addRect(0, y, width, self.ROW, QPen(QColor('#283449'), .7), QBrush(QColor(tint)))
+            scene.addRect(0, y, width, self.ROW, QPen(QColor('#283449'), 1), QBrush(QColor(tint)))
             scene.addRect(0, y, self.HEAD, self.ROW, QPen(QColor('#283449')), QBrush(QColor('#1A2636')))
             active = i in (2,3)
             self._t(name, 12, y+16, '#E7EFFC' if active else '#64758E', 9, active)
@@ -285,7 +286,7 @@ class TimelineCanvas(QGraphicsView):
                     self.selected_index = int(index)
                     self.clip_picked.emit(int(index))
                     self.redraw()
-                    break
+                    return
                 cursor = cursor.parentItem()
             else:
                 pos = self.mapToScene(event.pos())
@@ -518,7 +519,7 @@ class StudioWindow(QMainWindow):
         self.timeline=TimelineCanvas()
         self.timeline_zoom.valueChanged.connect(self.timeline.set_scale)
         self.timeline.clip_picked.connect(self.select_clip)
-        self.timeline.seek_requested.connect(lambda sec: self.player.setPosition(round(sec*1000)))
+        self.timeline.seek_requested.connect(self.seek_timeline)
         box.addWidget(self.timeline)
         footer=QHBoxLayout()
         footer.addWidget(label('V1: cortes y efectos exportables · A1: audio sincronizado · otras pistas: previstas, no exportables'))
@@ -688,7 +689,16 @@ class StudioWindow(QMainWindow):
             return
         try:
             self.document.save()
-            self._render=ExportWorker(str(self.document.folder))
+            target=self.document.folder/'output'/f"{self.document.project.get('platform','youtube')}-{self.document.project.get('effects','clean')}.mp4"
+            overwrite=False
+            if target.exists():
+                response=QMessageBox.question(self,'Exportación existente',
+                    'Ya existe un render con este nombre. ¿Sobrescribir solamente ese MP4?',
+                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+                if response!=QMessageBox.StandardButton.Yes:
+                    return
+                overwrite=True
+            self._render=ExportWorker(str(self.document.folder),overwrite=overwrite)
             self._render.completed.connect(self._export_complete)
             self._render.failed.connect(self._export_failed)
             self.export_progress.setRange(0,0)
@@ -702,6 +712,7 @@ class StudioWindow(QMainWindow):
     def _export_complete(self, path):
         self.export_progress.setRange(0,100)
         self.export_progress.setValue(100)
+        self._render.wait(2500)
         self._render=None
         self._refresh()
         self.statusBar().showMessage('Exportación terminada: '+path,10000)
@@ -710,9 +721,23 @@ class StudioWindow(QMainWindow):
     def _export_failed(self, message):
         self.export_progress.setRange(0,100)
         self.export_progress.setValue(0)
+        self._render.wait(2500)
         self._render=None
         self._refresh()
         QMessageBox.critical(self,'Falló la exportación',message)
+
+    def seek_timeline(self, seconds):
+        """Translate composition time into source time, respecting clip reorder."""
+        if not self.document:
+            return
+        offset=0.0
+        for clip in self.document.clips:
+            if offset <= seconds < offset + clip.duration:
+                self.player.setPosition(round((clip.start + seconds - offset) * 1000))
+                return
+            offset += clip.duration
+        if self.document.clips:
+            self.player.setPosition(round(self.document.clips[-1].end*1000))
 
     def _player_position(self, position):
         if not self.scrub.isSliderDown():

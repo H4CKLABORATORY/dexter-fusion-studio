@@ -21,3 +21,16 @@
 ## Regla de memoria
 
 Revisadas las instrucciones activas del proyecto; reglas más recientes priman sobre anteriores. Este archivo es un registro de continuidad del proyecto y **no** una modificación automática de la memoria interna de ChatGPT.
+
+
+## Validación GitHub Actions · 2026-10-18
+
+- SHA de **código integrado probado**: `2094616a2dc63cf879ea4c603412faaf0c042452`.
+- `Studio Qt — probar interfaz` run [39092395492](https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39092395492): **success**, 44 tests OK, incluidos diálogo Qt, checkpoint y paridad oficial `tiktoken 0.14.0` para gpt-4o/gpt-4.1.
+- `Verificar Dexter Fusion Studio v0.2` run [39092395481](https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39092395481): **success**, 44 tests, los 2 específicos Qt omitidos justificadamente porque ese runner no instala PySide6; sí ejecutados con éxito en CI Qt.
+- `Studio Qt — Windows EXE portable` run [39092395486](https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39092395486): **success**, 14 tests OK incluyendo tokenizador y UI, EXE empaquetado y captura.
+- Error del primer run general: `ModuleNotFoundError: No module named 'tiktoken'` porque `verify.yml` no instalaba esa dependencia; se corrigió antes de estos runs verdes.
+- No se hicieron pruebas con una API OpenAI real ni un modelo Ollama activo; no se disponía de credenciales/proveedor. No presentar esa validación como realizada.
+
+### Próximo checkpoint
+El siguiente trabajo es conectar el resto de las capacidades de `GestorContexto`, skills y resúmenes con pruebas de comportamiento, evaluar costes de inferencia y añadir diagnósticos de cancelación con proveedor real; conservar cambios incrementales basados en el SHA anterior.

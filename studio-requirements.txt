@@ -1,2 +1,4 @@
 # UI real de escritorio. El motor FFmpeg/FFprobe se instala por separado.
 PySide6>=6.7,<7
+# Conteo exacto de texto OpenAI y comparador A/B TokenLab.
+tiktoken>=0.7,<1

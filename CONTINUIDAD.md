@@ -45,3 +45,23 @@ El siguiente trabajo es conectar el resto de las capacidades de `GestorContexto`
 - Additional context enhancements: preserve permanent facts and reject compaction when protected facts disappear; no GUI claims of real cancellation or streaming yet.
 - Current source code head for the provider addition: `054d86a5bb3a034dcd80c3e837063c1a3b771470`. Later commits may be needed before merge.
 - Remaining: real authenticated cloud-provider smoke test via private repository secret, independent MIRA repo creation, optional responsive/cancellable GUI request handling, then PR readiness and merge SHA. The connected GitHub integration has no new-repository action. Do not merge until evidence exists.
+
+## 2026-10-18 · Streaming Qt, PR #12 y pruebas de contrato (continuación verificada)
+
+- Punto de partida remoto inspeccionado: PR #12 `open/draft`, SHA `b0ff8db1e8078bf9eacf9bf524827c847c904982`, todos sus cuatro workflows (Qt, Windows, Ollama, general) en estado SUCCESS. Sin merge.
+- SHA último cambio de código de esta sesión (antes de actualizar continuidad): `77a098d7284b78ff2480186358cc62a13c3c3b7c`.
+- Añadidos `fusion/tokenlab_stream.py`, `fusion/tokenlab_context_async.py`, `tests/test_tokenlab_stream.py`, `tests/test_tokenlab_compactor.py`, `tests/test_tokenlab_live_probe_contract.py`, `.github/workflows/tokenlab-openai.yml`. Actualizados `fusion/tokenlab_advanced.py`, `docs/TOKENLAB.md` y `.github/workflows/studio-windows.yml`; sólo se leyeron rutas específicas relevantes.
+- Streaming de resumen e inferencia Ollama ahora usa red Qt asíncrona, `QNetworkReply.abort()` para cancelación, timeout, errores de HTTP/NDJSON y progreso incremental. La compactación de contexto es transaccional: al cancelar o fallar, el contexto anterior sigue intacto.
+- Pruebas Qt desde servidor HTTP **de prueba**, no inferencia real: éxito, timeout, cancelación, HTTP 503, errores NDJSON, conectividad, botones y rollback. Primera ejecución halló un error de `int(NetworkError)` (corregido), después Windows produjo TIMEOUT para puerto inaccesible (test acepta ambos códigos de fallo explícitos). No ocultar estas incidencias.
+- CI general [39139460278](https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39139460278) y Qt [39139460267](https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39139460267) SUCCESS al consultar. Windows [39139460329](https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39139460329) y Ollama [39139460263](https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39139460263) aún estaban en progreso en esa consulta; actualizar el estado al revisar.
+- Workflow OpenAI con secreto `OPENAI_API_KEY` publicado; ejecución manual o al poner etiqueta `tokenlab-openai-smoke` al PR (mismo repo, no forks); una sola llamada, timeout y skip explícito sin secreto. **Sin prueba real OpenAI verificada**. La activación `workflow_dispatch` puede requerir que el archivo esté en la rama por defecto, por eso existe el evento de etiquetado pre-merge.
+- MIRA: listado GitHub accesible contiene cuatro repositorios y ninguno `mira-neural-prompt-studio`; sin herramienta `create_repository`. ZIP validado localmente SHA-256 `1e9e890c9b70478e9d1cbe55479891a29fb798748c84c05cd2e2eb5b69b0003e`; guía `MIRA_PUBLICACION_SEGURA.md` preparada. No subir a repositorio ajeno ni afirmar publicación.
+- MIRA verificada aquí por grupos: 10 tests Python de backend/seguridad/tokenlab, 2 tests de UI/tokenlab-integración y 3 archivos JS: OK; suite completa se interrumpió por timeout durante tests visuales, no afirmar aprobación global.
+- PR #12 continúa DRAFT, no fusionado. Descripción actualizada con funciones reales y límites. Se requiere secreto en GitHub y repositorio propio MIRA para finalizar las prioridades.
+
+### Próxima tarea exacta
+
+1. Consultar resultados finales de Windows/Ollama en el último SHA y corregir errores si los hay.
+2. Verificar una ejecución de OpenAI con `OPENAI_API_KEY` (usuario lo configura directamente en Settings, nunca pegar al chat) y disparador etiquetado.
+3. Cuando el usuario cree `H4CKLABORATORY/mira-neural-prompt-studio`, publicar el ZIP validado con commit verificable en ese repositorio y CI, sin usar 1UP-ANIME.
+4. Revisar el PR para retirar DRAFT, efectuar merge autorizado tras pruebas y registrar SHA real de `main`. No generar valores ficticios.

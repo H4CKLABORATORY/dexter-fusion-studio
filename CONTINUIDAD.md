@@ -83,3 +83,25 @@ Los cuatro workflows concluyeron **SUCCESS** al consultar GitHub: general [39139
 - Artefacto MIRA: ZIP `MIRA_v2.4_TOKENLAB_INTEGRADO_VALIDADO.zip` existe localmente, 62 entradas, `ZipFile.testzip()` OK, SHA-256 `1e9e890c9b70478e9d1cbe55479891a29fb798748c84c05cd2e2eb5b69b0003e`. Guía `MIRA_PUBLICACION_SEGURA.md` verificada. No se encontró repositorio MIRA en cuatro repos accesibles; sin acción crear repositorio.
 - OpenAI: el workflow opt-in `.github/workflows/tokenlab-openai.yml` está publicado. **Sin evidencia de llamada autenticada real**. El usuario debe crear el secret `OPENAI_API_KEY` en GitHub y habilitar explícitamente `tokenlab-openai-smoke` en el PR; nunca mandar la clave en chat.
 - Próximos pasos: verificar ejecución auténtica OpenAI autorizada y publicar MIRA en repositorio propio, tras crear dicho repositorio. PR #12 se mantiene DRAFT hasta cumplir ambos y revisión final.
+
+## 2026-10-18 — Revisión externa íntegra de PR #12 (auditoría correctiva)
+
+- **SHA de entrada realmente comprobado:** `c32e6737f611082c090481c5f427a8d34103f6ff` (PR OPEN/DRAFT, sin merge).
+- Se recuperó el diff íntegro de 26 archivos cambiados originales y los módulos correspondientes; checklist de hallazgos y correcciones en [docs/TOKENLAB_PR12_AUDITORIA.md](docs/TOKENLAB_PR12_AUDITORIA.md).
+- Correcciones verificadas en la rama: caché tokenizador A/B dependiente de modelo, búsqueda Python/Markdown/JS con límites, rechazo de cambios de sesión/restore durante compresión con validación transaccional, URL de Ollama estrictamente loopback (mitiga `@host`), ejemplos JSON por skill, mensajes de errores seguros y eliminación de imports sin uso.
+- Nuevas pruebas negativas: cambio de modelo, búsqueda en MD/JS con exclusión de node_modules, URL localhost ambigua, restore inválido, switching mientras compactor está activo, JSON por skill y límites.
+- **SHA exacto de código sometido a los cuatro workflows y verificado verde:** `a3a5c0240d88802c3cc22205e0ed0597f400eb84`.
+  - General run [39142870136](https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39142870136): **SUCCESS**, 79 tests, Qt específicos omitidos en runner sin Qt.
+  - Qt run [39142870017](https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39142870017): **SUCCESS**, 79 tests, nuevos negativos incluidos.
+  - Windows EXE run [39142870112](https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39142870112): **SUCCESS**, 46 tests, ejecutable empaquetado/probado y artefacto publicado.
+  - Ollama real run [39142870093](https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39142870093): **SUCCESS**, modelos descargados, resumen/embeddings reales y dos inferencias A/B (1225.36 ms/1006.95 ms).
+- Guía de procedimientos **sólo para Dexter** creada y verificada en [docs/DEXTER_ACCIONES_OPENAI_Y_MIRA.md](docs/DEXTER_ACCIONES_OPENAI_Y_MIRA.md): secreto `OPENAI_API_KEY`, etiqueta `tokenlab-openai-smoke`, creación de repo privado MIRA, verificación SHA del ZIP y comandos PowerShell sin credenciales.
+- No se ha ejecutado la prueba autenticada OpenAI ni se ha publicado MIRA en GitHub. Continúa DRAFT, no merge; el SHA de main sigue sin cambios de este PR.
+
+### Próxima interacción
+
+1. Releer este archivo y `TOKENLAB_CHECKPOINT.json` para evitar duplicar auditorías.
+2. Comprobar GitHub Actions de último código y PR #12.
+3. Si Dexter confirma secreto configurado, verificar nombre/evento por ejecución del workflow y disparar etiqueta sólo con autorización; no pedir ni leer valor de secreto.
+4. Si Dexter confirma repositorio MIRA creado, comprobar repositorio y permisos del conector, subir archivos del ZIP validado con commit real, CI y reporte SHA.
+5. Sólo tras ambos resultados válidos, revisión final y aprobación quitar DRAFT, fusionar según permisos, registrar SHA final auténtico de `main`.

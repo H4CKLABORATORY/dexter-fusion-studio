@@ -144,10 +144,50 @@ class TokenLabAdvanced(QWidget):
         self.tabs.addTab(tab,"Deduplicación")
     def run_dedup(self):
         try:
-            items=[p for p in self.dup_lines.toPlainText().splitlines() if p.strip()]
-            vectors=embed_ollama(items) if self.semantic.isChecked() else None
-            self.dup_result.setPlainText("\n".join(deduplicate(items,embeddings=vectors,threshold=self.threshold.value())))
-        except Exception as exc:self.dup_result.setPlainText("ERROR: "+str(exc))
+            if self.embed_stream.active:
+                raise RuntimeError("Ya hay una consulta semántica en curso")
+            items=[x for x in self.dup_lines.toPlainText().splitlines() if x.strip()]
+            if not items:
+                raise ValueError("Introduce al menos un fragmento")
+            threshold=self.threshold.value()
+            if self.semantic.isChecked():
+                self.pending_dedup=(items,threshold)
+                try:
+                    self.embed_stream.start(items)
+                except Exception:
+                    self.pending_dedup=None
+                    raise
+                self.dedup_button.setEnabled(False)
+                self.dup_status.setText("Consultando Ollama sin bloquear la interfaz...")
+            else:
+                self.dup_result.setPlainText("\n".join(deduplicate(items,threshold=threshold)))
+                self.dup_status.setText("Deduplicación SHA-256 completada.")
+        except Exception as exc:
+            self.dup_status.setText("ERROR: "+str(exc))
+
+    def _embed_completed(self,vectors):
+        job=self.pending_dedup
+        self.pending_dedup=None
+        self.dedup_button.setEnabled(True)
+        if job is None:
+            return
+        try:
+            items,threshold=job
+            result=deduplicate(items,embeddings=vectors,threshold=threshold)
+            self.dup_result.setPlainText("\n".join(result))
+            self.dup_status.setText("Embeddings reales verificados. Únicos: "+str(len(result)))
+        except Exception as exc:
+            self.dup_status.setText("ERROR: "+str(exc))
+
+    def _embed_failed(self,reason):
+        self.pending_dedup=None
+        self.dedup_button.setEnabled(True)
+        self.dup_status.setText("ERROR EMBEDDINGS: "+str(reason))
+
+    def _embed_cancelled(self):
+        self.pending_dedup=None
+        self.dedup_button.setEnabled(True)
+        self.dup_status.setText("CANCELADO. Resultados previos conservados.")
 
     def _priority(self):
         tab=QWidget();v=QVBoxLayout(tab)

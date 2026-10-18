@@ -2,18 +2,19 @@
 from PySide6.QtWidgets import (QDialog,QVBoxLayout,QHBoxLayout,QLabel,
                                QPlainTextEdit,QPushButton,QComboBox,QMessageBox)
 from .tokenlab_tools import compare_texts,AtomicTaskCheckpoint,TokenLabUnavailable
+from .tokenlab_advanced import TokenLabAdvanced
 
 class TokenLabDialog(QDialog):
     def __init__(self,parent=None):
         super().__init__(parent)
         self.setWindowTitle("TOKENLAB · DEXTER FUSION STUDIO")
-        self.resize(680,600)
+        self.resize(980,890)
         self.storage=AtomicTaskCheckpoint()
         layout=QVBoxLayout(self)
         layout.addWidget(QLabel("PROMPT A · BASE ORIGINAL"))
-        self.a=QPlainTextEdit(self); layout.addWidget(self.a)
+        self.a=QPlainTextEdit(self); self.a.setFixedHeight(68); layout.addWidget(self.a)
         layout.addWidget(QLabel("PROMPT B · VERSIÓN OPTIMIZADA"))
-        self.b=QPlainTextEdit(self); layout.addWidget(self.b)
+        self.b=QPlainTextEdit(self); self.b.setFixedHeight(68); layout.addWidget(self.b)
         row=QHBoxLayout()
         self.model=QComboBox(self)
         self.model.addItems(["gpt-4o","gpt-4o-mini","gpt-4.1","gpt-4.1-mini","gpt-5"])
@@ -25,6 +26,8 @@ class TokenLabDialog(QDialog):
         layout.addLayout(row)
         self.result=QLabel("Conteo pendiente: requiere tiktoken instalado.",self)
         self.result.setWordWrap(True);layout.addWidget(self.result)
+        self.workspace=TokenLabAdvanced(self.model,self)
+        layout.addWidget(self.workspace,1)
         try:
             saved=self.storage.load("studio_ab")
             if saved:

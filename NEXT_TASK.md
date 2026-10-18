@@ -1,8 +1,8 @@
 # SIGUIENTE TAREA PRIORITARIA — EDITOR DE COMPOSICIÓN AUTÉNTICO
 
-Estado: el PR #11 incorpora overlays V2 y audio A3 que aparecen en exportación real, y añade reproducción del render final tras terminar. No confundir con un visor de efectos en tiempo real.
+Estado: PR #11 incorporado a `main` (commit `0ff9445`): overlays V2 y música A3 participan en el MP4 final; el visor reproduce el render final tras terminar. No confundir con un visor de efectos en tiempo real.
 
-## Siguiente incremento tras aprobar #11
+## Siguiente incremento prioritario
 **Motor multifuente y visor de composición** en una arquitectura modular.
 
 - Diseñar clips fuente normalizados (asset_id, source_in/out, timeline_start, track_id) y esquema de proyecto versionado.

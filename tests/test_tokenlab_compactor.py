@@ -41,8 +41,8 @@ class CompactorTests(unittest.TestCase):
 
     def build(self):
         mgr=GestorContexto("FIXED RULE",512,reserva_respuesta=64)
-        old=" ".join("old_"+str(i) for i in range(185))
-        newer=" ".join("new_"+str(i) for i in range(185))
+        old=" ".join("old_"+str(i) for i in range(105))
+        newer=" ".join("new_"+str(i) for i in range(105))
         mgr.add("user",old)
         stream=FakeStream()
         controller=AsyncContextCompactor(mgr,stream)

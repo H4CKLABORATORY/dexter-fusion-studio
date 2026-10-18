@@ -1,0 +1,2 @@
+# UI real de escritorio. El motor FFmpeg/FFprobe se instala por separado.
+PySide6>=6.7,<7

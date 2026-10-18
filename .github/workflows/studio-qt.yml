@@ -1,0 +1,62 @@
+name: Studio Qt — probar interfaz y generar captura
+on:
+  pull_request:
+    paths:
+      - 'fusion/**'
+      - 'studio.py'
+      - 'studio-requirements.txt'
+      - 'tests/test_studio_*'
+      - '.github/workflows/studio-qt.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'fusion/**'
+      - 'studio.py'
+      - 'studio-requirements.txt'
+      - '.github/workflows/studio-qt.yml'
+  workflow_dispatch:
+
+jobs:
+  native-qt:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      QT_QPA_PLATFORM: offscreen
+      QT_OPENGL: software
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Instalar dependencias GUI y render
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg libegl1 libopengl0 libgl1 libxkbcommon-x11-0
+          python -m pip install --upgrade pip
+          python -m pip install -r studio-requirements.txt
+      - name: Compilar y probar todas las funciones
+        run: |
+          python -m compileall -q fusion studio.py
+          python -m unittest discover -s tests -v
+      - name: Generar medio sintético para screenshot sin usar videos privados
+        run: |
+          ffmpeg -hide_banner -loglevel error -nostdin -y \
+            -f lavfi -i testsrc2=s=960x540:r=24 \
+            -f lavfi -i sine=frequency=280:sample_rate=48000 \
+            -t 7 -c:v mpeg4 -q:v 6 -c:a aac studio-example.mp4
+          python - <<'PY'
+          from pathlib import Path
+          from fusion.project import create_project
+          project,_=create_project('ci-demo','Ejemplo de montaje',str(Path('studio-example.mp4').resolve()),profile='freefire_short')
+          Path('ci-project-path.txt').write_text(str(project))
+          PY
+      - name: Captura auténtica de Qt con video y audio de prueba
+        run: |
+          python studio.py --project "$(cat ci-project-path.txt)" --screenshot qt-studio-real.png
+          test -s qt-studio-real.png
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Dexter-Studio-Qt-Real-Screenshot
+          path: qt-studio-real.png
+          retention-days: 14

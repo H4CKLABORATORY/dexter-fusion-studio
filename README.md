@@ -2,6 +2,17 @@
 
 Editor de escritorio gratuito para producir videos propios de Free Fire, YouTube, Shorts y TikTok. Proyecto original preparado para un repositorio privado; **no incluye código copiado de Concat, FilmCraft, EffectCraft ni OpenCreator**.
 
+## Nuevo espacio de edición Qt para Windows (beta)
+
+La nueva ventana de escritorio **Dexter Fusion Studio Workspace Qt** no es una maqueta: utiliza PySide6, FFmpeg y el timeline editable existente. Incluye visor del medio original, inspector, biblioteca de efectos, pistas V1/A1 con forma de onda, cortes, recortes, reordenar, undo/redo, subtítulos animados, exportación MP4 y Director Creativo de intros. **No reemplaza aún el motor de composición profesional completo**: V2/V3/A2/A3 están pendientes y el visor no reproduce todavía las capas compuestas.
+
+- Ejecutable portable Windows (con FFmpeg y Qt): desde la pestaña [Actions — Studio Qt Windows EXE](https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/workflows/studio-windows.yml) descarga el artefacto `DexterFusionStudio-Windows-Portable` de una ejecución aprobada.
+- Versión Python: `py -3 -m pip install -r studio-requirements.txt` y abre `INICIAR_ESTUDIO_WINDOWS.bat` o `py -3 studio.py`.
+- Captura real generada automáticamente: [Actions — interfaz Qt y screenshot](https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/workflows/studio-qt.yml).
+- Detalles, funciones faltantes y licencias: [docs/WORKSPACE_QT.md](docs/WORKSPACE_QT.md).
+
+La interfaz Tk clásica permanece disponible durante la migración. No confundas los diseños conceptuales con una captura del ejecutable.
+
 ## Etapa 2 — Actualización principal
 
 La versión 0.2 añade pestaña **Timeline v2**, 17 estilos reales FFmpeg, edición por escena con inicio/fin y zoom, selección heurística de clips, transición crossfade y narración original/subtítulos desde archivo SRT. Hay un motor de transcripción local opcional `faster-whisper` (no viene instalado ni configurado). Más detalles en `docs/ETAPA_2.md`.

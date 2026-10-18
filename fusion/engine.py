@@ -120,10 +120,11 @@ def validate_plan(plan):
     info=probe(source)
     clips=plan['clips']
     if not clips or len(clips)>100:raise ValueError('Cantidad de cortes no válida')
-    prev=-1
+    # A professional timeline may replay, repeat, or reorder ranges from one source.
+    # Validate every range independently; list order is the intended edit order.
     for a,b in clips:
-        if not(0<=a<b<=info['duration']+.05 and a>=prev): raise ValueError('Cortes fuera de tiempo o desordenados')
-        prev=b
+        if not (0<=a<b<=info['duration']+.05):
+            raise ValueError('Corte fuera de los límites del archivo original')
     if plan['platform'] not in OUTPUTS:raise ValueError('Formato de publicación desconocido')
     if plan['effects'] not in EFFECTS:raise ValueError('Efecto no soportado')
     if plan.get('caption_style','classic') not in CAPTION_STYLES:raise ValueError('Estilo de subtítulo desconocido')

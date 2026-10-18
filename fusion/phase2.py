@@ -12,6 +12,7 @@ from .media import probe, scene_changes, silence_ranges, keep_ranges, required, 
 from .project import read_json, safe_write
 from .engine import read_srt, map_srt, suggest_memes, EFFECTS
 from .caption_styles import CAPTION_STYLES
+from .composition_layers import validate_layers
 
 HOOKS = ('bro', 'manco', 'botsito', 'interesada', 'sorpresa', 'traición',
          'chacalito', 'chacalita', 'qué', 'no', 'jajaja', 'espera', 'mira')
@@ -138,6 +139,10 @@ def validate_timeline(tl):
     transition=float(tl.get('transition_seconds',.25))
     if not .05<=transition<=1.5:
         raise ValueError('Transición fuera de rango.')
+    composition_seconds=sum(float(c['end'])-float(c['start']) for c in tl['clips'])
+    if tl.get('cut_style')=='crossfade' and len(tl['clips'])>1:
+        composition_seconds-=transition*(len(tl['clips'])-1)
+    validate_layers(tl.get('layers'),composition_seconds)
     for clip in tl['clips']:
         a,b=float(clip['start']),float(clip['end'])
         if not (math.isfinite(a) and math.isfinite(b) and 0<=a<b<=info['duration']+.02):
@@ -183,6 +188,7 @@ def apply_timeline(folder,*,overwrite=True):
           'clip_zooms':[float(x.get('zoom',1)) for x in tl['clips']],
           'subtitles':subtitles,'watermark_file':tl.get('watermark_file'),
           'narration_file':tl.get('narration_file'),
+          'layers':tl.get('layers',{'images':[],'audio':[]}),
           'meme_suggestions':suggest_memes(subtitles,assets),
           'meme_events_approved':previous.get('meme_events_approved',[]),
           'review_required':True,

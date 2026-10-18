@@ -9,6 +9,7 @@ from pathlib import Path
 from .media import required,run,probe,silence_ranges,keep_ranges,select_segments,scene_changes
 from .project import read_json,safe_write
 from .caption_styles import CAPTION_STYLES,write_ass
+from .composition_layers import validate_layers,compose_layers
 
 OUTPUTS={'youtube':(1920,1080),'shorts':(1080,1920),'tiktok':(1080,1920)}
 EFFECTS={
@@ -140,6 +141,10 @@ def validate_plan(plan):
         t=float(plan.get('transition_seconds',.25))
         if not .05<=t<=1.5 or any(b-a<2*t for a,b in clips):
             raise ValueError('Crossfade no válido: revisa duración de clips y transición')
+    total=sum(float(b)-float(a) for a,b in clips)
+    if plan.get('cut_style')=='crossfade' and len(clips)>1:
+        total -= float(plan['transition_seconds'])*(len(clips)-1)
+    validate_layers(plan.get('layers'),total)
     return info
 
 def fit_filter(width,height,mode):
@@ -181,6 +186,9 @@ def export_plan(folder,*,overwrite=False,verify=True):
     target.parent.mkdir(parents=True,exist_ok=True)
     if target.exists() and not overwrite:raise FileExistsError('Ya existe una exportación. Activa sobrescribir para continuar.')
     all_duration=sum(e-s for s,e in plan['clips'])
+    if plan.get('cut_style')=='crossfade' and len(plan['clips'])>1:
+        all_duration-=float(plan['transition_seconds'])*(len(plan['clips'])-1)
+    layers=validate_layers(plan.get('layers'),all_duration)
     with tempfile.TemporaryDirectory(prefix='fusion-',dir=folder) as tmp:
         work=Path(tmp); parts=[]
         for i,(a,b) in enumerate(plan['clips']):
@@ -254,10 +262,17 @@ def export_plan(folder,*,overwrite=False,verify=True):
         if narration:
             voiceidx=len(overlays)+1
             filters.append(f'[0:a]volume=0.40[game];[{voiceidx}:a]volume=1.0[voice];[game][voice]amix=inputs=2:duration=first:dropout_transition=0[mixed]')
+        audio_current='[mixed]' if narration else '[0:a]'
+        current,audio_current,_=compose_layers(
+            cmd,filters,current,audio_current,
+            first_input=1+len(overlays)+(1 if narration else 0),
+            layers=layers,width=width,height=height,
+        )
         if filters:
-            cmd+=['-filter_complex',';'.join(filters),'-map',current]
-        else:cmd+=['-map','0:v:0']
-        cmd+=['-map','[mixed]' if narration else '0:a:0',
+            cmd+=['-filter_complex',';'.join(filters)]
+        cmd+=['-map', current if current!='[0:v]' else '0:v:0']
+        cmd+=['-map', audio_current if audio_current!='[0:a]' else '0:a:0',
+              '-t',str(round(all_duration,3)),
               '-c:v','libx264','-crf','20','-preset','medium','-pix_fmt','yuv420p',
               '-c:a','aac','-b:a','192k','-movflags','+faststart',str(target)]
         run(cmd,cwd=work)

@@ -24,6 +24,7 @@ from PySide6.QtWidgets import (
     QMessageBox, QToolBar, QFrame, QProgressBar, QGraphicsScene,
     QGraphicsView, QGraphicsRectItem, QGraphicsSimpleTextItem, QGraphicsPixmapItem,
     QSizePolicy, QScrollArea, QGroupBox, QInputDialog, QDockWidget, QStackedWidget,
+    QDialog, QFormLayout, QDialogButtonBox,
 )
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PySide6.QtMultimediaWidgets import QVideoWidget
@@ -170,6 +171,7 @@ class MotionWorker(QThread):
 
 class TimelineCanvas(QGraphicsView):
     clip_picked = Signal(int)
+    layer_picked = Signal(str,int)
     seek_requested = Signal(float)
 
     HEAD = 138
@@ -190,9 +192,9 @@ class TimelineCanvas(QGraphicsView):
         self.thumbnail = None
         self.selected_index = -1
         self.playhead = 0.0
-        self.track_names = ['V3  Efectos (próximamente)', 'V2  Overlays (próximamente)',
-                            'V1  Montaje', 'A1  Audio original', 'A2  Voz (próximamente)',
-                            'A3  Música (próximamente)']
+        self.track_names = ['V3  Efectos (pendiente)', 'V2  Imágenes reales',
+                            'V1  Montaje', 'A1  Audio original', 'A2  Voz (pendiente)',
+                            'A3  Música real']
         self.redraw()
 
     def set_document(self, document):
@@ -246,7 +248,7 @@ class TimelineCanvas(QGraphicsView):
             tint = '#141E2C' if i%2 == 0 else '#101825'
             scene.addRect(0, y, width, self.ROW, QPen(QColor('#283449'), 1), QBrush(QColor(tint)))
             scene.addRect(0, y, self.HEAD, self.ROW, QPen(QColor('#283449')), QBrush(QColor('#1A2636')))
-            active = i in (2,3)
+            active = i in (1,2,3,5)
             self._t(name, 12, y+16, '#E7EFFC' if active else '#64758E', 9, active)
         if self.document:
             current = 0.0
@@ -302,6 +304,29 @@ class TimelineCanvas(QGraphicsView):
                                 scene.addLine(wx, center-amplitude, wx, center+amplitude,
                                               QPen(QColor('#3DF5CC'), 1.6))
                 current += duration
+        if self.document:
+            for layer_index,image in enumerate(self.document.layers['images']):
+                x=self.HEAD+image['start']*self.pixels_per_second
+                w=max(2,(image['end']-image['start'])*self.pixels_per_second)
+                y=self.RULER+self.ROW+6
+                node=scene.addRect(x,y,w,self.ROW-12,
+                    QPen(QColor('#D1A4FF')),QBrush(QColor('#7549A8')))
+                node.setToolTip('Overlay exportable: '+Path(image['path']).name)
+                node.setData(1,('images',layer_index))
+                label_item=self._t('▧  '+Path(image['path']).name[:23],x+6,y+7,'#FFFFFF',9,True)
+                label_item.setData(1,('images',layer_index))
+            for layer_index,music in enumerate(self.document.layers['audio']):
+                x=self.HEAD+music['start']*self.pixels_per_second
+                w=max(2,music['duration']*self.pixels_per_second)
+                y=self.RULER+5*self.ROW+6
+                node=scene.addRect(x,y,w,self.ROW-12,
+                    QPen(QColor('#3DEFC8')),QBrush(QColor('#17675C')))
+                node.setToolTip('Música exportable: '+Path(music['path']).name+
+                    f' · volumen {music["gain"]:.2f}')
+                node.setData(1,('audio',layer_index))
+                label_item=self._t('♫  '+Path(music['path']).name[:22]+f'  {music["gain"]:.0%}',
+                    x+6,y+8,'#EDFFFA',9,True)
+                label_item.setData(1,('audio',layer_index))
         self._playline = scene.addLine(self.HEAD + self.playhead*self.pixels_per_second, 0,
                                        self.HEAD + self.playhead*self.pixels_per_second, height,
                                        QPen(QColor('#FFCE72'), 2))
@@ -311,6 +336,10 @@ class TimelineCanvas(QGraphicsView):
             item = self.itemAt(event.pos())
             cursor = item
             while cursor is not None:
+                layer=cursor.data(1)
+                if layer is not None:
+                    self.layer_picked.emit(layer[0],layer[1])
+                    return
                 index = cursor.data(0)
                 if index is not None:
                     self.selected_index = int(index)
@@ -338,6 +367,8 @@ class StudioWindow(QMainWindow):
         self._motion = None
         self._wave_worker = None
         self._loading = False
+        self._preview_rendered = False
+        self._render_output = None
         self.audio = QAudioOutput(self)
         self.player = QMediaPlayer(self)
         self.player.setAudioOutput(self.audio)
@@ -367,6 +398,13 @@ class StudioWindow(QMainWindow):
         self.export_action = QAction('EXPORTAR MP4  ↗', self)
         self.export_action.triggered.connect(self.export)
         tool.addAction(self.export_action)
+        tool.addSeparator()
+        image_action=QAction('＋  Imagen V2',self)
+        image_action.triggered.connect(self.add_image_layer)
+        tool.addAction(image_action)
+        audio_action=QAction('＋  Música A3',self)
+        audio_action.triggered.connect(self.add_audio_layer)
+        tool.addAction(audio_action)
         director_action=QAction('✦  Director creativo',self)
         director_action.triggered.connect(self.create_motion)
         tool.addAction(director_action)
@@ -452,7 +490,8 @@ class StudioWindow(QMainWindow):
         panel.setObjectName('Surface')
         box = QVBoxLayout(panel)
         top = QHBoxLayout()
-        top.addWidget(label('VISOR DE FUENTE', 'Section'))
+        self.preview_heading=label('VISOR DE FUENTE', 'Section')
+        top.addWidget(self.preview_heading)
         top.addStretch(1)
         top.addWidget(label('Vista previa del archivo original'))
         box.addLayout(top)
@@ -491,7 +530,16 @@ class StudioWindow(QMainWindow):
         self.player.positionChanged.connect(self._player_position)
         self.player.durationChanged.connect(self._player_duration)
         self.player.errorOccurred.connect(lambda *args: self.statusBar().showMessage('Reproductor: revisa compatibilidad del archivo',6000))
-        box.addWidget(label('Montaje exportado con FFmpeg; la previsualización compuesta multipista es una fase posterior.'))
+        controls=QHBoxLayout()
+        self.original_btn=QPushButton('Ver original')
+        self.original_btn.clicked.connect(self.show_source)
+        controls.addWidget(self.original_btn)
+        self.final_btn=QPushButton('▶ Ver resultado MP4')
+        self.final_btn.clicked.connect(self.show_final_video)
+        self.final_btn.setEnabled(False)
+        controls.addWidget(self.final_btn)
+        box.addLayout(controls)
+        box.addWidget(label('La composición se puede ver después de exportar; no hay vista multipista en vivo.'))
         return panel
 
     def _make_inspector(self):
@@ -527,6 +575,22 @@ class StudioWindow(QMainWindow):
         cv.addWidget(self.caption_combo)
         cv.addWidget(label('Karaoke/Punch requieren un SRT; la duración por palabra es estimada.'))
         box.addWidget(captions)
+        layers_panel=QGroupBox('Pistas reales V2 · A3')
+        lv=QVBoxLayout(layers_panel)
+        self.layer_list=QListWidget()
+        self.layer_list.setMinimumHeight(70)
+        self.layer_list.setMaximumHeight(145)
+        self.layer_list.itemDoubleClicked.connect(self.edit_selected_layer)
+        lv.addWidget(self.layer_list)
+        lr=QHBoxLayout()
+        for title,callback in [('＋ Imagen',self.add_image_layer),('＋ Música',self.add_audio_layer),
+                               ('Editar',self.edit_selected_layer),('Quitar',self.remove_selected_layer)]:
+            button=QPushButton(title)
+            button.clicked.connect(callback)
+            lr.addWidget(button)
+        lv.addLayout(lr)
+        lv.addWidget(label('Imágenes y música aparecen en el MP4 exportado.'))
+        box.addWidget(layers_panel)
         edit_group = QGroupBox('Montaje de segmentos')
         ev = QVBoxLayout(edit_group)
         for text, fn in [
@@ -581,10 +645,11 @@ class StudioWindow(QMainWindow):
         self.timeline.setMinimumHeight(355)
         self.timeline_zoom.valueChanged.connect(self.timeline.set_scale)
         self.timeline.clip_picked.connect(self.select_clip)
+        self.timeline.layer_picked.connect(self.select_layer)
         self.timeline.seek_requested.connect(self.seek_timeline)
         box.addWidget(self.timeline)
         footer=QHBoxLayout()
-        footer.addWidget(label('V1: cortes y efectos exportables · A1: audio sincronizado · otras pistas: previstas, no exportables'))
+        footer.addWidget(label('V1 / A1: montaje · V2: imágenes · A3: música · V3 / A2: pendiente'))
         footer.addStretch(1)
         footer.addWidget(label('30 fps · Proyecto local'))
         box.addLayout(footer)
@@ -612,6 +677,10 @@ class StudioWindow(QMainWindow):
             if self._wave_worker and self._wave_worker.isRunning():
                 self._wave_worker.wait(1500)
             self.document = StudioDocument(folder)
+            self._preview_rendered=False
+            self._render_output=None
+            self.preview_heading.setText('VISOR DE FUENTE')
+            self.final_btn.setEnabled(False)
             self.player.setSource(QUrl.fromLocalFile(str(self.document.source)))
             poster_image = self._source_poster()
             self.media_list.clear()
@@ -659,6 +728,26 @@ class StudioWindow(QMainWindow):
             self.poster.setText('Vista previa disponible al reproducir')
         return None
 
+    def show_source(self):
+        if not self.document:
+            return
+        self.player.pause()
+        self.player.setSource(QUrl.fromLocalFile(str(self.document.source)))
+        self._preview_rendered=False
+        self.preview_heading.setText('VISOR DE FUENTE')
+        self.preview_stack.setCurrentWidget(self.video)
+
+    def show_final_video(self):
+        if not self._render_output or not Path(self._render_output).is_file():
+            QMessageBox.information(self,'Render','Primero exporta el montaje.')
+            return
+        self.player.pause()
+        self.player.setSource(QUrl.fromLocalFile(str(self._render_output)))
+        self._preview_rendered=True
+        self.preview_heading.setText('COMPOSICIÓN EXPORTADA · MP4 REAL')
+        self.preview_stack.setCurrentWidget(self.video)
+        self.player.play()
+
     def _refresh(self):
         doc=self.document
         self.total_label.setText(format_time(doc.output_duration) if doc else '00:00:00:00')
@@ -672,8 +761,118 @@ class StudioWindow(QMainWindow):
             self.caption_combo.setCurrentIndex(max(0,self.caption_combo.findData(doc.caption_style)))
         else:
             self.clip_info.setText('Importa un archivo y selecciona un clip.')
+        self._refresh_layers()
         self.export_button.setEnabled(bool(doc) and not self._render)
         self.export_action.setEnabled(bool(doc) and not self._render)
+
+    def _refresh_layers(self):
+        if not hasattr(self,'layer_list'):
+            return
+        selected=self.layer_list.currentItem()
+        selected_key=selected.data(Qt.ItemDataRole.UserRole) if selected else None
+        self.layer_list.clear()
+        if not self.document:
+            return
+        for kind,title in [('images','V2  ▧'),('audio','A3  ♫')]:
+            for idx,entry in enumerate(self.document.layers[kind]):
+                duration=(entry['end']-entry['start']) if kind=='images' else entry['duration']
+                item=QListWidgetItem(
+                    f'{title}  {Path(entry["path"]).name}  ·  {entry["start"]:.1f}s / {duration:.1f}s'
+                )
+                item.setData(Qt.ItemDataRole.UserRole,(kind,idx))
+                item.setToolTip(str(entry['path']))
+                self.layer_list.addItem(item)
+                if selected_key==(kind,idx):
+                    self.layer_list.setCurrentItem(item)
+
+    def add_image_layer(self):
+        if not self.document:
+            QMessageBox.information(self,'V2','Abre primero un proyecto.')
+            return
+        source,_=QFileDialog.getOpenFileName(self,'Seleccionar imagen para overlay',str(Path.home()),
+            'Imágenes (*.png *.jpg *.jpeg *.webp)')
+        if not source:
+            return
+        try:
+            self.document.add_image(source,start=0,end=min(self.document.output_duration,3.0))
+            self.timeline.redraw()
+            self._refresh()
+        except Exception as exc:
+            QMessageBox.warning(self,'Añadir imagen',str(exc))
+
+    def add_audio_layer(self):
+        if not self.document:
+            QMessageBox.information(self,'A3','Abre primero un proyecto.')
+            return
+        source,_=QFileDialog.getOpenFileName(self,'Seleccionar música',str(Path.home()),
+            'Audio (*.wav *.mp3 *.m4a *.flac *.ogg *.aac)')
+        if not source:
+            return
+        try:
+            self.document.add_audio(source,gain=.35)
+            self.timeline.redraw()
+            self._refresh()
+        except Exception as exc:
+            QMessageBox.warning(self,'Añadir audio',str(exc))
+
+    def remove_selected_layer(self):
+        item=self.layer_list.currentItem()
+        if not item or not self.document:
+            return
+        kind,index=item.data(Qt.ItemDataRole.UserRole)
+        try:
+            self.document.remove_layer(kind,index)
+            self.timeline.redraw()
+            self._refresh()
+        except Exception as exc:
+            QMessageBox.warning(self,'Quitar pista',str(exc))
+
+    def edit_selected_layer(self,*_args):
+        item=self.layer_list.currentItem()
+        if not item or not self.document:
+            return
+        kind,index=item.data(Qt.ItemDataRole.UserRole)
+        layer=self.document.layers[kind][index]
+        dialog=QDialog(self)
+        dialog.setWindowTitle('Editar pista '+('V2' if kind=='images' else 'A3'))
+        form=QFormLayout(dialog)
+        inputs={}
+        fields=(['start','end','width','x','y','opacity'] if kind=='images'
+                else ['start','source_start','duration','gain'])
+        for key in fields:
+            control=QDoubleSpinBox(dialog)
+            control.setDecimals(3)
+            control.setSingleStep(.05 if key in ('x','y','width','gain','opacity') else .1)
+            control.setRange(0,172800 if key in ('start','source_start','end','duration') else 2)
+            control.setValue(float(layer[key]))
+            form.addRow({'start':'Inicio en composición (s)',
+                'end':'Fin en composición (s)', 'width':'Tamaño relativo',
+                'x':'Posición X (0-1)', 'y':'Posición Y (0-1)',
+                'opacity':'Opacidad', 'source_start':'Inicio dentro de audio (s)',
+                'duration':'Duración musical (s)','gain':'Volumen (0-2)'}[key],control)
+            inputs[key]=control
+        actions=QDialogButtonBox(QDialogButtonBox.StandardButton.Ok |
+                                 QDialogButtonBox.StandardButton.Cancel)
+        actions.accepted.connect(dialog.accept)
+        actions.rejected.connect(dialog.reject)
+        form.addRow(actions)
+        if dialog.exec()!=QDialog.DialogCode.Accepted:
+            return
+        try:
+            self.document.update_layer(kind,index,
+                **{key:control.value() for key,control in inputs.items()})
+            self.timeline.redraw()
+            self._refresh()
+        except Exception as exc:
+            QMessageBox.warning(self,'Actualizar pista',str(exc))
+
+    def select_layer(self, kind, index):
+        for i in range(self.layer_list.count()):
+            item=self.layer_list.item(i)
+            if item.data(Qt.ItemDataRole.UserRole)==(kind,index):
+                self.layer_list.setCurrentItem(item)
+                self.statusBar().showMessage('Pista seleccionada; usa Editar o doble clic para sus propiedades',4000)
+                return
 
     def select_clip(self, index):
         if self.document and 0 <= index < len(self.document.clips):
@@ -853,6 +1052,9 @@ class StudioWindow(QMainWindow):
         self._render=None
         self._refresh()
         self.statusBar().showMessage('Exportación terminada: '+path,10000)
+        self._render_output=path
+        self.final_btn.setEnabled(True)
+        self.show_final_video()
         QMessageBox.information(self,'Render completado','Archivo MP4 generado:\n'+path)
 
     def _export_failed(self, message):
@@ -864,7 +1066,10 @@ class StudioWindow(QMainWindow):
         QMessageBox.critical(self,'Falló la exportación',message)
 
     def seek_timeline(self, seconds):
-        """Translate composition time into source time, respecting clip reorder."""
+        """Seek the rendered composition or translate edited time to original source."""
+        if self._preview_rendered:
+            self.player.setPosition(round(max(0,seconds)*1000))
+            return
         if not self.document:
             return
         offset=0.0
@@ -880,8 +1085,9 @@ class StudioWindow(QMainWindow):
         if not self.scrub.isSliderDown():
             self.scrub.setValue(position)
         self.time_display.setText(f'{format_time(position/1000)}  /  {format_time(self.player.duration()/1000)}')
-        # Playback time points into the original source, not the edited composition.
-        self.timeline.set_playhead(position/1000)
+        # Source time is not necessarily composition time after reordering.
+        if self._preview_rendered:
+            self.timeline.set_playhead(position/1000)
 
     def _player_duration(self, duration):
         self.scrub.setRange(0,max(0,int(duration)))

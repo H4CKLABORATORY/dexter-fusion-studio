@@ -1,24 +1,49 @@
-# TokenLab integrado en Dexter Fusion Studio (Qt)
+# TokenLab — integración real en Dexter Fusion Studio Qt
 
-## Qué funciona realmente
-- La **ventana principal de PySide6** contiene una acción **⌁ TokenLab** que abre `fusion.tokenlab_dialog.TokenLabDialog`. Introduce PROMPT A y B, selecciona el modelo OpenAI y usa **COMPARAR TOKENS A/B**.
-- `fusion.tokenlab_tools.compare_texts` usa `tiktoken.encoding_for_model(model)`; informa conteos exactos de **texto**, diferencia y porcentaje de ahorro.
-- Guarda y restaura el checkpoint `studio_ab` desde `~/Documents/DexterFusionStudio/tokenlab/`, con escritura temporal + fsync + renombrado atómico. No sube prompts al repositorio ni a ninguna API.
-- SHA-256 exacto disponible para identificar fragmentos; no se afirma deduplicación semántica en esta integración parcial.
-- `tests/test_tokenlab_tools.py` compara el conteo con el tokenizador oficial instalado. Ejecutar `python -m unittest tests.test_tokenlab_tools -v`. CI de Qt y Windows instala tiktoken desde `studio-requirements.txt`.
+## Funcionalidad actual
+- Barra de herramientas del editor: **TokenLab**, diálogo A/B y comparación con el tokenizador `tiktoken` del modelo OpenAI para texto.
+- Cuatro pestañas Qt: memoria permanente/resumen de sesión/ventana volátil con checkpoints atómicos; deduplicación SHA-256 y semántica opcional vía embeddings; priorización 60/30/10; cuatro skills JSON (buscar, resumir, contar y comparar).
+- Ollama local: `fusion/tokenlab_ollama.py` permite resumen y embeddings reales; `fusion/tokenlab_stream.py` transmite tokens desde `/api/generate` con `QNetworkAccessManager` **sin bloquear el hilo Qt**.
+- El botón **CANCELAR HTTP** ejecuta `QNetworkReply.abort()`; los timeouts, errores de proveedor, NDJSON inválido y conexión rechazada muestran códigos explícitos. Los tokens progresivos son tentativos hasta `done=true`.
+- `fusion/tokenlab_context_async.py` compacta contexto mediante streams y conserva la memoria previa completa cuando ocurre cancelación, timeout o error. No se publican resúmenes parciales como hechos terminados.
+- Las llamadas de embeddings directas aún son síncronas: en deduplicación semántica la interfaz puede esperar mientras Ollama responde. Falta migrar ese endpoint a red asíncrona para cobertura total.
 
-## Instalación
-```bash
-python -m pip install -r studio-requirements.txt
-python -m unittest tests.test_tokenlab_tools -v
-python studio.py
+## Instalar/ejecutar (Windows)
+```powershell
+py -3 -m pip install -r studio-requirements.txt
+py -3 -m unittest tests.test_tokenlab_stream tests.test_tokenlab_compactor tests.test_tokenlab_workspace tests.test_tokenlab_live_probe_contract -v
+py -3 studio.py
 ```
 
-## Privacidad y límites
-La ventana no llama a OpenAI ni a Ollama: compara prompts localmente. Suponer que tiktoken cuenta los tokens nativos de llama.cpp/Ollama sería incorrecto; integrar un tokenizador propio del modelo concreto antes de ofrecer esa capacidad. Los mensajes del chat, herramientas, imágenes y audio generan otros tokens no incluidos en conteos de texto simples. El checkpoint se escribe localmente y puede contener contenido de los prompts: evitar secretos.
+Instala Ollama en Windows y después:
+```powershell
+ollama pull llama3.2:1b
+ollama pull nomic-embed-text
+ollama serve
+```
+En otra terminal:
+```powershell
+$env:TOKENLAB_OLLAMA_MODEL = "llama3.2:1b"
+$env:TOKENLAB_EMBED_MODEL = "nomic-embed-text"
+py -3 studio.py
+```
+Las peticiones Ollama de la GUI se restringen a loopback; no se exponen claves ni se consulta una API pública sin configuración expresa.
 
-## Siguiente integración pendiente
-Completar en la GUI las tres capas de GestorContexto, deduplicación de embeddings, ranking 60/30/10 y el registro de skills que ya existe en el paquete TokenLab del laboratorio MIRA; son trabajo pendiente, no funciones acabadas de este PR.
+## CI y evidencia verificable
+- `tests/test_tokenlab_stream.py` usa un **servidor HTTP local de pruebas**, no un modelo real: éxito de streaming, cancelación del transporte, timeout, HTTP 503, NDJSON inválido, fallos de conexión y respuesta en controles Qt.
+- `tests/test_tokenlab_compactor.py` usa señales controladas para probar commit/rollback transaccional; es una prueba de componentes, no inferencia real.
+- `.github/workflows/tokenlab-ollama.yml` sí instala Ollama real y descarga `llama3.2:1b` y `nomic-embed-text`. Run [39093243927](https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39093243927): generación A/B, resumen y embeddings reales en CI, SUCCESS.
+- Las pruebas de paridad con `tiktoken` oficial están en `tests/test_tokenlab_tools.py`; cuentan **texto**, no el overhead completo de llamadas a ChatGPT.
 
-## Prueba online/modelos
-No hay claves OPENAI_API_KEY ni servidor Ollama accesibles en el entorno que produjo este PR; NO se ejecutó ninguna inferencia real. Estas pruebas deben hacerse con credenciales privadas y un servicio activo, nunca registrar prompts ni credenciales en logs/CI público.
+## OpenAI API — opt-in y costo limitado
+`.github/workflows/tokenlab-openai.yml` está publicado en la rama. Ejecutar manualmente en **Actions → TokenLab OpenAI one-call smoke (opt-in) → Run workflow**, tras crear el secreto GitHub `OPENAI_API_KEY` en **Settings → Secrets and variables → Actions → New repository secret**. Nunca pegar la clave en un chat o código.
+
+- Si no hay secreto: `SKIPPED_NO_OPENAI_API_KEY`, sin ninguna llamada.
+- Si existe: una sola petición `POST /v1/responses` al modelo `gpt-4.1-mini` con `max_output_tokens=24` y timeout de 90 s; registra latencia y recuento de tokens, sin registrar la respuesta ni la clave.
+- `tests/test_tokenlab_live_probe_contract.py` verifica flujo con secreto ausente y una llamada mediante mocks, **no** inferencia OpenAI real.
+- No se ha verificado todavía una ejecución del workflow con secreto real.
+
+## Límites y seguridad
+La exactitud factual de resúmenes generativos no se garantiza automáticamente. Si se declaran hechos obligatorios, `GestorContexto` rechaza compresión que no los conserve. Los prompts de checkpoint pueden contener datos privados; se guardan fuera del repositorio. No confundir chat generado, tokenización local, embeddings y respuestas de modelos distintos.
+
+PR #12 permanece DRAFT mientras exista trabajo pendiente. Consultar `CONTINUIDAD.md` y `TOKENLAB_CHECKPOINT.json`.

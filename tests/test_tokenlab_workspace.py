@@ -2,6 +2,7 @@
 import tempfile
 import json
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 from fusion.tokenlab_context import GestorContexto, deduplicate, prioritize, cosine
 from fusion.tokenlab_skills import RegistroSkills
@@ -55,6 +56,33 @@ class TokenLabFullTests(unittest.TestCase):
             self.assertFalse(call("resumir",texto="Hola")["ok"])
             self.assertFalse(skills.execute("contar_tokens",{"texto":"hola","max_results":5,"max_tokens":5})["ok"])
 
+    def test_model_change_invalidates_skill_cache(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            reg=RegistroSkills(tmp,model="gpt-4o")
+            params={"texto":"hola","max_results":5,"max_tokens":512}
+            def fake_tokens(text,model):
+                return 20 if text.startswith("{") else (3 if model=="gpt-4o" else 5)
+            with patch("fusion.tokenlab_skills.tokens",side_effect=fake_tokens):
+                self.assertEqual(reg.execute("contar_tokens",params)["data"]["tokens"],3)
+                reg.model="gpt-4.1"
+                self.assertEqual(reg.execute("contar_tokens",params)["data"]["tokens"],5)
+                self.assertEqual(len(reg.cache),2)
+
+    def test_search_finds_markdown_and_javascript_but_skips_build(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            Path(tmp,"guide.md").write_text("TOKENLAB_NEEDLE in docs",encoding="utf-8")
+            Path(tmp,"main.js").write_text("const x = 'TOKENLAB_NEEDLE';",encoding="utf-8")
+            ignored=Path(tmp,"node_modules")
+            ignored.mkdir()
+            Path(ignored,"ignored.js").write_text("TOKENLAB_NEEDLE",encoding="utf-8")
+            reg=RegistroSkills(tmp)
+            result=reg.execute("buscar_repositorio",
+                {"query":"TOKENLAB_NEEDLE","max_results":12,"max_tokens":512})
+            self.assertTrue(result["ok"],result)
+            paths={r["path"] for r in result["data"]["matches"]}
+            self.assertEqual(paths,{"guide.md","main.js"})
+            self.assertEqual(result["data"]["scanned_files"],2)
+
 try:
     from PySide6.QtWidgets import QApplication
     from fusion.tokenlab_dialog import TokenLabDialog
@@ -77,3 +105,40 @@ class FullQtSmoke(unittest.TestCase):
             dialog.workspace.run_dedup()
             self.assertEqual(dialog.workspace.dup_result.toPlainText().splitlines(),["Doble","Único"])
         finally:dialog.close()
+    def test_session_switch_and_restore_are_safe_during_compaction(self):
+        dialog=TokenLabDialog()
+        try:
+            ui=dialog.workspace
+            ui.new_context()
+            manager=ui.manager
+            saved=manager.export()
+            ui.storage=type("Storage",(),{"load":lambda self,task:saved})()
+            ui.compactor.pending={"ventana_volatil":[{"role":"user","content":"active"}]}
+            ui.permanent.setPlainText("Nueva regla")
+            ui.new_context()
+            self.assertIs(ui.manager,manager)
+            ui.restore_context()
+            self.assertIs(ui.manager,manager)
+            self.assertEqual(manager.memoria_permanente,saved["memoria_permanente"])
+            ui.compactor.pending=None
+            ui.restore_context()
+            self.assertEqual(ui.permanent.toPlainText(),saved["memoria_permanente"])
+            self.assertEqual(ui.manager.export()["ventana_volatil"],saved["ventana_volatil"])
+        finally:
+            ui.compactor.pending=None
+            dialog.close()
+
+    def test_bad_checkpoint_never_replaces_live_session(self):
+        dialog=TokenLabDialog()
+        try:
+            ui=dialog.workspace
+            ui.new_context()
+            original=ui.manager
+            original_text=ui.permanent.toPlainText()
+            ui.storage=type("InvalidStorage",(),{"load":lambda self,task:{"memoria_permanente":"Otra regla","resumen_sesion":"oops","ventana_volatil":[{"role":"tool","content":3}]}})()
+            ui.restore_context()
+            self.assertIs(ui.manager,original)
+            self.assertEqual(ui.permanent.toPlainText(),original_text)
+            self.assertIn("ERROR",ui.mem_info.text())
+        finally:
+            dialog.close()

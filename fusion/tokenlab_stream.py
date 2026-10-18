@@ -10,7 +10,7 @@ import os
 from urllib.parse import urlsplit
 
 from PySide6.QtCore import QObject, QTimer, Signal
-from PySide6.QtNetwork import QNetworkAccessManager, QNetworkRequest
+from PySide6.QtNetwork import QNetworkAccessManager, QNetworkRequest, QNetworkReply
 from PySide6.QtCore import QUrl
 
 
@@ -145,6 +145,8 @@ class OllamaStream(QObject):
             self.failed.emit(self.stop_reason.upper())
         elif status is not None and int(status) >= 400:
             self.failed.emit("HTTP_" + str(status))
+        elif response.error() != QNetworkReply.NetworkError.NoError:
+            self.failed.emit("NETWORK_" + str(int(response.error())))
         elif not self.done or not "".join(self.parts).strip():
             self.failed.emit("INCOMPLETE_RESPONSE")
         else:

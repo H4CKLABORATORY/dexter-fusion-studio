@@ -20,7 +20,12 @@ No se detectaron marcadores TODO/FIXME añadidos por los 26 archivos iniciales e
 ## CI y evidencia
 
 - Baseline del usuario comprobado antes de esta auditoría: SHA `c32e6737f611082c090481c5f427a8d34103f6ff` y 4 CI SUCCESS: Qt run **39139681210**, Ollama run **39139681256**, Windows run **39139681212**, general run **39139681213**.
-- CI sobre correcciones: registrar el nuevo SHA de código y **sólo** resultados efectivos revisando jobs/logs en GitHub Actions. No inferir que la suite es verde por el estado anterior ni por pruebas de contrato.
+- SHA **final de código corregido y verificado**: `a3a5c0240d88802c3cc22205e0ed0597f400eb84` (no es el SHA de merge). Los cuatro workflows asociados a ese SHA finalizaron **SUCCESS** en GitHub:
+  - General [39142870136](https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39142870136): **79 pruebas**, con skips Qt justificados por el runner sin PySide6.
+  - Qt [39142870017](https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39142870017): **79 pruebas**, incluido cambio de modelo, restauración de sesión, búsqueda MD/JS y protección de URL.
+  - Windows EXE [39142870112](https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39142870112): **46 pruebas**, EXE construido/ejecutado y artefacto portable publicado.
+  - Ollama real [39142870093](https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39142870093): generación `llama3.2:1b`, resumen y embeddings `nomic-embed-text` reales, SUCCESS; generación A/B **1225.36 / 1006.95 ms** en ese runner.
+- Los commits posteriores a ese SHA se limitan a revisión documental/checkpoint; no inferir que la rama `main` fue actualizada.
 - El workflow OpenAI opt-in no equivale a llamada autenticada. `SKIPPED_NO_OPENAI_API_KEY` es ausencia de prueba, no éxito de proveedor.
 
 ## Pendientes de bloqueo real

@@ -74,10 +74,13 @@ class TokenLabAdvanced(QWidget):
 
     def new_context(self):
         try:
-            self.manager=GestorContexto(self.permanent.toPlainText(),self.budget.value(),
-                                        modelo=self.model_combo.currentText(),
-                                        reserva_respuesta=128,resumidor=summarize_ollama)
-            self.compactor.manager=self.manager
+            if self.compactor.busy:
+                raise RuntimeError("Cancela o finaliza el resumen activo antes de cambiar de sesión")
+            replacement=GestorContexto(self.permanent.toPlainText(),self.budget.value(),
+                                       modelo=self.model_combo.currentText(),
+                                       reserva_respuesta=128,resumidor=summarize_ollama)
+            self.manager=replacement
+            self.compactor.manager=replacement
             self.refresh_memory()
         except Exception as exc:
             self.mem_info.setText("ERROR: "+str(exc))
@@ -112,13 +115,24 @@ class TokenLabAdvanced(QWidget):
         except Exception as exc:self.mem_info.setText("ERROR: "+str(exc))
     def restore_context(self):
         try:
+            if self.compactor.busy:
+                raise RuntimeError("No se puede recuperar contexto durante una compresión")
             state=self.storage.load("studio_context")
-            if not state:raise ValueError("Sin checkpoint de sesión")
+            if not state:
+                raise ValueError("Sin checkpoint de sesión")
+            if not isinstance(state.get("memoria_permanente"),str):
+                raise ValueError("Checkpoint no válido")
+            replacement=GestorContexto(state["memoria_permanente"],self.budget.value(),
+                                        modelo=self.model_combo.currentText(),
+                                        reserva_respuesta=128,resumidor=summarize_ollama)
+            replacement.restore(state)
+            # Commit the restored context only after all validation succeeds.
+            self.manager=replacement
+            self.compactor.manager=replacement
             self.permanent.setPlainText(state["memoria_permanente"])
-            self.new_context()
-            self.manager.restore(state)
             self.refresh_memory()
-        except Exception as exc:self.mem_info.setText("ERROR: "+str(exc))
+        except Exception as exc:
+            self.mem_info.setText("ERROR: "+str(exc))
 
     def _duplicate(self):
         tab=QWidget();v=QVBoxLayout(tab)

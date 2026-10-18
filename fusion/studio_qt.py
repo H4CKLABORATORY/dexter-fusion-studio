@@ -357,7 +357,7 @@ class StudioWindow(QMainWindow):
         split_v.addWidget(self._make_timeline())
         split_v.setStretchFactor(0, 5)
         split_v.setStretchFactor(1, 4)
-        split_v.setSizes([415, 430])
+        split_v.setSizes([420, 465])
         root.addWidget(split_v)
         self.statusBar().showMessage('Listo · Motor FFmpeg local · Crea o abre un proyecto para comenzar')
         self._refresh()
@@ -394,12 +394,16 @@ class StudioWindow(QMainWindow):
         box.addWidget(label('BIBLIOTECA DE MEDIOS', 'Section'))
         box.addWidget(label('Fuentes importadas y accesos rápidos'))
         self.media_list = QListWidget()
-        box.addWidget(self.media_list, 1)
+        self.media_list.setMinimumHeight(90)
+        self.media_list.setMaximumHeight(170)
+        box.addWidget(self.media_list, 2)
         btn = QPushButton('＋  Añadir grabación')
         btn.clicked.connect(self.import_video)
         box.addWidget(btn)
         box.addWidget(label('EFECTOS DISPONIBLES', 'Section'))
         self.effects_list = QListWidget()
+        self.effects_list.setMinimumHeight(100)
+        self.effects_list.setMaximumHeight(225)
         for key, config in EFFECTS.items():
             item = QListWidgetItem('✧  '+config['label'])
             item.setData(Qt.ItemDataRole.UserRole, key)
@@ -428,6 +432,8 @@ class StudioWindow(QMainWindow):
         self.preview_stack=QStackedWidget()
         self.poster=QLabel('IMPORTA UNA GRABACIÓN PARA PREVISUALIZAR')
         self.poster.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.poster.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
+        self.poster.setMinimumHeight(0)
         self.poster.setStyleSheet('background:#060B14;color:#7788A2;font-weight:700;font-size:14px;')
         self.preview_stack.addWidget(self.poster)
         self.preview_stack.addWidget(self.video)
@@ -530,6 +536,7 @@ class StudioWindow(QMainWindow):
         row.addWidget(self.total_label)
         box.addLayout(row)
         self.timeline=TimelineCanvas()
+        self.timeline.setMinimumHeight(355)
         self.timeline_zoom.valueChanged.connect(self.timeline.set_scale)
         self.timeline.clip_picked.connect(self.select_clip)
         self.timeline.seek_requested.connect(self.seek_timeline)
@@ -597,7 +604,7 @@ class StudioWindow(QMainWindow):
             pic=QPixmap(str(path))
             if not pic.isNull():
                 self.poster.setPixmap(pic.scaled(
-                    QSize(1060,620),Qt.AspectRatioMode.KeepAspectRatio,
+                    QSize(730,410),Qt.AspectRatioMode.KeepAspectRatio,
                     Qt.TransformationMode.SmoothTransformation))
                 self.preview_stack.setCurrentWidget(self.poster)
         except Exception:

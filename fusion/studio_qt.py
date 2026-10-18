@@ -33,6 +33,8 @@ from .media import required
 from .phase2 import apply_timeline
 from .project import create_project
 from .studio_model import StudioDocument
+from .caption_styles import CAPTION_STYLES
+from .director import parse_prompt, render_motion
 
 ACCENT = '#28E7B6'
 BG = '#0B1019'
@@ -144,6 +146,24 @@ class ExportWorker(QThread):
             apply_timeline(self.folder, overwrite=True)
             output = export_plan(self.folder, overwrite=self.overwrite)
             self.completed.emit(str(output))
+        except Exception as exc:
+            self.failed.emit(str(exc))
+
+
+class MotionWorker(QThread):
+    completed = Signal(str)
+    failed = Signal(str)
+
+    def __init__(self, specification, output, overwrite=False):
+        super().__init__()
+        self.specification = specification
+        self.output = output
+        self.overwrite = overwrite
+
+    def run(self):
+        try:
+            path=render_motion(self.specification,self.output,overwrite=self.overwrite)
+            self.completed.emit(str(path))
         except Exception as exc:
             self.failed.emit(str(exc))
 
@@ -315,6 +335,7 @@ class StudioWindow(QMainWindow):
         self.setStyleSheet(STYLE)
         self.document = None
         self._render = None
+        self._motion = None
         self._wave_worker = None
         self._loading = False
         self.audio = QAudioOutput(self)
@@ -346,6 +367,9 @@ class StudioWindow(QMainWindow):
         self.export_action = QAction('EXPORTAR MP4  ↗', self)
         self.export_action.triggered.connect(self.export)
         tool.addAction(self.export_action)
+        director_action=QAction('✦  Director creativo',self)
+        director_action.triggered.connect(self.create_motion)
+        tool.addAction(director_action)
 
         main = QWidget()
         self.setCentralWidget(main)
@@ -495,6 +519,14 @@ class StudioWindow(QMainWindow):
         apply.clicked.connect(self.apply_properties)
         gv.addWidget(apply)
         box.addWidget(group)
+        captions=QGroupBox('Subtítulos animados')
+        cv=QVBoxLayout(captions)
+        self.caption_combo=QComboBox()
+        for style in CAPTION_STYLES:
+            self.caption_combo.addItem(style.title(),style)
+        cv.addWidget(self.caption_combo)
+        cv.addWidget(label('Karaoke/Punch requieren un SRT; la duración por palabra es estimada.'))
+        box.addWidget(captions)
         edit_group = QGroupBox('Montaje de segmentos')
         ev = QVBoxLayout(edit_group)
         for text, fn in [
@@ -637,6 +669,7 @@ class StudioWindow(QMainWindow):
             self.effect_combo.setCurrentIndex(max(0,self.effect_combo.findData(clip.effect)))
             self.zoom_spin.setValue(clip.zoom)
             self.output_label.setText(f"MP4 · {doc.project.get('platform','youtube').upper()} · H.264")
+            self.caption_combo.setCurrentIndex(max(0,self.caption_combo.findData(doc.caption_style)))
         else:
             self.clip_info.setText('Importa un archivo y selecciona un clip.')
         self.export_button.setEnabled(bool(doc) and not self._render)
@@ -737,6 +770,7 @@ class StudioWindow(QMainWindow):
         if not self.document:
             return
         try:
+            self.document.caption_style=self.caption_combo.currentData()
             path=self.document.save()
             self.statusBar().showMessage('Línea de tiempo guardada: '+str(path),5000)
         except Exception as exc:
@@ -746,6 +780,7 @@ class StudioWindow(QMainWindow):
         if not self.document or self._render:
             return
         try:
+            self.document.caption_style=self.caption_combo.currentData()
             self.document.save()
             target=self.document.folder/'output'/f"{self.document.project.get('platform','youtube')}-{self.document.project.get('effects','clean')}.mp4"
             overwrite=False
@@ -766,6 +801,50 @@ class StudioWindow(QMainWindow):
             self.statusBar().showMessage('Codificando MP4 con FFmpeg…',10000)
         except Exception as exc:
             QMessageBox.critical(self,'Renderización',str(exc))
+
+    def create_motion(self):
+        if not self.document:
+            QMessageBox.information(self,'Director creativo','Importa primero una grabación para guardar la intro en su proyecto.')
+            return
+        prompt,ok=QInputDialog.getMultiLineText(self,'Director creativo local',
+            'Describe el estilo, título, duración y formato:',
+            'Crea una intro cinematográfica verde con texto «DEXTER FF» de 4 segundos')
+        if not ok or not prompt.strip():
+            return
+        try:
+            spec=parse_prompt(prompt)
+            target=self.document.folder/'output'/'intro-director.mp4'
+            overwrite=False
+            if target.exists():
+                response=QMessageBox.question(self,'Intro existente',
+                    '¿Reemplazar únicamente intro-director.mp4?',
+                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+                if response!=QMessageBox.StandardButton.Yes:
+                    return
+                overwrite=True
+            if self._motion and self._motion.isRunning():
+                QMessageBox.information(self,'Director','Ya se está generando una intro.')
+                return
+            worker=MotionWorker(spec,target,overwrite)
+            worker.completed.connect(self._motion_complete)
+            worker.failed.connect(self._motion_failed)
+            self._motion=worker
+            worker.start()
+            self.statusBar().showMessage('Creando intro animada local con FFmpeg…')
+        except Exception as exc:
+            QMessageBox.warning(self,'Director creativo',str(exc))
+
+    def _motion_complete(self,path):
+        self._motion.wait(2500)
+        self._motion=None
+        self.statusBar().showMessage('Intro creada: '+path,9000)
+        QMessageBox.information(self,'Director creativo','Intro MP4 creada:\\n'+path+
+            '\\n\\nSe exporta separada del montaje; puedes importarla más adelante.')
+
+    def _motion_failed(self,message):
+        self._motion.wait(2500)
+        self._motion=None
+        QMessageBox.critical(self,'Director creativo',message)
 
     def _export_complete(self, path):
         self.export_progress.setRange(0,100)
@@ -829,9 +908,9 @@ class StudioWindow(QMainWindow):
             'Las pistas adicionales no son exportables.')
 
     def closeEvent(self, event):
-        if self._render and self._render.isRunning():
+        if (self._render and self._render.isRunning()) or (self._motion and self._motion.isRunning()):
             QMessageBox.warning(self,'Exportación en curso',
-                'Espera a que termine la exportación antes de cerrar.')
+                'Espera a que termine el render antes de cerrar.')
             event.ignore()
             return
         event.accept()

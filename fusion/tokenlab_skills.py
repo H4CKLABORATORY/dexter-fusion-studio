@@ -1,6 +1,7 @@
 """Strict local function-call skills, with JSON outputs and bounded memoization."""
 import hashlib
 import json
+import os
 from pathlib import Path
 from .tokenlab_tools import compare_texts
 from .tokenlab_context import tokens
@@ -63,19 +64,39 @@ class RegistroSkills:
     def execute_json(self,name,args):
         return json.dumps(self.execute(name,args),ensure_ascii=False,allow_nan=False)
     def _search(self,query,limit):
-        result=[]
-        if not query.strip():raise ValueError("Consulta vacía")
-        skip={".git","node_modules","__pycache__",".venv","dist","build"}
-        for path in sorted(self.root.rglob("*.py")):
-            if len(result)>=limit:break
-            if path.is_symlink() or not path.is_file() or path.stat().st_size>350000:
-                continue
-            if any(x in skip for x in path.relative_to(self.root).parts):continue
-            try:
-                for line_no,line in enumerate(path.read_text(encoding="utf-8").splitlines(),1):
-                    if query.casefold() in line.casefold():
-                        result.append({"path":str(path.relative_to(self.root)),"line":line_no,
-                                       "match":line[:180]})
-                        if len(result)>=limit:break
-            except (OSError,UnicodeError):continue
-        return {"matches":result}
+        """Bounded text search; skip symlinks/builds and include non-Python sources."""
+        if not query.strip():
+            raise ValueError("Consulta vacía")
+        allowed={".py",".md",".js",".jsx",".ts",".tsx",".html",".css",".json",
+                 ".yaml",".yml",".toml",".txt",".cjs",".mjs"}
+        skip={".git","node_modules","__pycache__",".venv","venv","dist",
+              "build",".next",".cache","site-packages"}
+        results=[]
+        scanned=0
+        limit_files=5000
+        truncated=False
+        for directory,subdirs,files in os.walk(self.root,followlinks=False):
+            subdirs[:]=sorted(d for d in subdirs
+                               if d not in skip and not (Path(directory)/d).is_symlink())
+            for name in sorted(files):
+                path=Path(directory)/name
+                if path.suffix.lower() not in allowed or path.is_symlink():
+                    continue
+                scanned+=1
+                if scanned>limit_files:
+                    truncated=True
+                    return {"matches":results,"scanned_files":limit_files,
+                            "truncated":truncated}
+                try:
+                    if path.stat().st_size>350000:
+                        continue
+                    for line_no,line in enumerate(path.read_text(encoding="utf-8").splitlines(),1):
+                        if query.casefold() in line.casefold():
+                            results.append({"path":str(path.relative_to(self.root)),
+                                            "line":line_no,"match":line[:180]})
+                            if len(results)>=limit:
+                                return {"matches":results,"scanned_files":scanned,
+                                        "truncated":False}
+                except (OSError,UnicodeError):
+                    continue
+        return {"matches":results,"scanned_files":scanned,"truncated":truncated}

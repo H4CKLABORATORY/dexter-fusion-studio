@@ -367,6 +367,8 @@ class StudioWindow(QMainWindow):
         self._motion = None
         self._wave_worker = None
         self._loading = False
+        self._preview_rendered = False
+        self._render_output = None
         self.audio = QAudioOutput(self)
         self.player = QMediaPlayer(self)
         self.player.setAudioOutput(self.audio)
@@ -488,7 +490,8 @@ class StudioWindow(QMainWindow):
         panel.setObjectName('Surface')
         box = QVBoxLayout(panel)
         top = QHBoxLayout()
-        top.addWidget(label('VISOR DE FUENTE', 'Section'))
+        self.preview_heading=label('VISOR DE FUENTE', 'Section')
+        top.addWidget(self.preview_heading)
         top.addStretch(1)
         top.addWidget(label('Vista previa del archivo original'))
         box.addLayout(top)
@@ -527,7 +530,16 @@ class StudioWindow(QMainWindow):
         self.player.positionChanged.connect(self._player_position)
         self.player.durationChanged.connect(self._player_duration)
         self.player.errorOccurred.connect(lambda *args: self.statusBar().showMessage('Reproductor: revisa compatibilidad del archivo',6000))
-        box.addWidget(label('Montaje exportado con FFmpeg; la previsualización compuesta multipista es una fase posterior.'))
+        controls=QHBoxLayout()
+        self.original_btn=QPushButton('Ver original')
+        self.original_btn.clicked.connect(self.show_source)
+        controls.addWidget(self.original_btn)
+        self.final_btn=QPushButton('▶ Ver resultado MP4')
+        self.final_btn.clicked.connect(self.show_final_video)
+        self.final_btn.setEnabled(False)
+        controls.addWidget(self.final_btn)
+        box.addLayout(controls)
+        box.addWidget(label('La composición se puede ver después de exportar; no hay vista multipista en vivo.'))
         return panel
 
     def _make_inspector(self):
@@ -665,6 +677,10 @@ class StudioWindow(QMainWindow):
             if self._wave_worker and self._wave_worker.isRunning():
                 self._wave_worker.wait(1500)
             self.document = StudioDocument(folder)
+            self._preview_rendered=False
+            self._render_output=None
+            self.preview_heading.setText('VISOR DE FUENTE')
+            self.final_btn.setEnabled(False)
             self.player.setSource(QUrl.fromLocalFile(str(self.document.source)))
             poster_image = self._source_poster()
             self.media_list.clear()
@@ -711,6 +727,26 @@ class StudioWindow(QMainWindow):
         except Exception:
             self.poster.setText('Vista previa disponible al reproducir')
         return None
+
+    def show_source(self):
+        if not self.document:
+            return
+        self.player.pause()
+        self.player.setSource(QUrl.fromLocalFile(str(self.document.source)))
+        self._preview_rendered=False
+        self.preview_heading.setText('VISOR DE FUENTE')
+        self.preview_stack.setCurrentWidget(self.video)
+
+    def show_final_video(self):
+        if not self._render_output or not Path(self._render_output).is_file():
+            QMessageBox.information(self,'Render','Primero exporta el montaje.')
+            return
+        self.player.pause()
+        self.player.setSource(QUrl.fromLocalFile(str(self._render_output)))
+        self._preview_rendered=True
+        self.preview_heading.setText('COMPOSICIÓN EXPORTADA · MP4 REAL')
+        self.preview_stack.setCurrentWidget(self.video)
+        self.player.play()
 
     def _refresh(self):
         doc=self.document
@@ -1016,6 +1052,9 @@ class StudioWindow(QMainWindow):
         self._render=None
         self._refresh()
         self.statusBar().showMessage('Exportación terminada: '+path,10000)
+        self._render_output=path
+        self.final_btn.setEnabled(True)
+        self.show_final_video()
         QMessageBox.information(self,'Render completado','Archivo MP4 generado:\n'+path)
 
     def _export_failed(self, message):
@@ -1027,7 +1066,10 @@ class StudioWindow(QMainWindow):
         QMessageBox.critical(self,'Falló la exportación',message)
 
     def seek_timeline(self, seconds):
-        """Translate composition time into source time, respecting clip reorder."""
+        """Seek the rendered composition or translate edited time to original source."""
+        if self._preview_rendered:
+            self.player.setPosition(round(max(0,seconds)*1000))
+            return
         if not self.document:
             return
         offset=0.0
@@ -1043,8 +1085,9 @@ class StudioWindow(QMainWindow):
         if not self.scrub.isSliderDown():
             self.scrub.setValue(position)
         self.time_display.setText(f'{format_time(position/1000)}  /  {format_time(self.player.duration()/1000)}')
-        # Playback time points into the original source, not the edited composition.
-        self.timeline.set_playhead(position/1000)
+        # Source time is not necessarily composition time after reordering.
+        if self._preview_rendered:
+            self.timeline.set_playhead(position/1000)
 
     def _player_duration(self, duration):
         self.scrub.setRange(0,max(0,int(duration)))

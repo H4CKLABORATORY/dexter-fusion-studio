@@ -34,8 +34,8 @@ def deduplicate(fragments,embeddings=None,threshold=0.92):
         if embeddings is not None:
             for j in indices:
                 # Protect changes in numeric facts and explicit negation markers.
-                facts=lambda s: (re.findall(r"\\b\\d+(?:[.,]\\d+)?\\b",s),
-                                 re.findall(r"\\b(?:no|nunca|sin|not|never|without)\\b",s,re.I))
+                facts=lambda s: (re.findall(r"\b\d+(?:[.,]\d+)?\b",s),
+                                 re.findall(r"\b(?:no|nunca|sin|not|never|without)\b",s,re.I))
                 if facts(part)!=facts(fragments[j]): continue
                 if cosine(embeddings[i],embeddings[j])>=threshold:
                     similar=True; break

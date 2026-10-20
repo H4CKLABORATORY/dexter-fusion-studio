@@ -2,6 +2,7 @@
 import json, os, shutil, subprocess
 from pathlib import Path
 from .project import safe_write
+from .rea_bridge import find_rea
 
 REFERENCE={
  'concat':{'repository':'https://github.com/jub0t/Concat','license':'AGPL-3.0-or-later','status':'API JSON-RPC publicada; hay que configurar transporte y revisar versión instalada'},
@@ -12,6 +13,7 @@ REFERENCE={
 
 def defaults():
     return {
+        'rea_cli': '',
         'concat_exe':r'C:\Program Files\Concat\Concat.exe',
         'filmcraft_cli':r'C:\Program Files\FilmCraft\filmcraft-cli.exe',
         'effectcraft_cli':r'C:\Program Files\EffectCraft\effectcraft-cli.exe',
@@ -27,6 +29,12 @@ def scan(config=None):
         out[name]={'found':path.is_file(), 'path':str(path), 'configured':True}
     for binary in ('ffmpeg','ffprobe','python'):
         out[binary]={'found':bool(shutil.which(binary)),'path':shutil.which(binary)}
+    try:
+        rea = find_rea(config.get('rea_cli') or None)
+    except FileNotFoundError:
+        out['REA'] = {'found': False, 'path': None}
+    else:
+        out['REA'] = {'found': True, 'path': rea}
     return out
 
 def export_mcp_client_config(destination,config):
@@ -36,6 +44,12 @@ def export_mcp_client_config(destination,config):
     for key,name,args in [('filmcraft_cli','filmcraft',['mcp']),('effectcraft_cli','effectcraft',['mcp'])]:
         path=Path(config[key]).expanduser()
         if path.is_file():mcp[name]={'command':str(path.resolve()),'args':args}
+    try:
+        rea = find_rea(config.get('rea_cli') or None)
+    except FileNotFoundError:
+        pass
+    else:
+        mcp['rea'] = {'command': rea, 'args': ['mcp']}
     safe_write(Path(destination),{'mcpServers':mcp})
     return list(mcp)
 

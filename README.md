@@ -37,6 +37,10 @@ En Timeline v2, **Estilo de subtítulos** permite `classic` (SRT tradicional), `
 
 Nuevo prototipo local en **Timeline v2**. Describe una intro en español y genera un MP4 original con títulos animados usando FFmpeg; o importa un video de referencia y reutiliza **solo la duración aproximada de sus cortes** en el timeline editable. No genera personajes ni reproduce efectos propietarios de Higgsfield Katana, y el original permanece intacto. [Uso y limitaciones](docs/DIRECTOR_CREATIVO.md).
 
+## REA — ingeniería inversa asistida (integración opcional)
+
+Se añadió un adaptador local para **REA: Reverse Engineer Anything**, con diagnóstico JSON, análisis de carpetas JS/Electron o archivos `.asar` y configuración MCP exportable si REA está instalado. No modifica el editor, no instala REA ni requiere servidor permanente para generar la configuración. Consulta [la guía de integración](docs/REA_INTEGRATION.md) y ejecuta `python -m unittest tests.test_rea_bridge -v`.
+
 ## Funcionamiento actual
 
 - Interfaz Windows de 6 pestañas: proyecto, edición automática, efectos y memes, **Timeline v2**, nuevos contenidos e integraciones.

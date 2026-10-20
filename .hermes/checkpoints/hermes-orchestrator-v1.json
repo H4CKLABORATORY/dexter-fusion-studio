@@ -7,15 +7,17 @@
   "last_observed_commit": "fc4362a86f074303c4c9b34ace32b19cb6a79d37",
   "last_verified_commit": "fc4362a86f074303c4c9b34ace32b19cb6a79d37",
   "status": "in_progress",
-  "updated_at": "2026-10-20T12:00:00Z",
-  "next_action": "Fase host real: instalar/configurar Hermes Agent y Ollama en mini PC o Windows, clonar una rama limpia, crear projects.json privado, ejecutar runner en modo status y luego primer tick con modelo real (opt-in); verificar pruebas/evidencia. Después programar ciclo horario y supervisión privada iPhone. No afirmar ejecución 24/7 antes de probar el host.",
+  "updated_at": "2026-10-20T12:45:00Z",
+  "next_action": "Cloud sin PC: CI verde para read-only GitHub Actions monitor (workflow hermes-cloud-monitor.yml, run 39371361070). Pendiente: comprobar PR #13, fusionar workflow a main solo con autorización, elegir proveedor de IA accesible desde runner y configurar su secreto privado; implementar ejecución con modelo real que entregue commits en PR con cuotas y sin auto-merge. Probar trigger horario real.",
   "completed_steps": [
     "Implementado motor checkpoint.py sin dependencias y diez pruebas en repositorios Dexter Fusion Studio y 1UP Anime.",
     "Creados borradores PR #13 y PR #64 sin tocar main.",
     "Workflow específico DEXTER HERMES Checkpoints completado correctamente en ambos PRs.",
     "Ejecución CLI real integrada en tools/hermes/runner.py usando Hermes chat --oneshot --query-file -, con opt-in, bloqueo exclusivo y protección de main.",
     "Programador multi-repositorio en tools/hermes/scheduler.py, con límites por ciclo, estado local privado y guía de instalación Linux/Windows/Ollama.",
-    "CI de Dexter Fusion Studio y DEXTER HERMES aprobado para commit fc4362a (runs 39370257192 y 39370257231). Pruebas de runner usan Hermes simulado, NO motor real."
+    "CI de Dexter Fusion Studio y DEXTER HERMES aprobado para commit fc4362a (runs 39370257192 y 39370257231). Pruebas de runner usan Hermes simulado, NO motor real.",
+    "Monitor sin PC en .github/workflows/hermes-cloud-monitor.yml: GitHub-hosted ubuntu, cron cada hora en main tras merge, manual trigger y reporte de checkpoints sin secretos ni IA.",
+    "Pruebas del cloud monitor completadas en GitHub Actions: run 39371361070 SUCCESS (SHA f72ea73806a9afa52b7f12dbc2e658fecf5d2f19)."
   ],
   "changed_files": [
     "tools/hermes/checkpoint.py",
@@ -27,12 +29,15 @@
     "tools/hermes/scheduler.py",
     "tools/hermes/SERVER_SETUP.md",
     "tests/test_hermes_runner.py",
-    "tests/test_hermes_scheduler.py"
+    "tests/test_hermes_scheduler.py",
+    "tools/hermes/cloud_status.py",
+    "tests/test_hermes_cloud_status.py",
+    ".github/workflows/hermes-cloud-monitor.yml"
   ],
   "blockers": [
-    "No está instalado ni configurado un servidor físico desde esta conversación; pendiente decisión del host, modelo y acceso remoto.",
-    "Las pruebas con modelo real y la ejecución horaria desatendida todavía no están verificadas.",
-    "El PR #13 está en draft y main no ha cambiado."
+    "Cloud Monitor no invoca aún modelo de IA ni produce cambios de código; requiere proveedor API autorizado y una ruta segura de commit/PR.",
+    "Schedule de GitHub Actions solo empieza en main tras merge del PR; por ahora son comprobaciones de PR en la nube.",
+    "El uso de GitHub Actions en repos públicos con runners estándar no cobra minutos, pero proveedores IA externos pueden tener costos/cuotas."
   ],
   "verification": [
     {
@@ -54,6 +59,11 @@
       "name": "GitHub Actions Verificar Dexter Fusion Studio v0.2",
       "result": "passed",
       "evidence": "https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39370257192"
+    },
+    {
+      "name": "GitHub Actions DEXTER HERMES Cloud Monitor",
+      "result": "passed",
+      "evidence": "https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39371361070"
     }
   ],
   "links": [
@@ -68,6 +78,10 @@
     {
       "at": "2026-10-20T12:00:00Z",
       "event": "Fase CLI+Scheduler documentada y probada por CI en fc4362a; la actualización de este propio checkpoint produce HEAD nuevo y requiere volver a contrastar CI para declarar ese commit verificado."
+    },
+    {
+      "at": "2026-10-20T12:45:00Z",
+      "event": "Se implementó reporte en nube sin PC en GitHub Actions, comprobado SUCCESS; queda pendiente activación schedule en main y ejecución de IA con proveedor."
     }
   ]
 }

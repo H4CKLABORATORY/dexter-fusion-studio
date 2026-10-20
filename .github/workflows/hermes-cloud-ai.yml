@@ -1,0 +1,147 @@
+name: DEXTER HERMES Free CPU AI Trial
+on:
+  pull_request:
+    paths:
+      - 'tools/hermes/cloud_ai_worker.py'
+      - 'tests/test_hermes_cloud_ai_worker.py'
+      - '.github/workflows/hermes-cloud-ai.yml'
+  workflow_dispatch:
+    inputs:
+      task_id:
+        description: 'Approved coding experiment'
+        type: choice
+        options:
+          - checkpoint-summary-helper
+        required: true
+      enable_model:
+        description: 'Run the local Ollama model once (no external API key)'
+        type: boolean
+        required: true
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hermes-free-cpu-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  unit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Test strictly bounded cloud code generator
+        run: python -m unittest discover -s tests -p test_hermes_cloud_ai_worker.py -v
+      - name: Validate Python syntax
+        run: python -m py_compile tools/hermes/cloud_ai_worker.py
+
+  generate:
+    needs: unit
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.enable_model == true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install ephemeral CPU-only Ollama
+        run: |
+          curl --fail --silent --show-error --location https://ollama.com/install.sh -o "$RUNNER_TEMP/ollama-install.sh"
+          sh "$RUNNER_TEMP/ollama-install.sh"
+          ollama serve > "$RUNNER_TEMP/ollama.log" 2>&1 &
+          for i in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:11434/api/tags > /dev/null; then break; fi
+            sleep 2
+          done
+          curl --fail --silent http://127.0.0.1:11434/api/tags > /dev/null
+          ollama pull qwen2.5-coder:1.5b
+      - name: Generate one restricted proposal (no arbitrary shell tools)
+        env:
+          HERMES_CLOUD_MODEL_ENABLED: '1'
+          TASK_ID: ${{ inputs.task_id }}
+        run: |
+          python tools/hermes/cloud_ai_worker.py \
+            --task-id "$TASK_ID" \
+            --output "$RUNNER_TEMP/hermes-proposal" \
+            --generate
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hermes-ai-proposal-${{ github.run_id }}
+          path: ${{ runner.temp }}/hermes-proposal/
+          if-no-files-found: error
+          retention-days: 3
+
+  publish:
+    needs: generate
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.enable_model == true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/download-artifact@v4
+        with:
+          name: hermes-ai-proposal-${{ github.run_id }}
+          path: ${{ runner.temp }}/hermes-proposal
+      - name: Check model artifact and copy to allowlisted destination
+        env:
+          TASK_ID: ${{ inputs.task_id }}
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+          from tools.hermes import cloud_ai_worker as ai
+
+          base = Path(os.environ["RUNNER_TEMP"]) / "hermes-proposal"
+          manifest = json.loads((base / "manifest.json").read_text())
+          task_id = os.environ["TASK_ID"]
+          task = ai.get_task(task_id)
+          if manifest.get("task_id") != task_id or manifest.get("target") != task["target"]:
+              raise SystemExit("Unexpected task or artifact destination")
+          code = ai.validate_code((base / "proposal.py").read_text())
+          if hashlib.sha256(code.encode()).hexdigest() != manifest.get("sha256"):
+              raise SystemExit("Artifact checksum mismatch")
+          target = Path(task["target"])
+          if target.exists() or target.is_symlink():
+              raise SystemExit("Destination exists; nothing will be overwritten")
+          target.parent.mkdir(parents=True, exist_ok=True)
+          target.write_text(code)
+          print("Validated new proposed module:", target)
+          PY
+      - name: Create isolated branch and open review PR (never merge)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TASK_ID: ${{ inputs.task_id }}
+        run: |
+          set -euo pipefail
+          BRANCH="bot/hermes-cpu-${{ github.run_id }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add -- tools/hermes/experiments/checkpoint_summary.py
+          git diff --cached --quiet && { echo 'Nothing new to propose'; exit 1; }
+          git commit -m "feat(hermes): CPU AI proposal for $TASK_ID"
+          git push origin "$BRANCH"
+          gh pr create --repo "$GH_REPO" --base main --head "$BRANCH" \
+            --title "Hermes CPU AI proposal: $TASK_ID" \
+            --body "Generated by a small CPU-only Ollama model on GitHub Actions. Syntax and static AST guards passed. The generated module has NOT been executed or functionally tested and must be reviewed before merge. Source workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}."

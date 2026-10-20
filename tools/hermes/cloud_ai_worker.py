@@ -1,0 +1,202 @@
+"""DEXTER HERMES: bounded, CPU-only cloud coding proposal worker.
+
+The model receives only a fixed task specification, never repository credentials.
+It may propose ONE new Python file within tools/hermes/experiments/.
+Generated Python is syntax-parsed but never executed by this worker.
+A separate credentialed GitHub Actions job opens a PR for human review.
+"""
+from __future__ import annotations
+
+import argparse
+import ast
+import hashlib
+import json
+import os
+from pathlib import Path, PurePosixPath
+import re
+import sys
+import urllib.error
+import urllib.request
+
+MAX_CODE_BYTES = 16_384
+MAX_RESPONSE_BYTES = 64_000
+OLLAMA_CHAT_URL = "http://127.0.0.1:11434/api/chat"
+MODEL_NAME = "qwen2.5-coder:1.5b"
+
+TASKS = {
+    "checkpoint-summary-helper": {
+        "target": "tools/hermes/experiments/checkpoint_summary.py",
+        "objective": (
+            "Write a Python 3.11 stdlib-only reusable module that provides "
+            "summarize_checkpoint(record: dict) -> dict. Input is a DEXTER HERMES "
+            "checkpoint with fields task_id, project, status, next_action, blockers, "
+            "last_observed_commit, last_verified_commit. Return a concise sanitized "
+            "summary with keys task_id, project, status, next_action, blockers_count, "
+            "verification_pending. Validate types and raise ValueError on invalid "
+            "inputs. Add docstrings and type hints. Never access files, network, "
+            "shell, environment variables, or third party modules."
+        ),
+    },
+}
+TASK_RE = re.compile(r"[a-z0-9][a-z0-9_-]{0,63}\Z")
+
+
+class CloudWorkerError(RuntimeError):
+    pass
+
+
+def get_task(task_id: str) -> dict:
+    if not isinstance(task_id, str) or not TASK_RE.fullmatch(task_id):
+        raise CloudWorkerError("task_id inválido")
+    if task_id not in TASKS:
+        raise CloudWorkerError("Tarea no incluida en lista revisada")
+    task = TASKS[task_id]
+    target = PurePosixPath(task["target"])
+    if target.is_absolute() or ".." in target.parts or target.suffix != ".py":
+        raise CloudWorkerError("Ruta no permitida")
+    if len(target.parts) != 4 or target.parts[:3] != ("tools", "hermes", "experiments"):
+        raise CloudWorkerError("Solo experiments/ autorizado")
+    return task
+
+
+def build_prompt(task_id: str) -> str:
+    task = get_task(task_id)
+    return (
+        "You are a code generation worker. Return ONLY valid JSON with one string "
+        "property named code, containing the entire Python 3.11 module as plain "
+        "source code. No explanations and no markdown. Build a safe, self-contained "
+        "module. No secret access, network, shell, dynamic imports, or execution "
+        "of remote content. It must be useful and documented. "
+        "Task: " + task["objective"]
+    )
+
+
+def ollama_proposal(task_id: str, *, timeout: int = 360) -> str:
+    if os.getenv("HERMES_CLOUD_MODEL_ENABLED") != "1":
+        raise CloudWorkerError("Modelo deshabilitado; configurar HERMES_CLOUD_MODEL_ENABLED=1")
+    prompt = build_prompt(task_id)
+    request_body = json.dumps({
+        "model": MODEL_NAME,
+        "messages": [
+            {"role": "system", "content": "Return a single JSON object with a code string. No markdown."},
+            {"role": "user", "content": prompt},
+        ],
+        "format": "json",
+        "stream": False,
+        "options": {"temperature": 0, "num_predict": 2400, "num_ctx": 4096},
+    }).encode("utf-8")
+    req = urllib.request.Request(
+        OLLAMA_CHAT_URL, data=request_body, method="POST",
+        headers={"Content-Type": "application/json"}
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as response:
+            body = response.read(MAX_RESPONSE_BYTES + 1)
+    except (urllib.error.URLError, TimeoutError) as exc:
+        raise CloudWorkerError("No disponible el modelo local de Ollama") from exc
+    if len(body) > MAX_RESPONSE_BYTES:
+        raise CloudWorkerError("Respuesta del modelo demasiado larga")
+    try:
+        response_json = json.loads(body)
+        generated_json = json.loads(response_json["message"]["content"])
+        code = generated_json["code"]
+    except (ValueError, KeyError, TypeError) as exc:
+        raise CloudWorkerError("Respuesta del modelo sin JSON/code válido") from exc
+    return validate_code(code)
+
+
+def validate_code(code: object) -> str:
+    if not isinstance(code, str):
+        raise CloudWorkerError("El código debe ser texto")
+    source = code.strip() + "\n"
+    encoded = source.encode("utf-8")
+    if len(encoded) < 90 or len(encoded) > MAX_CODE_BYTES:
+        raise CloudWorkerError("Tamaño de código fuera de límites")
+    if "\x00" in source or "\r" in source:
+        raise CloudWorkerError("Caracteres no permitidos")
+    try:
+        tree = ast.parse(source, filename="<model-proposal>")
+    except SyntaxError as exc:
+        raise CloudWorkerError("La propuesta Python no compila") from exc
+    # Narrow pure-function prototype. No imports, no module-level actions,
+    # no dynamic execution, no attributes with dunder names.
+    allowed_top = (ast.FunctionDef, ast.Expr)
+    if not all(isinstance(n, allowed_top) for n in tree.body):
+        raise CloudWorkerError("Solo funciones y docstrings al nivel superior")
+    for n in tree.body:
+        if isinstance(n, ast.Expr) and not (
+            isinstance(n.value, ast.Constant) and isinstance(n.value.value, str)
+        ):
+            raise CloudWorkerError("Expresión global no permitida")
+    forbidden = (ast.Import, ast.ImportFrom, ast.AsyncFunctionDef, ast.ClassDef,
+                 ast.Lambda, ast.Global, ast.Nonlocal, ast.Yield, ast.YieldFrom,
+                 ast.Await, ast.Try, ast.With)
+    banned_calls = {"eval", "exec", "compile", "__import__", "open", "input",
+                    "breakpoint", "globals", "locals", "vars", "getattr", "setattr",
+                    "delattr", "help"}
+    safe_methods = {"get", "copy", "keys", "items", "values", "strip", "lower", "upper",
+                    "startswith", "endswith", "count", "split", "join", "append"}
+    for node in ast.walk(tree):
+        if isinstance(node, forbidden):
+            raise CloudWorkerError("Operación no admitida en propuesta")
+        if isinstance(node, ast.Attribute) and node.attr.startswith("__"):
+            raise CloudWorkerError("Atributo interno prohibido")
+        if isinstance(node, ast.Call):
+            if isinstance(node.func, ast.Name) and node.func.id in banned_calls:
+                raise CloudWorkerError("Función prohibida")
+            if isinstance(node.func, ast.Attribute) and node.func.attr not in safe_methods:
+                raise CloudWorkerError("Método no permitido")
+            if not isinstance(node.func, (ast.Name, ast.Attribute)):
+                raise CloudWorkerError("Llamada dinámica no permitida")
+    return source
+
+
+def write_proposal(task_id: str, code: str, directory: Path) -> dict:
+    task = get_task(task_id)
+    # The output directory is an ephemeral artifact directory, never the repo.
+    output = directory.resolve()
+    if output.exists() and (output.is_symlink() or any(output.iterdir())):
+        raise CloudWorkerError("El directorio de salida debe estar vacío")
+    output.mkdir(parents=True, exist_ok=True)
+    sanitized = validate_code(code)
+    module_path = output / "proposal.py"
+    module_path.write_text(sanitized, encoding="utf-8")
+    report = {
+        "schema_version": 1,
+        "task_id": task_id,
+        "target": task["target"],
+        "sha256": hashlib.sha256(sanitized.encode("utf-8")).hexdigest(),
+        "source": "Ollama local on ephemeral GitHub runner",
+        "tests": "AST syntax and static restrictions only; runtime tests pending",
+    }
+    (output / "manifest.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    return report
+
+
+def main(argv: list[str] | None = None) -> int:
+    p = argparse.ArgumentParser(description="Hermes CPU cloud proposal generator")
+    p.add_argument("--task-id", required=True)
+    p.add_argument("--output", type=Path)
+    p.add_argument("--generate", action="store_true")
+    args = p.parse_args(argv)
+    try:
+        task = get_task(args.task_id)
+        if not args.generate:
+            print(json.dumps({"mode": "dry-run", "task_id": args.task_id,
+                              "target": task["target"],
+                              "prompt_sha256": hashlib.sha256(
+                                  build_prompt(args.task_id).encode("utf-8")).hexdigest(),
+                              "model": MODEL_NAME}, indent=2))
+            return 0
+        if not args.output:
+            raise CloudWorkerError("--output obligatorio para generar")
+        result = write_proposal(args.task_id, ollama_proposal(args.task_id), args.output)
+        print(json.dumps(result, indent=2))
+        return 0
+    except (CloudWorkerError, OSError, ValueError) as exc:
+        print("Cloud worker: " + str(exc), file=sys.stderr)
+        return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

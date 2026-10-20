@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "project": "H4CKLABORATORY/dexter-fusion-studio",
+  "task_id": "tokenlab-pr12",
+  "objective": "Finalizar la auditoría e integración segura de TokenLab PR #12 y MIRA sin perder el progreso.",
+  "branch": "feature/tokenlab-qt-count-ab",
+  "status": "blocked",
+  "last_observed_commit": null,
+  "last_verified_commit": null,
+  "updated_at": "2026-10-20T04:10:04+00:00",
+  "next_action": "Obtener HEAD actual de PR #12 y estado real de los workflows; comparar contra CONTINUIDAD.md y TOKENLAB_CHECKPOINT.json; resolver bloqueos sin fusionar main sin pruebas.",
+  "completed_steps": [
+    "Se localizaron CONTINUIDAD.md y TOKENLAB_CHECKPOINT.json en la rama TokenLab. Se conservarán como fuentes de continuidad anteriores."
+  ],
+  "changed_files": [],
+  "blockers": [
+    "La prueba de OpenAI autenticado no consta realizada en TOKENLAB_CHECKPOINT.json; requiere autorización y secreto privado.",
+    "La publicación del repositorio independiente de MIRA sigue pendiente según el checkpoint existente."
+  ],
+  "verification": [],
+  "links": [
+    "https://github.com/H4CKLABORATORY/dexter-fusion-studio/pull/12"
+  ],
+  "history": [
+    {
+      "at": "2026-10-20T04:10:04+00:00",
+      "event": "Señalado trabajo existente; inicialización de checkpoint transversal, sin marcar CI como verificado."
+    }
+  ]
+}

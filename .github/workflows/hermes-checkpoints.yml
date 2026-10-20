@@ -5,7 +5,6 @@ on:
       - 'tools/hermes/**'
       - 'tests/test_hermes_checkpoint.py'
       - 'tests/test_hermes_runner.py'
-      - 'tests/test_hermes_runner.py'
       - '.hermes/checkpoints/**'
       - '.github/workflows/hermes-checkpoints.yml'
   push:
@@ -13,6 +12,7 @@ on:
     paths:
       - 'tools/hermes/**'
       - 'tests/test_hermes_checkpoint.py'
+      - 'tests/test_hermes_runner.py'
       - '.hermes/checkpoints/**'
   workflow_dispatch:
 permissions:

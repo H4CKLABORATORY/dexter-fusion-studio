@@ -23,6 +23,10 @@ class CloudStatusTests(unittest.TestCase):
         self.assertEqual(p.returncode, 0, p.stderr)
         cp.save(cp.file_for(self.root, "task-a"),
                 cp.new("H4CKLABORATORY/demo", "task-a", "Audit", "main", "Add regression tests"))
+        for a in (("config", "user.email", "test@example.invalid"),
+                  ("config", "user.name", "Hermes Test"), ("add", "."),
+                  ("commit", "-qm", "checkpoint baseline")):
+            subprocess.run(["git", *a], cwd=self.root, check=True, capture_output=True, text=True)
 
     def test_empty_or_missing_checkpoint_fails_closed(self):
         with self.assertRaises(RuntimeError):
@@ -56,11 +60,6 @@ class CloudStatusTests(unittest.TestCase):
         self.assertFalse((self.root/"report.json").exists())
 
     def test_cli_report_written_only_outside_workspace(self):
-        # Real git needs an initial commit, but passing head explicitly is tested above.
-        subprocess.run(["git", "config", "user.email", "test@example.invalid"], cwd=self.root, check=True)
-        subprocess.run(["git", "config", "user.name", "Hermes Test"], cwd=self.root, check=True)
-        subprocess.run(["git", "add", "."], cwd=self.root, check=True)
-        subprocess.run(["git", "commit", "-qm", "checkpoint baseline"], cwd=self.root, check=True)
         self.assertEqual(cloud_status.main(["--root", str(self.root),
                                            "--output", str(self.outside)]), 0)
         report = json.loads(self.outside.read_text())

@@ -141,16 +141,16 @@ def sanitize_model_code(code: object) -> str:
     if not isinstance(code, str):
         raise CloudWorkerError("El código debe ser texto")
     source = code.strip()
-    if source.startswith("```python\\n") and source.endswith("```"):
-        source = source[len("```python\\n"):-3].strip()
-    elif source.startswith("```\\n") and source.endswith("```"):
+    if source.startswith("```python\n") and source.endswith("```"):
+        source = source[len("```python\n"):-3].strip()
+    elif source.startswith("```\n") and source.endswith("```"):
         source = source[4:-3].strip()
     # A clean module needs no normalization.
     try:
         return validate_code(source)
     except CloudWorkerError:
         pass
-    if len(source.encode("utf-8")) > MAX_CODE_BYTES or "\\x00" in source:
+    if len(source.encode("utf-8")) > MAX_CODE_BYTES or "\x00" in source:
         raise CloudWorkerError("Propuesta no normalizable")
     try:
         original = ast.parse(source, filename="<model-proposal>")
@@ -192,7 +192,7 @@ def sanitize_model_code(code: object) -> str:
         _check_annotation(fn.args.kwarg.annotation)
     _check_annotation(fn.returns)
 
-    cleaned = ast.unparse(ast.Module(body=[fn], type_ignores=[])) + "\\n"
+    cleaned = ast.unparse(ast.Module(body=[fn], type_ignores=[])) + "\n"
     verified = validate_code(cleaned)
     allowed_globals = {"dict", "str", "int", "bool", "list", "tuple", "set",
                        "isinstance", "len", "sorted", "min", "max", "sum",

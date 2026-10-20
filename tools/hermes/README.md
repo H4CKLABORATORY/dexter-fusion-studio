@@ -1,6 +1,6 @@
 # DEXTER HERMES — Checkpoints portátiles (v1)
 
-Herramienta independiente de proveedores, sin dependencias externas ni secretos. No ejecuta tareas autónomas ni modifica `main`. Se instala en la raíz de cada repositorio, junto a `.hermes/checkpoints/*.json`. Respeta las bitácoras existentes, **no las reemplaza**.
+Herramientas con código de checkpoints sin dependencias y un ejecutor opcional de Hermes Agent. En modo seguro solo consultan estados; para ejecutar el agente se requieren **ambas** condiciones: `--execute` y `HERMES_RUN_ENABLED=1`, además de instalar/configurar Hermes Agent. No ejecutan cambios en `main`. Respetan las bitácoras existentes, **no las reemplazan**.
 
 ## Primera instrucción para cualquier agente
 1. Leer instrucciones del repositorio (`AGENTS.md`, `CONTINUIDAD.md`, `PROJECT_STATUS.md`, etc.).
@@ -21,8 +21,17 @@ python tools/hermes/checkpoint.py validate-all
 
 `last_observed_commit` no implica pruebas; `last_verified_commit` requiere `passed` y evidencia. Si se descubre un SHA diferente, se elimina cualquier afirmación de verificación para el nuevo estado hasta ejecutar pruebas. Las entradas de `history` se conservan hasta las últimas 60; la evidencia de pruebas se mantiene completa. `init` no sobreescribe un checkpoint existente; `advance` reescribe mediante archivo temporal y reemplazo atómico. **No hay bloqueo interproceso**: una futura versión debe agregar control de concurrencia o escritura serializada antes de habilitar múltiples agentes escritores simultáneos.
 
+## Ejecución real y servidor
+
+- [Instalación en Linux, Windows y conexión con Ollama](SERVER_SETUP.md).
+- Un turno sobre la rama de la tarea: `HERMES_RUN_ENABLED=1 python tools/hermes/runner.py --root /ruta/al/repositorio --task-id tarea --execute`.
+- Varias tareas de repositorios distintos: `HERMES_RUN_ENABLED=1 python tools/hermes/scheduler.py --config ~/.config/dexter-hermes/projects.json --execute --max-runs 1`.
+- Sin `--execute` el scheduler solo inspecciona, no utiliza la IA ni modifica archivos.
+- Para frecuencia horaria necesitas el programador del sistema operativo con equipo encendido. No se ha instalado en la computadora del usuario.
+
 ## Límites
-- Automatización externa necesaria para ejecutar agentes mientras ChatGPT está cerrado.
+- Automatización de ejecución periódica necesita systemd, Windows Task Scheduler o el scheduler oficial Hermes debidamente configurados; el CLI no sigue trabajando si el proceso termina.
 - Un checkpoint no conserva el estado interno completo de una IA; contiene datos explícitos verificados.
 - La verificación del SHA requiere comprobación real del repositorio; el CLI no consulta GitHub automáticamente.
-- Es una primera versión local, no un producto de gestión multiagente terminado.
+- El ejecutor funciona con la CLI oficial de Hermes y checkpoints, pero su entorno real debe configurarse y probarse por separado.
+- No hay pruebas autenticadas de modelos ni prueba de servicio doméstico 24/7 en este PR.

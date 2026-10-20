@@ -4,6 +4,8 @@ on:
     paths:
       - 'tools/hermes/**'
       - 'tests/test_hermes_checkpoint.py'
+      - 'tests/test_hermes_runner.py'
+      - 'tests/test_hermes_runner.py'
       - '.hermes/checkpoints/**'
       - '.github/workflows/hermes-checkpoints.yml'
   push:
@@ -26,5 +28,7 @@ jobs:
           python-version: '3.11'
       - name: Check checkpoint engine unit tests
         run: python -m unittest discover -s tests -p test_hermes_checkpoint.py -v
+      - name: Execute guarded runner integration tests
+        run: python -m unittest discover -s tests -p test_hermes_runner.py -v
       - name: Validate existing JSON checkpoints
         run: python tools/hermes/checkpoint.py validate-all

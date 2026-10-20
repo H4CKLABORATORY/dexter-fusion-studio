@@ -1,8 +1,10 @@
 """Functional tests for Ollama-produced checkpoint summary after human review."""
 import copy
+from pathlib import Path
 import unittest
 
 from tools.hermes import checkpoint as cp
+from tools.hermes import cloud_ai_worker as ai
 from tools.hermes.experiments.checkpoint_summary import summarize_checkpoint
 
 
@@ -12,6 +14,10 @@ class GeneratedSummaryTests(unittest.TestCase):
             "H4CKLABORATORY/dexter-fusion-studio", "first-ai-proposal",
             "Summarize checkpoint", "feature/sample", "Check CI",
         )
+
+    def test_reviewed_helper_still_passes_bot_static_policy(self):
+        source = Path("tools/hermes/experiments/checkpoint_summary.py").read_text(encoding="utf-8")
+        self.assertEqual(ai.validate_code(source), source)
 
     def test_new_checkpoint_matches_resume_contract(self):
         result = summarize_checkpoint(self.record)

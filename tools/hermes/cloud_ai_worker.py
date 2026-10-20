@@ -194,16 +194,6 @@ def sanitize_model_code(code: object) -> str:
 
     cleaned = ast.unparse(ast.Module(body=[fn], type_ignores=[])) + "\n"
     verified = validate_code(cleaned)
-    allowed_globals = {"dict", "str", "int", "bool", "list", "tuple", "set",
-                       "isinstance", "len", "sorted", "min", "max", "sum",
-                       "any", "all", "ValueError", "TypeError", "enumerate",
-                       "range", "object"}
-    symbols = symtable.symtable(verified, "<model-proposal>", "exec")
-    for sub in symbols.get_children():
-        if sub.get_name() == "summarize_checkpoint":
-            for symbol in sub.get_symbols():
-                if symbol.is_global() and symbol.is_referenced() and symbol.get_name() not in allowed_globals:
-                    raise CloudWorkerError("Dependencia global no permitida en función recuperada")
     return verified
 
 
@@ -225,6 +215,17 @@ def _check_annotation(node: ast.expr | None) -> None:
     if isinstance(node, ast.Name) and node.id in allowed:
         return
     if isinstance(node, ast.Constant) and node.value is None:
+        return
+    if isinstance(node, ast.Subscript) and isinstance(node.value, ast.Name) and node.value.id in allowed:
+        _check_annotation(node.slice)
+        return
+    if isinstance(node, ast.Tuple):
+        for element in node.elts:
+            _check_annotation(element)
+        return
+    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.BitOr):
+        _check_annotation(node.left)
+        _check_annotation(node.right)
         return
     raise CloudWorkerError("Anotación de tipo no permitida")
 
@@ -255,6 +256,16 @@ def validate_code(code: object) -> str:
     functions = [n for n in tree.body if isinstance(n, ast.FunctionDef)]
     if len(functions) != 1 or functions[0].name != "summarize_checkpoint":
         raise CloudWorkerError("La propuesta necesita exactamente summarize_checkpoint")
+    fn = functions[0]
+    if fn.decorator_list or fn.args.defaults or any(v is not None for v in fn.args.kw_defaults):
+        raise CloudWorkerError("Decoradores y valores por defecto no permitidos")
+    for arg in (*fn.args.posonlyargs, *fn.args.args, *fn.args.kwonlyargs):
+        _check_annotation(arg.annotation)
+    if fn.args.vararg:
+        _check_annotation(fn.args.vararg.annotation)
+    if fn.args.kwarg:
+        _check_annotation(fn.args.kwarg.annotation)
+    _check_annotation(fn.returns)
 
     forbidden = (ast.Import, ast.ImportFrom, ast.AsyncFunctionDef, ast.ClassDef,
                  ast.Lambda, ast.Global, ast.Nonlocal, ast.Yield, ast.YieldFrom,
@@ -278,7 +289,25 @@ def validate_code(code: object) -> str:
                 raise CloudWorkerError("Método no permitido")
             if not isinstance(node.func, (ast.Name, ast.Attribute)):
                 raise CloudWorkerError("Llamada dinámica no permitida")
+    _assert_no_external_dependencies(source)
     return source
+
+
+def _assert_no_external_dependencies(source: str) -> None:
+    allowed = {"dict", "str", "int", "bool", "list", "tuple", "set",
+               "isinstance", "len", "sorted", "min", "max", "sum",
+               "any", "all", "ValueError", "TypeError", "enumerate",
+               "range", "object"}
+    root = symtable.symtable(source, "<model-proposal>", "exec")
+    def check_scope(scope) -> None:
+        for symbol in scope.get_symbols():
+            if symbol.is_global() and symbol.is_referenced() and symbol.get_name() not in allowed:
+                raise CloudWorkerError("Dependencia global no permitida")
+        for child in scope.get_children():
+            check_scope(child)
+    for scope in root.get_children():
+        if scope.get_name() == "summarize_checkpoint":
+            check_scope(scope)
 
 
 def write_proposal(task_id: str, code: str, directory: Path) -> dict:

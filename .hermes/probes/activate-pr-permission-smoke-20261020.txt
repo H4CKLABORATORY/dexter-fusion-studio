@@ -1,0 +1,2 @@
+DEXTER HERMES — activación única de una prueba GitHub Actions para comprobar que el bot puede crear un pull request.
+Este archivo no contiene claves ni código ejecutable. No ejecuta ningún modelo de IA.

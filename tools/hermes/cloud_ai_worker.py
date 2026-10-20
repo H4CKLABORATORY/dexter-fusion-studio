@@ -134,14 +134,20 @@ def validate_code(code: object) -> str:
     banned_calls = {"eval", "exec", "compile", "__import__", "open", "input",
                     "breakpoint", "globals", "locals", "vars", "getattr", "setattr",
                     "delattr", "help"}
+    safe_methods = {"get", "copy", "keys", "items", "values", "strip", "lower", "upper",
+                    "startswith", "endswith", "count", "split", "join", "append"}
     for node in ast.walk(tree):
         if isinstance(node, forbidden):
             raise CloudWorkerError("Operación no admitida en propuesta")
         if isinstance(node, ast.Attribute) and node.attr.startswith("__"):
             raise CloudWorkerError("Atributo interno prohibido")
         if isinstance(node, ast.Call):
-            if not isinstance(node.func, ast.Name) or node.func.id in banned_calls:
-                raise CloudWorkerError("Solo llamadas directas a funciones seguras")
+            if isinstance(node.func, ast.Name) and node.func.id in banned_calls:
+                raise CloudWorkerError("Función prohibida")
+            if isinstance(node.func, ast.Attribute) and node.func.attr not in safe_methods:
+                raise CloudWorkerError("Método no permitido")
+            if not isinstance(node.func, (ast.Name, ast.Attribute)):
+                raise CloudWorkerError("Llamada dinámica no permitida")
     return source
 
 

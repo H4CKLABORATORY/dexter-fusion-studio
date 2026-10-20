@@ -83,7 +83,7 @@ def ollama_proposal(task_id: str, *, timeout: int = 360) -> str:
     prompt = build_prompt(task_id)
     messages = [
         {"role": "system", "content": (
-            "Output only JSON {\\"code\\": \\"Python source\\"}. "
+            'Output only JSON {"code": "Python source"}. '
             "Exactly one top-level function; no import/assignment/examples at module scope."
         )},
         {"role": "user", "content": prompt},

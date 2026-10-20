@@ -161,22 +161,43 @@ def one_tick(root: Path, task_id: str, binary: str, store: Path,
             after = inspect_repo(root)
             # Do not mark a code revision as verified solely from the Hermes process exit.
             success = proc.returncode == 0 and after["branch"] == snap["branch"]
-            followup = ("Revisar diff, pruebas y PR; guardar evidencia en el checkpoint"
-                        if success else "Revisar ejecución local de Hermes y resolver bloqueo")
+            dirty = bool(run_git(root, "status", "--porcelain"))
+            committed = after["commit"] != snap["commit"]
+            # Never burn another model call hourly when a completed turn made no
+            # persistent change, or when uncommitted changes need human inspection.
+            progress = success and committed and not dirty
+            followup = (
+                "Revisar el nuevo commit, sus pruebas y el PR; registrar evidencia"
+                if progress else
+                "Revisar cambios no confirmados antes de reanudar"
+                if success and dirty else
+                "Hermes respondió sin un commit nuevo; revisar antes de repetir"
+                if success else
+                "Revisar ejecución local de Hermes y resolver bloqueo"
+            )
+            blocker = (
+                None if progress else
+                "Hay archivos modificados sin commit; revisar antes de otra ejecución"
+                if success and dirty else
+                "Sin commit nuevo; se evita una repetición automática sin progreso"
+                if success else
+                "Hermes CLI falló; revisar configuración local y permisos"
+            )
             data = cp.advance(
-                data, status="in_progress" if success else "blocked",
+                data, status="in_progress" if progress else "blocked",
                 next_action=followup, observed_commit=after["commit"],
-                step=("Hermes terminó sin error (no equivale a QA aprobado)"
-                      if success else "Hermes terminó con error; no se declaró QA aprobado"),
+                step=("Hermes terminó y produjo un nuevo commit (CI pendiente)"
+                      if progress else "Hermes terminó; se necesita revisión antes de continuar"),
                 test_name="Hermes CLI exit", test_result="not_run",
                 evidence=f"exit={proc.returncode}; stdout_sha256={hashlib.sha256(proc.stdout.encode()).hexdigest()}",
-                blocker=None if success else "Hermes CLI falló; revisar configuración local y permisos",
+                blocker=blocker,
             )
             cp.save(dest, data)
             return {"mode": "executed", "task_id": task_id, "exit_code": proc.returncode,
-                    "agent_completed": success, "state": data["status"],
-                    "next_action": data["next_action"], "branch": after["branch"],
-                    "head": after["commit"], "checkpoint": str(dest)}
+                    "agent_completed": success, "progress_detected": bool(committed or dirty),
+                    "state": data["status"], "next_action": data["next_action"],
+                    "branch": after["branch"], "head": after["commit"],
+                    "checkpoint": str(dest)}
         except subprocess.TimeoutExpired:
             data = cp.advance(data, status="blocked",
                               next_action="Revisar timeout de Hermes antes de reanudar",

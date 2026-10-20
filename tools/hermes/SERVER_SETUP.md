@@ -115,3 +115,16 @@ En Windows, usar rutas `C:\...` reales en el manifiesto, repositorios con las ra
 - El código existente **no instala ni configura Ollama/Hermes por sí solo**. Su configuración se realiza una sola vez en el equipo elegido.
 - El proyecto no ejecuta agentes de forma ilimitada: respeta el límite por ciclo, timeout, estado de tarea y permisos. Ollama puede evitar tarifas por llamada, pero consume electricidad y recursos.
 - `systemd`/Task Scheduler son responsables de reactivar el proceso; el router solo permite la conectividad.
+
+
+## Sin PC: GitHub Actions Cloud Monitor
+
+Para operar sin PC ni mini-servidor, `.github/workflows/hermes-cloud-monitor.yml` usa un runner temporal `ubuntu-latest` administrado por GitHub:
+- `workflow_dispatch`: ejecución manual desde Actions;
+- `schedule`: cada hora aproximadamente, en el minuto 17, **solo después de fusionar** el workflow a la rama por defecto `main`;
+- permisos del token `contents: read`, sin acceso a escrituras ni llaves de API;
+- ejecuta pruebas `tests/test_hermes_cloud_status.py` y lee los checkpoints con `tools/hermes/cloud_status.py`;
+- produce un reporte temporal `dexter-hermes-cloud-<run>` conservado hasta 7 días;
+- los cron de GitHub pueden retrasarse, omitirse bajo carga y desactivarse por inactividad del repositorio público.
+
+Este monitor **NO ejecuta modelos de IA ni edita código**. Es la primera pieza verificable de una solución totalmente sin PC. La fase siguiente debe usar un proveedor autorizado con credencial exclusiva guardada en GitHub Actions Secrets, instalar Hermes Agent en el runner temporal y ejecutar tareas en ramas/PR con permisos mínimos y límites; nunca hacer merge automático. No existe IA gratuita ilimitada incluida con GitHub Actions, y GitHub Models fue retirado el 2026-07-30: no usarlo como proveedor de inferencia. No publicar claves ni estados privados en artefactos.

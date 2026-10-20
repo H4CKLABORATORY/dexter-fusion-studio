@@ -20,6 +20,7 @@ import urllib.request
 
 MAX_CODE_BYTES = 16_384
 MAX_RESPONSE_BYTES = 64_000
+MAX_GENERATION_ATTEMPTS = 3
 OLLAMA_CHAT_URL = "http://127.0.0.1:11434/api/chat"
 MODEL_NAME = "qwen2.5-coder:1.5b"
 
@@ -62,11 +63,16 @@ def get_task(task_id: str) -> dict:
 def build_prompt(task_id: str) -> str:
     task = get_task(task_id)
     return (
-        "You are a code generation worker. Return ONLY valid JSON with one string "
-        "property named code, containing the entire Python 3.11 module as plain "
-        "source code. No explanations and no markdown. Build a safe, self-contained "
-        "module. No secret access, network, shell, dynamic imports, or execution "
-        "of remote content. It must be useful and documented. "
+        "Generate ONLY a JSON object with exactly one property 'code'. "
+        "The value must be plain Python 3.11 source, NOT Markdown or explanation. "
+        "The entire module MUST consist of exactly one top-level function "
+        "named summarize_checkpoint(record: dict) -> dict, with an optional "
+        "module docstring. Do NOT include imports, from-imports, global "
+        "variables, type aliases, classes, example calls, unit tests, "
+        "if __name__ == '__main__', or setup code. Use only builtin "
+        "types and methods. In the function validate input types, then "
+        "return a dictionary. Do not read files, environment, network or "
+        "execute commands. "
         "Task: " + task["objective"]
     )
 
@@ -75,35 +81,55 @@ def ollama_proposal(task_id: str, *, timeout: int = 360) -> str:
     if os.getenv("HERMES_CLOUD_MODEL_ENABLED") != "1":
         raise CloudWorkerError("Modelo deshabilitado; configurar HERMES_CLOUD_MODEL_ENABLED=1")
     prompt = build_prompt(task_id)
-    request_body = json.dumps({
-        "model": MODEL_NAME,
-        "messages": [
-            {"role": "system", "content": "Return a single JSON object with a code string. No markdown."},
-            {"role": "user", "content": prompt},
-        ],
-        "format": "json",
-        "stream": False,
-        "options": {"temperature": 0, "num_predict": 2400, "num_ctx": 4096},
-    }).encode("utf-8")
-    req = urllib.request.Request(
-        OLLAMA_CHAT_URL, data=request_body, method="POST",
-        headers={"Content-Type": "application/json"}
+    messages = [
+        {"role": "system", "content": (
+            'Output only JSON {"code": "Python source"}. '
+            "Exactly one top-level function; no import/assignment/examples at module scope."
+        )},
+        {"role": "user", "content": prompt},
+    ]
+    last_error = "Sin propuesta válida"
+    for attempt in range(1, MAX_GENERATION_ATTEMPTS + 1):
+        request_body = json.dumps({
+            "model": MODEL_NAME,
+            "messages": messages,
+            "format": "json",
+            "stream": False,
+            "options": {"temperature": 0, "num_predict": 2000, "num_ctx": 4096},
+        }).encode("utf-8")
+        req = urllib.request.Request(
+            OLLAMA_CHAT_URL, data=request_body, method="POST",
+            headers={"Content-Type": "application/json"}
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as response:
+                body = response.read(MAX_RESPONSE_BYTES + 1)
+        except (urllib.error.URLError, TimeoutError) as exc:
+            raise CloudWorkerError("No disponible el modelo local de Ollama") from exc
+        if len(body) > MAX_RESPONSE_BYTES:
+            raise CloudWorkerError("Respuesta del modelo demasiado larga")
+        try:
+            response_json = json.loads(body)
+            generated_json = json.loads(response_json["message"]["content"])
+            code = generated_json["code"]
+            return validate_code(code)
+        except (ValueError, KeyError, TypeError, CloudWorkerError) as exc:
+            # Retry only model-output problems, never failing open or exposing
+            # potentially unsafe generated code to logs.
+            last_error = ("Respuesta del modelo sin JSON/code válido"
+                          if isinstance(exc, (ValueError, KeyError, TypeError))
+                          else str(exc)[:180])
+            print(f"Cloud worker: intento {attempt}/{MAX_GENERATION_ATTEMPTS} rechazado: {last_error}",
+                  file=sys.stderr)
+            messages.append({"role": "user", "content": (
+                "The previous output was rejected: " + last_error +
+                ". Rewrite from scratch. JSON code string with ONE top-level "
+                "summarize_checkpoint function, NO imports, classes, global "
+                "assignments or examples. Nothing else."
+            )})
+    raise CloudWorkerError(
+        f"Sin propuesta segura después de {MAX_GENERATION_ATTEMPTS} intentos: {last_error}"
     )
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as response:
-            body = response.read(MAX_RESPONSE_BYTES + 1)
-    except (urllib.error.URLError, TimeoutError) as exc:
-        raise CloudWorkerError("No disponible el modelo local de Ollama") from exc
-    if len(body) > MAX_RESPONSE_BYTES:
-        raise CloudWorkerError("Respuesta del modelo demasiado larga")
-    try:
-        response_json = json.loads(body)
-        generated_json = json.loads(response_json["message"]["content"])
-        code = generated_json["code"]
-    except (ValueError, KeyError, TypeError) as exc:
-        raise CloudWorkerError("Respuesta del modelo sin JSON/code válido") from exc
-    return validate_code(code)
-
 
 def validate_code(code: object) -> str:
     if not isinstance(code, str):
@@ -128,12 +154,16 @@ def validate_code(code: object) -> str:
             isinstance(n.value, ast.Constant) and isinstance(n.value.value, str)
         ):
             raise CloudWorkerError("Expresión global no permitida")
+    functions = [n for n in tree.body if isinstance(n, ast.FunctionDef)]
+    if len(functions) != 1 or functions[0].name != "summarize_checkpoint":
+        raise CloudWorkerError("La propuesta necesita exactamente summarize_checkpoint")
+
     forbidden = (ast.Import, ast.ImportFrom, ast.AsyncFunctionDef, ast.ClassDef,
                  ast.Lambda, ast.Global, ast.Nonlocal, ast.Yield, ast.YieldFrom,
                  ast.Await, ast.Try, ast.With)
-    banned_calls = {"eval", "exec", "compile", "__import__", "open", "input",
-                    "breakpoint", "globals", "locals", "vars", "getattr", "setattr",
-                    "delattr", "help"}
+    allowed_calls = {"isinstance", "len", "str", "int", "bool", "dict", "list",
+                     "tuple", "set", "sorted", "min", "max", "sum", "any", "all",
+                     "ValueError", "TypeError", "enumerate", "range"}
     safe_methods = {"get", "copy", "keys", "items", "values", "strip", "lower", "upper",
                     "startswith", "endswith", "count", "split", "join", "append"}
     for node in ast.walk(tree):
@@ -141,9 +171,11 @@ def validate_code(code: object) -> str:
             raise CloudWorkerError("Operación no admitida en propuesta")
         if isinstance(node, ast.Attribute) and node.attr.startswith("__"):
             raise CloudWorkerError("Atributo interno prohibido")
+        if isinstance(node, ast.Name) and node.id.startswith("__"):
+            raise CloudWorkerError("Nombre interno prohibido")
         if isinstance(node, ast.Call):
-            if isinstance(node.func, ast.Name) and node.func.id in banned_calls:
-                raise CloudWorkerError("Función prohibida")
+            if isinstance(node.func, ast.Name) and node.func.id not in allowed_calls:
+                raise CloudWorkerError("Función no permitida")
             if isinstance(node.func, ast.Attribute) and node.func.attr not in safe_methods:
                 raise CloudWorkerError("Método no permitido")
             if not isinstance(node.func, (ast.Name, ast.Attribute)):

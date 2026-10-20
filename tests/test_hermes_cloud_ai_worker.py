@@ -65,6 +65,59 @@ class CloudAiWorkerTests(unittest.TestCase):
         self.assertEqual(out, SOURCE)
         self.assertEqual(remote.call_args.kwargs["timeout"], 360)
 
+    def test_retry_after_bad_top_level_code(self):
+        first = json.dumps({"message": {"content": json.dumps({
+            "code": "import os\n" + SOURCE
+        })}}).encode()
+        second = json.dumps({"message": {"content": json.dumps({"code": SOURCE})}}).encode()
+        responses = [first, second]
+        prompts = []
+
+        class FakeHTTP:
+            def __init__(self, data):
+                self.data = data
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+            def read(self, *args):
+                return self.data
+
+        def respond(request, **kwargs):
+            prompts.append(json.loads(request.data)["messages"])
+            return FakeHTTP(responses.pop(0))
+
+        with patch.dict(ai.os.environ, {"HERMES_CLOUD_MODEL_ENABLED": "1"}):
+            with patch.object(ai.urllib.request, "urlopen", side_effect=respond):
+                self.assertEqual(ai.ollama_proposal("checkpoint-summary-helper"), SOURCE)
+        self.assertEqual(len(prompts), 2)
+        self.assertIn("previous output was rejected", prompts[1][-1]["content"])
+
+    def test_no_unsafe_fallback_after_three_bad_attempts(self):
+        bad_code = json.dumps({"message": {"content": json.dumps({
+            "code": "import os\n" + SOURCE
+        })}}).encode()
+        fake = MagicMock()
+        fake.read.return_value = bad_code
+        fake.__enter__.return_value = fake
+        with patch.dict(ai.os.environ, {"HERMES_CLOUD_MODEL_ENABLED": "1"}):
+            with patch.object(ai.urllib.request, "urlopen", return_value=fake) as remote:
+                with self.assertRaisesRegex(ai.CloudWorkerError, "3 intentos"):
+                    ai.ollama_proposal("checkpoint-summary-helper")
+                self.assertEqual(remote.call_count, ai.MAX_GENERATION_ATTEMPTS)
+
+    def test_only_task_function_and_builtins(self):
+        for source in (
+            "def unexpected(record):\n    return record.get('task_id')\n",
+            "def summarize_checkpoint(record):\n    print('hello')\n    return {}\n",
+            "def summarize_checkpoint(record):\n    return __builtins__\n",
+        ):
+            with self.subTest(source=source), self.assertRaises(ai.CloudWorkerError):
+                ai.validate_code(source)
+
     def test_atomic_like_artifact_and_hash(self):
         with tempfile.TemporaryDirectory() as d:
             out = Path(d) / "proposed"

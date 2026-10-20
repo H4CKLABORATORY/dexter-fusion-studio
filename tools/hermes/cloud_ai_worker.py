@@ -116,7 +116,9 @@ def ollama_proposal(task_id: str, *, timeout: int = 360) -> str:
         except (ValueError, KeyError, TypeError, CloudWorkerError) as exc:
             # Retry only model-output problems, never failing open or exposing
             # potentially unsafe generated code to logs.
-            last_error = str(exc)[:180]
+            last_error = ("Respuesta del modelo sin JSON/code válido"
+                          if isinstance(exc, (ValueError, KeyError, TypeError))
+                          else str(exc)[:180])
             print(f"Cloud worker: intento {attempt}/{MAX_GENERATION_ATTEMPTS} rechazado: {last_error}",
                   file=sys.stderr)
             messages.append({"role": "user", "content": (

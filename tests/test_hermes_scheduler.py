@@ -72,7 +72,9 @@ class SchedulerTests(unittest.TestCase):
 
     def test_execution_requires_both_opt_ins(self):
         with patch.dict(os.environ, {}, clear=True):
-            self.assertEqual(scheduler.main(["--config", str(self.config), "--execute"]), 2)
+            with self.assertRaises(SystemExit) as captured:
+                scheduler.main(["--config", str(self.config), "--execute"])
+            self.assertEqual(captured.exception.code, 2)
 
     def test_max_tasks_bounded(self):
         with self.assertRaisesRegex(runner.RunnerError, "max-runs"):

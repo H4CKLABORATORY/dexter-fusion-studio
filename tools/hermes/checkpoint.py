@@ -14,8 +14,8 @@ import re
 import sys
 import tempfile
 
-TASK_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,79}\\Z")
-COMMIT_RE = re.compile(r"[0-9a-fA-F]{7,64}\\Z")
+TASK_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,79}\Z")
+COMMIT_RE = re.compile(r"[0-9a-fA-F]{7,64}\Z")
 STATES = {"planned", "in_progress", "blocked", "completed"}
 RESULTS = {"passed", "failed", "not_run"}
 MAX_HISTORY = 60

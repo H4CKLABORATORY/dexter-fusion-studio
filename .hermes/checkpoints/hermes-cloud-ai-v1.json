@@ -7,8 +7,8 @@
   "status": "blocked",
   "last_observed_commit": "c97517aa540624e2e4d91e9b409a660318b57b66",
   "last_verified_commit": "c97517aa540624e2e4d91e9b409a660318b57b66",
-  "updated_at": "2026-10-20T14:08:52.260Z",
-  "next_action": "Revisar y fusionar PR #17 tras checks verdes. Repetir manualmente DEXTER HERMES Free CPU AI Trial en main con task_id=checkpoint-summary-helper y enable_model=true; comprobar si generate termina y publish abre un PR de revisión. Si vuelve a fallar, recuperar logs por ID exacto y mantener las restricciones, sin auto-merge.",
+  "updated_at": "2026-10-20T14:34:45.675Z",
+  "next_action": "Run #11 generó una función Python y publicó bot/hermes-cpu-39438997933; PR #18 fue creado como draft mediante conector autorizado. Habilitar en GitHub repo Settings > Actions > General > Workflow permissions > Allow GitHub Actions to create and approve pull requests (requiere permiso admin) para que próximos runs creen PR autónomamente. Luego agregar pruebas funcionales para salida del modelo y revisar PR #18 antes de merge. No repetir descarga/modelo para resolver permiso.",
   "completed_steps": [
     "PR #13 fusionado en main, commit 86f1581063aa6d53fa3a2e3fa4b8301ecde50c5a: checkpoint, runner protegido, scheduler, monitor horario sin PC.",
     "PR #15 fusionado en main, commit 9f524efaa9f2aefa8838a6f04befffb737c2aba1a: experimento de IA CPU con Ollama, generación de archivo permitida, verificaciones AST y PR de revisión.",
@@ -17,7 +17,9 @@
     "Workflow manual #3 (run 39425216976): unit success; Ollama instalado y modelo qwen2.5-coder:1.5b descargado; fallo generate con AST 'Solo funciones y docstrings al nivel superior'; publish skipped.",
     "PR #16 añade formato más estricto y tres intentos acotados con feedback, preservando validación de seguridad; suites específicas de IA aprobadas, run 39426085261.",
     "Run #8 https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39432776736 confirmado: unit success, generate failure por 3 respuestas con AST 'Solo funciones y docstrings al nivel superior', publish skipped; Ollama y modelo descargados correctamente.",
-    "PR #17 añade recuperación AST de una sola función, rechazo de efectos al nivel superior, dependencias globales y anotaciones peligrosas. CI del generador de código en PR, checkpoints y editor aprobado para c97517a."
+    "PR #17 añade recuperación AST de una sola función, rechazo de efectos al nivel superior, dependencias globales y anotaciones peligrosas. CI del generador de código en PR, checkpoints y editor aprobado para c97517a.",
+    "Run #11 (39438997933): unit success, generate success, artifact hermes-ai-proposal-39438997933 creado, publish validó archivo y subió bot/hermes-cpu-39438997933. Falló gh pr create por permiso de GitHub Actions (GraphQL createPullRequest).",
+    "PR #18 creado directamente mediante GitHub autorizado para rescatar la rama del modelo; permanece draft y NO fusionado. Se detectaron faltas de validación de blockers y semántica SHA, y falta docstring."
   ],
   "changed_files": [
     "tools/hermes/cloud_ai_worker.py",
@@ -25,9 +27,9 @@
     ".github/workflows/hermes-cloud-ai.yml"
   ],
   "blockers": [
-    "Inferencia real posterior a PR #17 no verificada: la prueba #8 mostró rechazo de los 3 intentos; requiere repetir workflow manual tras fusionar.",
-    "El modelo local 1.5B puede producir código funcionalmente incorrecto aunque AST sea válido; revisar PR y pruebas funcionales antes de fusionar código generado.",
-    "Aún no confirmado el permiso de GitHub Actions para crear PR bot; solo se conocerá cuando publish se ejecute."
+    "GitHub Actions tiene deshabilitado el permiso para crear/aprobar pull requests; Settings > Actions > General > Workflow permissions. El token pudo subir la rama bot, pero no gh pr create.",
+    "Código generado en PR #18 debe revisarse y someterse a pruebas funcionales; no fusionar hasta validar blockers, SHA y docstrings.",
+    "Tras cambiar la configuración, hacer una nueva ejecución de prueba para confirmar publish automático; no se han probado agentes autónomos complejos."
   ],
   "verification": [
     {
@@ -59,7 +61,9 @@
     "https://github.com/H4CKLABORATORY/dexter-fusion-studio/pull/16",
     "https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39425216976",
     "https://github.com/H4CKLABORATORY/dexter-fusion-studio/pull/17",
-    "https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39432776736"
+    "https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39432776736",
+    "https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39438997933",
+    "https://github.com/H4CKLABORATORY/dexter-fusion-studio/pull/18"
   ],
   "history": [
     {
@@ -73,6 +77,10 @@
     {
       "at": "2026-10-20T14:08:52.260Z",
       "event": "Se comprobó run #8 desde logs; el modelo devolvió tres resultados con código extra. Implementada normalización AST estricta en PR #17, CI en verde; no se ha probado inferencia real posterior al arreglo."
+    },
+    {
+      "at": "2026-10-20T14:34:45.675Z",
+      "event": "Primera generación real Ollama verificada en GitHub Actions run #11; rama bot subida. La única falla fue permiso gh pr create. Se creó PR #18 draft mediante GitHub conectado para revisión manual."
     }
   ]
 }

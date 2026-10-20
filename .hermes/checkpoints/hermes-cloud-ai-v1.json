@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "project": "H4CKLABORATORY/dexter-fusion-studio",
+  "task_id": "hermes-cloud-ai-v1",
+  "objective": "Probar y después ampliar la ejecución real de IA sin PC mediante GitHub Actions y un modelo CPU gratuito, con propuestas en PR, sin cambiar producción automáticamente.",
+  "branch": "main",
+  "status": "blocked",
+  "last_observed_commit": "9f524efaa9f2aefa8838a6f04befffb737c2aba1",
+  "last_verified_commit": null,
+  "updated_at": "2026-10-20T12:30:00Z",
+  "next_action": "Ejecutar manualmente GitHub Actions 'DEXTER HERMES Free CPU AI Trial' en main: task_id=checkpoint-summary-helper, enable_model=true. Confirmar que Ollama ejecuta inferencia real y que se crea PR bot con propuesta válida; si falla, analizar logs y corregir en nueva rama. No habilitar inferencia horaria ni auto-merge antes de esa prueba.",
+  "completed_steps": [
+    "PR #13 fusionado en main, commit 86f1581063aa6d53fa3a2e3fa4b8301ecde50c5a: checkpoint, runner protegido, scheduler, monitor horario sin PC.",
+    "PR #15 fusionado en main, commit 9f524efaa9f2aefa8838a6f04befffb737c2aba1a: experimento de IA CPU con Ollama, generación de archivo permitida, verificaciones AST y PR de revisión.",
+    "PR #64 fusionado en 1UP Anime, commit 4c9b769e40612681eb508987f9f091b84727b6dd, compartiendo protocolo de checkpoints.",
+    "Workflow de unidad DEXTER HERMES Free CPU AI Trial aprobado, run 39420283786. Los jobs generate y publish fueron omitidos en evento PR, como corresponde al opt-in."
+  ],
+  "changed_files": [
+    "tools/hermes/cloud_ai_worker.py",
+    "tests/test_hermes_cloud_ai_worker.py",
+    ".github/workflows/hermes-cloud-ai.yml"
+  ],
+  "blockers": [
+    "No se ha ejecutado inferencia real Ollama dentro del workflow; la primera ejecución necesita Run workflow desde GitHub Actions y enable_model=true.",
+    "El modelo pequeño CPU puede producir código no satisfactorio o fallar; el resultado debe revisarse y probarse antes de incorporar.",
+    "La creación de PR por GitHub Actions puede requerir activar 'Allow GitHub Actions to create and approve pull requests' en ajustes del repositorio."
+  ],
+  "verification": [
+    {
+      "name": "Cloud AI Worker unit tests and syntax (without actual model)",
+      "result": "passed",
+      "evidence": "https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39420283786"
+    }
+  ],
+  "links": [
+    "https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/workflows/hermes-cloud-ai.yml",
+    "https://github.com/H4CKLABORATORY/dexter-fusion-studio/pull/15",
+    "https://github.com/H4CKLABORATORY/dexter-fusion-studio/pull/13",
+    "https://github.com/H4CKLABORATORY/1UP-ANIME/pull/64"
+  ],
+  "history": [
+    {
+      "at": "2026-10-20T12:30:00Z",
+      "event": "Primera arquitectura sin PC en main, con monitor programado y prueba opcional Ollama CPU; falta validar primer trabajo real y permisos de PR bot."
+    }
+  ]
+}

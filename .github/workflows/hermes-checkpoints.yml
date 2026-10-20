@@ -1,0 +1,37 @@
+name: DEXTER HERMES Checkpoints
+on:
+  pull_request:
+    paths:
+      - 'tools/hermes/**'
+      - 'tests/test_hermes_checkpoint.py'
+      - 'tests/test_hermes_runner.py'
+      - 'tests/test_hermes_scheduler.py'
+      - '.hermes/checkpoints/**'
+      - '.github/workflows/hermes-checkpoints.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'tools/hermes/**'
+      - 'tests/test_hermes_checkpoint.py'
+      - 'tests/test_hermes_runner.py'
+      - '.hermes/checkpoints/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check checkpoint engine unit tests
+        run: python -m unittest discover -s tests -p test_hermes_checkpoint.py -v
+      - name: Execute guarded runner integration tests
+        run: python -m unittest discover -s tests -p test_hermes_runner.py -v
+      - name: Validate scheduler and manifest
+        run: python -m unittest discover -s tests -p test_hermes_scheduler.py -v
+      - name: Validate existing JSON checkpoints
+        run: python tools/hermes/checkpoint.py validate-all

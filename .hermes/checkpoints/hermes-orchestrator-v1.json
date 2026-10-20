@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "project": "H4CKLABORATORY/dexter-fusion-studio",
+  "task_id": "hermes-orchestrator-v1",
+  "objective": "Crear y desplegar coordinador autónomo DEXTER HERMES a partir del sistema portable de checkpoints, sin servidores de pago obligatorios.",
+  "branch": "feature/hermes-portable-checkpoints-20261020",
+  "last_observed_commit": "cae8e435eefd749a9699e77418408f938433b31c",
+  "last_verified_commit": "cae8e435eefd749a9699e77418408f938433b31c",
+  "status": "in_progress",
+  "updated_at": "2026-10-20T04:10:04+00:00",
+  "next_action": "Inspeccionar resultados completos de PR #13 y PR #64; revisar code review, decidir merge autorizado, después diseñar executor seguro para Hermes Agent + Ollama con cola, mínimos permisos y control de concurrencia.",
+  "completed_steps": [
+    "Implementado motor checkpoint.py sin dependencias y diez pruebas en repositorios Dexter Fusion Studio y 1UP Anime.",
+    "Creados borradores PR #13 y PR #64 sin tocar main.",
+    "Workflow específico DEXTER HERMES Checkpoints completado correctamente en ambos PRs."
+  ],
+  "changed_files": [
+    "tools/hermes/checkpoint.py",
+    "tools/hermes/README.md",
+    "tests/test_hermes_checkpoint.py",
+    ".github/workflows/hermes-checkpoints.yml",
+    "AGENTS.md"
+  ],
+  "blockers": [
+    "El motor aún no ejecuta agentes ni tareas en segundo plano.",
+    "No hay bloqueo multiproceso: serializar escritores antes de habilitar agentes concurrentes.",
+    "Falta definir un entorno ejecutor (PC doméstico encendido, VPS o runners de GitHub) y proveedor IA autorizado."
+  ],
+  "verification": [
+    {
+      "name": "DEXTER HERMES Checkpoints — GitHub Actions",
+      "result": "passed",
+      "evidence": "https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39368647668"
+    },
+    {
+      "name": "DEXTER HERMES Checkpoints — 1UP GitHub Actions",
+      "result": "passed",
+      "evidence": "https://github.com/H4CKLABORATORY/1UP-ANIME/actions/runs/39368651894"
+    }
+  ],
+  "links": [
+    "https://github.com/H4CKLABORATORY/dexter-fusion-studio/pull/13",
+    "https://github.com/H4CKLABORATORY/1UP-ANIME/pull/64"
+  ],
+  "history": [
+    {
+      "at": "2026-10-20T04:10:04+00:00",
+      "event": "Primera fase de checkpoints terminada y validada. Siguiente fase: orquestación multiagente; el checkpoint se actualiza en un commit posterior, por lo que debe contrastarse HEAD con SHA registrado."
+    }
+  ]
+}

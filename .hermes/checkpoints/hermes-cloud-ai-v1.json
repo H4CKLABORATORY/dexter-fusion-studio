@@ -28,9 +28,8 @@
     ".github/workflows/hermes-cloud-ai.yml"
   ],
   "blockers": [
-    "Código generado en PR #18 debe revisarse y someterse a pruebas funcionales; no fusionar hasta validar blockers, SHA y docstrings.",
-    "Tras cambiar la configuración, hacer una nueva ejecución de prueba para confirmar publish automático; no se han probado agentes autónomos complejos.",
-    "PR #18 contiene un helper generado por Ollama pendiente de revisión y pruebas funcionales; no mezclar con main sin corregir y verificar."
+    "El código del helper generado en PR #18 requiere revisión, documentación y pruebas funcionales antes de integrarlo.",
+    "Las tareas complejas aún requieren un planificador de ejecución, políticas de permisos y verificaciones de calidad; una prueba de PR no demuestra autonomía completa."
   ],
   "verification": [
     {

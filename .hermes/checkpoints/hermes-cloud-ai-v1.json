@@ -5,10 +5,10 @@
   "objective": "Probar y después ampliar la ejecución real de IA sin PC mediante GitHub Actions y un modelo CPU gratuito, con propuestas en PR, sin cambiar producción automáticamente.",
   "branch": "main",
   "status": "in_progress",
-  "last_observed_commit": "f00b32a00ce1455703306a1627288455ae5c62cd",
+  "last_observed_commit": "c7250425b65346c70e5dc25fa3a65bf64715be79",
   "last_verified_commit": null,
-  "updated_at": "2026-10-20T16:23:58.075Z",
-  "next_action": "PR #18 se integró en main con revisión funcional: 17 pruebas y validaciones CI de PR en verde. Verificar CI de main tras merge, luego extender el pipeline con pruebas funcionales obligatorias para cualquier nuevo código de Ollama y cola acotada de tareas distintas, conservando permisos mínimos y PR sin auto-merge. No repetir verificación de permisos GitHub Actions ya completada.",
+  "updated_at": "2026-10-20T17:14:24.537Z",
+  "next_action": "Crear una cola acotada de tareas por repositorio y contratos funcionales para nuevos tipos de cambios. La tarea de demostración checkpoint-summary-helper ya ocupa su destino en main; NO repetir el mismo flujo esperando otro PR. No repetir revisión PR #18 ni permisos ya comprobados. Ejecutar un nuevo modelo solo tras configurar una nueva tarea con destino único y pruebas; mantener PR sin auto-merge.",
   "completed_steps": [
     "PR #13 fusionado en main, commit 86f1581063aa6d53fa3a2e3fa4b8301ecde50c5a: checkpoint, runner protegido, scheduler, monitor horario sin PC.",
     "PR #15 fusionado en main, commit 9f524efaa9f2aefa8838a6f04befffb737c2aba1a: experimento de IA CPU con Ollama, generación de archivo permitida, verificaciones AST y PR de revisión.",
@@ -22,7 +22,9 @@
     "PR #18 creado directamente mediante GitHub autorizado para rescatar la rama del modelo; permanece draft y NO fusionado. Se detectaron faltas de validación de blockers y semántica SHA, y falta docstring.",
     "Prueba de permiso automática con workflow .github/workflows/hermes-pr-permission-smoke.yml aprobada, run 39446023000. GitHub Actions creó PR #20 sin intervención manual; luego se cerró sin merge por ser temporal.",
     "PR #18 revisado y fusionado a main el 2026-10-20, merge SHA f00b32a00ce1455703306a1627288455ae5c62cd. La función generada por Ollama se corrigió para comparar SHAs observados y verificados y validar bloqueos/documentar limitaciones.",
-    "17 pruebas funcionales de helper Ollama, prueba de reglas AST y checks de checkpoint/runner/scheduler aprobados en GitHub Actions run 39456760983. Suite general Dexter Fusion Studio aprobada run 39456760963 antes del merge."
+    "17 pruebas funcionales de helper Ollama, prueba de reglas AST y checks de checkpoint/runner/scheduler aprobados en GitHub Actions run 39456760983. Suite general Dexter Fusion Studio aprobada run 39456760963 antes del merge.",
+    "PR #21 fusionado en main (c7250425): gate funcional en job sin credenciales, recursos y tiempo limitados; publicación exige SHA y constancia de pruebas funcionales.",
+    "CI merge PR #21: DEXTER HERMES Checkpoints SUCCESS run 39464061770; Fusion Studio v0.2 SUCCESS run 39464061795; CI AI en PR SUCCESS run 39463448812."
   ],
   "changed_files": [
     "tools/hermes/cloud_ai_worker.py",
@@ -30,11 +32,14 @@
     ".github/workflows/hermes-cloud-ai.yml",
     "tools/hermes/experiments/checkpoint_summary.py",
     "tests/test_hermes_generated_summary.py",
-    ".github/workflows/hermes-checkpoints.yml"
+    ".github/workflows/hermes-checkpoints.yml",
+    "tools/hermes/proposal_contract.py",
+    "tests/test_hermes_proposal_contract.py"
   ],
   "blockers": [
-    "La generación de nuevas tareas de programación continúa limitada a un experimento permitido; ampliar solo con pruebas funcionales y revisión de PR para cada tipo de tarea.",
-    "El merge SHA f00b32a no se ha marcado como verificado por CI de main en este checkpoint; verificación de PR sí aprobada."
+    "La única tarea de generación permitida es checkpoint-summary-helper, cuyo archivo de destino ya existe en main. Nuevas tareas necesitan destinos y contratos independientes.",
+    "La prueba de calidad comprobó casos funcionales con el helper auditado y ejemplos negativos; no prueba una nueva inferencia Ollama posterior al gate.",
+    "El monitor horario aún no programa trabajo de IA autónomo; requiere cola, límites y revisiones de seguridad."
   ],
   "verification": [
     {
@@ -71,6 +76,21 @@
       "name": "Dexter Fusion Studio v0.2 general checks",
       "result": "passed",
       "evidence": "https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39456760963"
+    },
+    {
+      "name": "Hermes functional proposal gate tests on PR #21",
+      "result": "passed",
+      "evidence": "https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39463448812"
+    },
+    {
+      "name": "Checkpoint CI after merge PR #21",
+      "result": "passed",
+      "evidence": "https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39464061770"
+    },
+    {
+      "name": "General CI after merge PR #21",
+      "result": "passed",
+      "evidence": "https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39464061795"
     }
   ],
   "links": [
@@ -84,7 +104,8 @@
     "https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39432776736",
     "https://github.com/H4CKLABORATORY/dexter-fusion-studio/actions/runs/39438997933",
     "https://github.com/H4CKLABORATORY/dexter-fusion-studio/pull/18",
-    "https://github.com/H4CKLABORATORY/dexter-fusion-studio/pull/20"
+    "https://github.com/H4CKLABORATORY/dexter-fusion-studio/pull/20",
+    "https://github.com/H4CKLABORATORY/dexter-fusion-studio/pull/21"
   ],
   "history": [
     {
@@ -110,6 +131,10 @@
     {
       "at": "2026-10-20T16:23:58.075Z",
       "event": "El primer módulo generador por Ollama fue auditado, obtuvo 17 pruebas funcionales + CI general en verde y se fusionó vía PR #18. Se registró merge SHA y nuevo siguiente paso sin proclamar CI main para el nuevo SHA."
+    },
+    {
+      "at": "2026-10-20T17:14:24.537Z",
+      "event": "PR #18 ya estaba fusionado con 17 pruebas. PR #21 fusionó gate funcional aislado y todas las pruebas específicas y generales de main quedaron verdes. Siguiente paso: cola multi-tarea, no repetir tarea demo."
     }
   ]
 }

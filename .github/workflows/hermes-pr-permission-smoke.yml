@@ -1,0 +1,49 @@
+name: DEXTER HERMES PR Permission Smoke
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.hermes/probes/activate-pr-permission-smoke-20261020.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: hermes-pr-permission-smoke
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    if: github.repository == 'H4CKLABORATORY/dexter-fusion-studio'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Verify bot can open an isolated draft PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+          SERVER_URL: ${{ github.server_url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          BRANCH="bot/hermes-permission-test-$RUN_ID"
+          FILE=".hermes/probes/bot-pr-created-$RUN_ID.txt"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$BRANCH"
+          mkdir -p .hermes/probes
+          printf 'GitHub Actions permission smoke test. Run: %s\nNo generated AI code was executed.\n' "$RUN_ID" > "$FILE"
+          git add -- "$FILE"
+          git commit -m "test(hermes): check GitHub Actions PR creation authorization"
+          git push origin "$BRANCH"
+          URL="$(gh pr create --repo "$GH_REPO" --base main --head "$BRANCH" --draft \
+            --title "test(Hermes): bot pull request permission $RUN_ID" \
+            --body "Temporary, harmless proof that GitHub Actions may open review PRs. Created automatically by $SERVER_URL/$GH_REPO/actions/runs/$RUN_ID. No AI or secrets involved. Do not merge.")"
+          echo "Bot PR permission verified: $URL"
+          echo "PROBE_PR=$URL" >> "$GITHUB_STEP_SUMMARY"

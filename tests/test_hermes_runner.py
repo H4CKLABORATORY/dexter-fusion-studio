@@ -60,11 +60,33 @@ class RunnerTests(unittest.TestCase):
                                  20, enabled=True, execute=True)
         self.assertTrue(output["agent_completed"])
         payload = cp.load(cp.file_for(self.store, "task-one"))
-        self.assertEqual(payload["status"], "in_progress")
+        self.assertEqual(payload["status"], "blocked")
+        self.assertIn("sin un commit nuevo", payload["next_action"])
         self.assertIsNone(payload["last_verified_commit"])
         self.assertEqual(payload["verification"][-1]["result"], "not_run")
         self.assertEqual(runner.run_git(self.root, "status", "--porcelain"), "")
         self.assertFalse((self.root / "secret.txt").exists())
+
+    def test_successful_new_commit_keeps_task_active(self):
+        # Fake one-shot agent performs a tiny authorized change and commits it.
+        self.fake.write_text(
+            "#!/usr/bin/env python3\n"
+            "from pathlib import Path\n"
+            "import subprocess,sys\n"
+            "sys.stdin.read()\n"
+            "Path('generated.txt').write_text('done')\n"
+            "subprocess.run(['git','add','generated.txt'],check=True)\n"
+            "subprocess.run(['git','commit','-qm','test change'],check=True)\n"
+            "print('done')\n", encoding="utf-8"
+        )
+        out = runner.one_tick(self.root, "task-one", str(self.fake), self.store,
+                              20, enabled=True, execute=True)
+        self.assertTrue(out["progress_detected"])
+        self.assertEqual(out["state"], "in_progress")
+        item = cp.load(cp.file_for(self.store, "task-one"))
+        self.assertIsNone(item["last_verified_commit"])
+        self.assertEqual(item["last_observed_commit"],
+                         runner.run_git(self.root, "rev-parse", "HEAD"))
 
     def test_failure_blocks_restart_and_retains_checkpoint(self):
         self.fake.write_text("#!/usr/bin/env python3\nimport sys\nsys.exit(7)\n", encoding="utf-8")

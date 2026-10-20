@@ -67,7 +67,7 @@ class CloudAiWorkerTests(unittest.TestCase):
 
     def test_retry_after_bad_top_level_code(self):
         first = json.dumps({"message": {"content": json.dumps({
-            "code": "import os\\n" + SOURCE
+            "code": "import os\n" + SOURCE
         })}}).encode()
         second = json.dumps({"message": {"content": json.dumps({"code": SOURCE})}}).encode()
         responses = [first, second]
@@ -98,7 +98,7 @@ class CloudAiWorkerTests(unittest.TestCase):
 
     def test_no_unsafe_fallback_after_three_bad_attempts(self):
         bad_code = json.dumps({"message": {"content": json.dumps({
-            "code": "import os\\n" + SOURCE
+            "code": "import os\n" + SOURCE
         })}}).encode()
         fake = MagicMock()
         fake.read.return_value = bad_code
@@ -111,9 +111,9 @@ class CloudAiWorkerTests(unittest.TestCase):
 
     def test_only_task_function_and_builtins(self):
         for source in (
-            "def unexpected(record):\\n    return record.get('task_id')\\n",
-            "def summarize_checkpoint(record):\\n    print('hello')\\n    return {}\\n",
-            "def summarize_checkpoint(record):\\n    return __builtins__\\n",
+            "def unexpected(record):\n    return record.get('task_id')\n",
+            "def summarize_checkpoint(record):\n    print('hello')\n    return {}\n",
+            "def summarize_checkpoint(record):\n    return __builtins__\n",
         ):
             with self.subTest(source=source), self.assertRaises(ai.CloudWorkerError):
                 ai.validate_code(source)

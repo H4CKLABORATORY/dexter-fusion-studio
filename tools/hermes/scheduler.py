@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 import sys
 import time
@@ -30,6 +31,8 @@ def read_manifest(filename: Path) -> list[tuple[Path, str]]:
     for project in projects:
         if not isinstance(project, dict) or set(project) != {"root", "tasks"}:
             raise runner.RunnerError("Proyecto necesita root absoluto y tasks")
+        if not isinstance(project["root"], str) or not project["root"].strip():
+            raise runner.RunnerError("root debe ser ruta absoluta no vacía")
         root = Path(project["root"]).expanduser()
         if not root.is_absolute() or not root.is_dir():
             raise runner.RunnerError(f"Ruta no válida o inexistente: {root}")
@@ -50,6 +53,8 @@ def cycle(manifest: Path, *, execute: bool, max_runs: int, binary: str = "hermes
           timeout: int = 900) -> dict:
     if not 1 <= max_runs <= MAX_TASKS_PER_CYCLE:
         raise runner.RunnerError("max-runs fuera de rango (1-10)")
+    if execute and os.getenv(runner.ENV_ENABLE) != "1":
+        raise runner.RunnerError(f"Se requiere {runner.ENV_ENABLE}=1")
     jobs = read_manifest(manifest)
     outcomes = []
     tried = 0
@@ -98,7 +103,7 @@ def main(argv: list[str] | None = None) -> int:
     args = p.parse_args(argv)
     if args.loop and not MIN_INTERVAL <= args.interval_sec <= 86400:
         p.error("interval-sec debe estar entre 300 y 86400")
-    if args.execute and __import__("os").getenv(runner.ENV_ENABLE) != "1":
+    if args.execute and os.getenv(runner.ENV_ENABLE) != "1":
         p.error(f"--execute también requiere {runner.ENV_ENABLE}=1")
     try:
         while True:

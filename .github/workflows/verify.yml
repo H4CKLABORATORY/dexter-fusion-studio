@@ -15,6 +15,8 @@ jobs:
           python-version: '3.11'
       - name: Instalar FFmpeg
         run: sudo apt-get update -qq && sudo apt-get install -y ffmpeg
+      - name: Instalar tokenizador oficial
+        run: python -m pip install 'tiktoken>=0.7,<1'
       - name: Probar código y exportación
         run: |
           python -m compileall -q fusion

@@ -1,0 +1,52 @@
+name: TokenLab real Ollama CPU
+on:
+  pull_request:
+    paths:
+      - 'tests/tokenlab_live_probes.py'
+      - '.github/workflows/tokenlab-ollama.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ollama-real:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      OLLAMA_TEST_MODEL: llama3.2:1b
+      TOKENLAB_PROBE: ollama
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install official Ollama
+        run: |
+          curl -fsSL https://ollama.com/install.sh -o /tmp/ollama-install.sh
+          sh /tmp/ollama-install.sh
+      - name: Start real Ollama
+        run: |
+          ollama serve >/tmp/ollama-ci.log 2>&1 &
+          for i in $(seq 1 45); do curl -fsS http://127.0.0.1:11434/api/tags >/dev/null && exit 0; sleep 2; done
+          exit 1
+      - name: Pull 1B real model
+        run: ollama pull llama3.2:1b
+      - name: Download embedding model for real semantic deduplication
+        run: ollama pull nomic-embed-text
+      - name: Test real local summarizer and embeddings
+        env:
+          TOKENLAB_OLLAMA_MODEL: llama3.2:1b
+          TOKENLAB_EMBED_MODEL: nomic-embed-text
+        run: |
+          python - <<'PY'
+          from fusion.tokenlab_ollama import summarize_ollama,embed_ollama
+          from fusion.tokenlab_context import cosine,deduplicate
+          result=summarize_ollama("Dexter conserva la decisión ZX-731.",max_tokens=64)
+          assert result.strip(), "Real summary empty"
+          vectors=embed_ollama(["Hola mundo","Hola mundo","Texto diferente"])
+          assert len(vectors)==3 and len(vectors[0])>10
+          assert cosine(vectors[0],vectors[1])>0.999
+          assert len(deduplicate(["Hola mundo","Hola mundo","Texto diferente"],vectors))==2
+          print("OLLAMA_SUMMARIZER_AND_EMBEDDINGS_REAL_OK")
+          PY
+      - name: Real A/B inference latency and token counts
+        run: python tests/tokenlab_live_probes.py

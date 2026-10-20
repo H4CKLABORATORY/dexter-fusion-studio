@@ -1,0 +1,105 @@
+{
+  "task_id": "tokenlab-qt-count-ab",
+  "source_base_sha": "97b088f7776a4433d82001308bd6e08c5453f53b",
+  "last_completed_commit_sha": "78181f4012d8450c42b9a8985724a59795d36295",
+  "updated": "2026-10-18",
+  "verified_locally": [
+    "core_checkpoint_resume",
+    "checkpoint_path_validation",
+    "sha256_distinctness",
+    "python_compileall"
+  ],
+  "pending_external": [
+    "Real OpenAI API inference via GitHub Actions secret OPENAI_API_KEY and explicit user opt-in label; not executed",
+    "Create private H4CKLABORATORY/mira-neural-prompt-studio and publish verified ZIP (no repository creation action currently available)",
+    "Review final PR CI, remove DRAFT only after both blockers resolved and user-authorized merge, then record actual main SHA"
+  ],
+  "analyzed_files": [
+    "fusion/studio_qt.py",
+    "studio.py",
+    "studio-requirements.txt",
+    ".github/workflows/studio-qt.yml",
+    ".github/workflows/studio-windows.yml",
+    "fusion/tokenlab_tools.py",
+    "fusion/tokenlab_dialog.py",
+    "tests/test_tokenlab_qt.py",
+    "tests/test_tokenlab_tools.py",
+    "docs/TOKENLAB.md",
+    "CONTINUIDAD.md",
+    ".github/workflows/verify.yml",
+    "fusion/tokenlab_stream.py",
+    "fusion/tokenlab_context_async.py",
+    "tests/test_tokenlab_stream.py",
+    "tests/test_tokenlab_compactor.py",
+    "tests/test_tokenlab_live_probe_contract.py",
+    ".github/workflows/tokenlab-openai.yml",
+    "fusion/tokenlab_embed_async.py",
+    "tests/test_tokenlab_embed_async.py",
+    "docs/TOKENLAB_PR12_AUDITORIA.md",
+    "docs/DEXTER_ACCIONES_OPENAI_Y_MIRA.md",
+    "fusion/tokenlab_skills.py",
+    "fusion/tokenlab_ollama.py",
+    "tests/test_tokenlab_workspace.py"
+  ],
+  "next_step": "Read CONTINUIDAD.md and this checkpoint. Verify actual PR SHA and workflows; request only owner actions OPENAI_API_KEY in Actions Secrets + label tokenlab-openai-smoke and private repo mira-neural-prompt-studio. Do not merge until real authenticated inference, MIRA publication and approval; no asynchronous work between turns.",
+  "verified_code_commit_sha": "a3a5c0240d88802c3cc22205e0ed0597f400eb84",
+  "verified_ci_runs": {
+    "qt": {
+      "id": 39092395492,
+      "status": "success",
+      "tests": 44
+    },
+    "general": {
+      "id": 39092395481,
+      "status": "success",
+      "tests": 44,
+      "qt_skipped": 2
+    },
+    "windows": {
+      "id": 39092395486,
+      "status": "success",
+      "tests": 14
+    },
+    "latest_general": {
+      "id": 39142870136,
+      "status": "success",
+      "tests": 79,
+      "qt_skipped": true
+    },
+    "latest_qt": {
+      "id": 39142870017,
+      "status": "success",
+      "tests": 79
+    },
+    "openai_contract": {
+      "id": 39139460267,
+      "status": "success",
+      "real_inference": false
+    },
+    "ollama_previous_real": {
+      "id": 39093243927,
+      "status": "success",
+      "model": "llama3.2:1b",
+      "embedding_model": "nomic-embed-text"
+    },
+    "latest_windows": {
+      "id": 39142870112,
+      "status": "success",
+      "tests": 46,
+      "portable_exe": true
+    },
+    "latest_ollama": {
+      "id": 39142870093,
+      "status": "success",
+      "real_inference": true,
+      "latency_ms": [
+        1225.36,
+        1006.95
+      ]
+    }
+  },
+  "source_previous_sha": "b0ff8db1e8078bf9eacf9bf524827c847c904982",
+  "last_task": "Full 26-file PR audit with seven fixes and negative tests; instructions documented; 4 CI runs success for SHA a3a5c0240d88802c3cc22205e0ed0597f400eb84",
+  "pending_ci_runs": {},
+  "review_start_head_sha": "c32e6737f611082c090481c5f427a8d34103f6ff"
+}

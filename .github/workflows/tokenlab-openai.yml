@@ -1,0 +1,23 @@
+name: TokenLab OpenAI one-call smoke (opt-in)
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [labeled]
+permissions:
+  contents: read
+jobs:
+  openai-probe:
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.label.name == 'tokenlab-openai-smoke' && github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run one request or explicitly skip if secret absent
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_TEST_MODEL: gpt-4.1-mini
+          TOKENLAB_PROBE: openai
+        run: python tests/tokenlab_live_probes.py

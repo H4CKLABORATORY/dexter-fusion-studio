@@ -408,6 +408,9 @@ class StudioWindow(QMainWindow):
         director_action=QAction('✦  Director creativo',self)
         director_action.triggered.connect(self.create_motion)
         tool.addAction(director_action)
+        tokenlab_action=QAction('⌁  TokenLab',self)
+        tokenlab_action.triggered.connect(self.open_tokenlab)
+        tool.addAction(tokenlab_action)
 
         main = QWidget()
         self.setCentralWidget(main)
@@ -458,6 +461,11 @@ class StudioWindow(QMainWindow):
             a.setShortcut(QKeySequence(shortcut))
         help_menu = bar.addMenu('Ayuda')
         help_menu.addAction('Acerca del Studio', self.about)
+
+    def open_tokenlab(self):
+        """Open the actual TokenLab dialog from this running Qt workspace."""
+        from .tokenlab_dialog import TokenLabDialog
+        TokenLabDialog(self).exec()
 
     def _make_bin(self):
         panel = QFrame()

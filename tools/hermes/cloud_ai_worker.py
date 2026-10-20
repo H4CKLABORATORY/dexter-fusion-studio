@@ -14,6 +14,7 @@ import json
 import os
 from pathlib import Path, PurePosixPath
 import re
+import symtable
 import sys
 import urllib.error
 import urllib.request
@@ -112,7 +113,7 @@ def ollama_proposal(task_id: str, *, timeout: int = 360) -> str:
             response_json = json.loads(body)
             generated_json = json.loads(response_json["message"]["content"])
             code = generated_json["code"]
-            return validate_code(code)
+            return sanitize_model_code(code)
         except (ValueError, KeyError, TypeError, CloudWorkerError) as exc:
             # Retry only model-output problems, never failing open or exposing
             # potentially unsafe generated code to logs.
@@ -130,6 +131,104 @@ def ollama_proposal(task_id: str, *, timeout: int = 360) -> str:
     raise CloudWorkerError(
         f"Sin propuesta segura después de {MAX_GENERATION_ATTEMPTS} intentos: {last_error}"
     )
+
+def sanitize_model_code(code: object) -> str:
+    """Keep only an allowed function when a small model adds harmless scaffolding.
+
+    Do not execute generated code or allow dependencies on any discarded imports,
+    globals or helpers. validate_code stays strict for CI publishing.
+    """
+    if not isinstance(code, str):
+        raise CloudWorkerError("El código debe ser texto")
+    source = code.strip()
+    if source.startswith("```python\n") and source.endswith("```"):
+        source = source[len("```python\n"):-3].strip()
+    elif source.startswith("```\n") and source.endswith("```"):
+        source = source[4:-3].strip()
+    # A clean module needs no normalization.
+    try:
+        return validate_code(source)
+    except CloudWorkerError:
+        pass
+    if len(source.encode("utf-8")) > MAX_CODE_BYTES or "\x00" in source:
+        raise CloudWorkerError("Propuesta no normalizable")
+    try:
+        original = ast.parse(source, filename="<model-proposal>")
+    except SyntaxError as exc:
+        raise CloudWorkerError("La propuesta Python no compila") from exc
+
+    functions = [n for n in original.body if isinstance(n, ast.FunctionDef)
+                 and n.name == "summarize_checkpoint"]
+    if len(functions) != 1:
+        raise CloudWorkerError("No hay una función única para recuperar")
+    fn = functions[0]
+
+    # Discard only simple, predictable extraneous module nodes. Anything that
+    # could perform module-level actions remains a failure.
+    for node in original.body:
+        if node is fn:
+            continue
+        if isinstance(node, (ast.Import, ast.ImportFrom, ast.FunctionDef)):
+            continue  # stripped: even importing a module is NOT run
+        if isinstance(node, ast.Expr) and isinstance(node.value, ast.Constant) and isinstance(node.value.value, str):
+            continue
+        if isinstance(node, ast.Assign) and all(isinstance(t, ast.Name) for t in node.targets) and isinstance(node.value, ast.Constant):
+            continue
+        if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and (node.value is None or isinstance(node.value, ast.Constant)):
+            continue
+        if isinstance(node, ast.If) and _is_main_guard(node):
+            continue
+        raise CloudWorkerError("Código extra de nivel superior no recuperable")
+
+    # A function decorator, default value or annotation expression may execute
+    # at import time. Preserve only plain built-in type annotations.
+    if fn.decorator_list or fn.args.defaults or any(v is not None for v in fn.args.kw_defaults):
+        raise CloudWorkerError("Decoradores y parámetros por defecto no permitidos")
+    for argument in (*fn.args.posonlyargs, *fn.args.args, *fn.args.kwonlyargs):
+        _check_annotation(argument.annotation)
+    if fn.args.vararg:
+        _check_annotation(fn.args.vararg.annotation)
+    if fn.args.kwarg:
+        _check_annotation(fn.args.kwarg.annotation)
+    _check_annotation(fn.returns)
+
+    cleaned = ast.unparse(ast.Module(body=[fn], type_ignores=[])) + "\n"
+    verified = validate_code(cleaned)
+    return verified
+
+
+def _is_main_guard(node: ast.If) -> bool:
+    test = node.test
+    return (
+        not node.orelse and isinstance(test, ast.Compare)
+        and isinstance(test.left, ast.Name) and test.left.id == "__name__"
+        and len(test.ops) == 1 and isinstance(test.ops[0], ast.Eq)
+        and len(test.comparators) == 1 and isinstance(test.comparators[0], ast.Constant)
+        and test.comparators[0].value == "__main__"
+    )
+
+
+def _check_annotation(node: ast.expr | None) -> None:
+    if node is None:
+        return
+    allowed = {"dict", "str", "int", "bool", "list", "tuple", "set", "object"}
+    if isinstance(node, ast.Name) and node.id in allowed:
+        return
+    if isinstance(node, ast.Constant) and node.value is None:
+        return
+    if isinstance(node, ast.Subscript) and isinstance(node.value, ast.Name) and node.value.id in allowed:
+        _check_annotation(node.slice)
+        return
+    if isinstance(node, ast.Tuple):
+        for element in node.elts:
+            _check_annotation(element)
+        return
+    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.BitOr):
+        _check_annotation(node.left)
+        _check_annotation(node.right)
+        return
+    raise CloudWorkerError("Anotación de tipo no permitida")
+
 
 def validate_code(code: object) -> str:
     if not isinstance(code, str):
@@ -157,6 +256,16 @@ def validate_code(code: object) -> str:
     functions = [n for n in tree.body if isinstance(n, ast.FunctionDef)]
     if len(functions) != 1 or functions[0].name != "summarize_checkpoint":
         raise CloudWorkerError("La propuesta necesita exactamente summarize_checkpoint")
+    fn = functions[0]
+    if fn.decorator_list or fn.args.defaults or any(v is not None for v in fn.args.kw_defaults):
+        raise CloudWorkerError("Decoradores y valores por defecto no permitidos")
+    for arg in (*fn.args.posonlyargs, *fn.args.args, *fn.args.kwonlyargs):
+        _check_annotation(arg.annotation)
+    if fn.args.vararg:
+        _check_annotation(fn.args.vararg.annotation)
+    if fn.args.kwarg:
+        _check_annotation(fn.args.kwarg.annotation)
+    _check_annotation(fn.returns)
 
     forbidden = (ast.Import, ast.ImportFrom, ast.AsyncFunctionDef, ast.ClassDef,
                  ast.Lambda, ast.Global, ast.Nonlocal, ast.Yield, ast.YieldFrom,
@@ -180,7 +289,25 @@ def validate_code(code: object) -> str:
                 raise CloudWorkerError("Método no permitido")
             if not isinstance(node.func, (ast.Name, ast.Attribute)):
                 raise CloudWorkerError("Llamada dinámica no permitida")
+    _assert_no_external_dependencies(source)
     return source
+
+
+def _assert_no_external_dependencies(source: str) -> None:
+    allowed = {"dict", "str", "int", "bool", "list", "tuple", "set",
+               "isinstance", "len", "sorted", "min", "max", "sum",
+               "any", "all", "ValueError", "TypeError", "enumerate",
+               "range", "object"}
+    root = symtable.symtable(source, "<model-proposal>", "exec")
+    def check_scope(scope) -> None:
+        for symbol in scope.get_symbols():
+            if symbol.is_global() and symbol.is_referenced() and symbol.get_name() not in allowed:
+                raise CloudWorkerError("Dependencia global no permitida")
+        for child in scope.get_children():
+            check_scope(child)
+    for scope in root.get_children():
+        if scope.get_name() == "summarize_checkpoint":
+            check_scope(scope)
 
 
 def write_proposal(task_id: str, code: str, directory: Path) -> dict:

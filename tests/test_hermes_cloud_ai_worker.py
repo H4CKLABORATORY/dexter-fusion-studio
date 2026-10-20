@@ -67,7 +67,7 @@ class CloudAiWorkerTests(unittest.TestCase):
 
     def test_retry_after_bad_top_level_code(self):
         first = json.dumps({"message": {"content": json.dumps({
-            "code": "import os\n" + SOURCE
+            "code": "danger = open('secret.txt')\n" + SOURCE
         })}}).encode()
         second = json.dumps({"message": {"content": json.dumps({"code": SOURCE})}}).encode()
         responses = [first, second]
@@ -98,7 +98,7 @@ class CloudAiWorkerTests(unittest.TestCase):
 
     def test_no_unsafe_fallback_after_three_bad_attempts(self):
         bad_code = json.dumps({"message": {"content": json.dumps({
-            "code": "import os\n" + SOURCE
+            "code": "danger = open('secret.txt')\n" + SOURCE
         })}}).encode()
         fake = MagicMock()
         fake.read.return_value = bad_code
@@ -117,6 +117,88 @@ class CloudAiWorkerTests(unittest.TestCase):
         ):
             with self.subTest(source=source), self.assertRaises(ai.CloudWorkerError):
                 ai.validate_code(source)
+
+    def test_recover_single_function_from_imports_and_example_main(self):
+        messy = (
+            "import os\n"
+            "from typing import Any\n"
+            "VERSION = 1\n"
+            + SOURCE +
+            "\nif __name__ == '__main__':\n"
+            "    print('This discarded example is never executed')\n"
+        )
+        recovered = ai.sanitize_model_code(messy)
+        self.assertEqual(ai.validate_code(recovered), recovered)
+        self.assertNotIn("import os", recovered)
+        self.assertNotIn("print(", recovered)
+        self.assertNotIn("VERSION", recovered)
+        self.assertIn("def summarize_checkpoint", recovered)
+
+    def test_fenced_python_function_is_unwrapped(self):
+        recovered = ai.sanitize_model_code("```python\n" + SOURCE + "```")
+        self.assertIn("summarize_checkpoint", recovered)
+        self.assertNotIn("```", recovered)
+
+    def test_safe_scaffolding_does_not_use_second_ollama_call(self):
+        code = "import json\n" + SOURCE
+        response = json.dumps({"message": {"content": json.dumps({"code": code})}}).encode()
+        fake = MagicMock()
+        fake.read.return_value = response
+        fake.__enter__.return_value = fake
+        with patch.dict(ai.os.environ, {"HERMES_CLOUD_MODEL_ENABLED": "1"}):
+            with patch.object(ai.urllib.request, "urlopen", return_value=fake) as remote:
+                result = ai.ollama_proposal("checkpoint-summary-helper")
+        self.assertEqual(remote.call_count, 1)
+        self.assertIn("summarize_checkpoint", result)
+        self.assertNotIn("import json", result)
+
+    def test_reject_global_access_from_removed_import(self):
+        body = (
+            "import os\n"
+            "def summarize_checkpoint(record: dict) -> dict:\n"
+            "    return {'value': os.getenv('HIDDEN')}\n"
+        )
+        with self.assertRaises(ai.CloudWorkerError):
+            ai.sanitize_model_code(body)
+
+    def test_reject_reference_to_removed_global_constant(self):
+        body = (
+            "TOKEN = 'secret'\n"
+            "def summarize_checkpoint(record: dict) -> dict:\n"
+            "    return {'token': TOKEN}\n"
+        )
+        with self.assertRaises(ai.CloudWorkerError):
+            ai.sanitize_model_code(body)
+
+    def test_reject_side_effectful_global_initializer(self):
+        body = "EXFIL = open('private')\n" + SOURCE
+        with self.assertRaises(ai.CloudWorkerError):
+            ai.sanitize_model_code(body)
+
+    def test_reject_unsafe_module_decorator_and_default(self):
+        for body in (
+            "@dangerous\n" + SOURCE,
+            "def summarize_checkpoint(record: dict = open('private')) -> dict:\n"
+            "    return {}\n",
+            "def summarize_checkpoint(record: dict) -> risky.call():\n"
+            "    return {}\n",
+        ):
+            with self.subTest(body=body), self.assertRaises(ai.CloudWorkerError):
+                ai.sanitize_model_code(body)
+
+    def test_reject_extra_module_execution_not_main_guard(self):
+        body = SOURCE + "\nif flag:\n    print('anything')\n"
+        with self.assertRaises(ai.CloudWorkerError):
+            ai.sanitize_model_code(body)
+
+    def test_no_normalization_for_missing_target_function(self):
+        source = "def other(record: dict) -> dict:\n    return {'message': 'x'}\n"
+        with self.assertRaises(ai.CloudWorkerError):
+            ai.sanitize_model_code(source)
+
+    def test_validate_strict_output_still_rejects_imports(self):
+        with self.assertRaises(ai.CloudWorkerError):
+            ai.validate_code("import os\n" + SOURCE)
 
     def test_atomic_like_artifact_and_hash(self):
         with tempfile.TemporaryDirectory() as d:

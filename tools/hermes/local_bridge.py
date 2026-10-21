@@ -118,6 +118,22 @@ class Store:
         row = self.db.execute('SELECT * FROM tasks WHERE id=?', (task,)).fetchone()
         return dict(row) if row else None
 
+    def status(self):
+        # A queue overview must not reveal private prompts, answers or memory.
+        counts = {key: 0 for key in ('pending', 'running', 'completed', 'failed', 'cancelled')}
+        counts.update({row['status']: row['total'] for row in self.db.execute(
+            'SELECT status, COUNT(*) AS total FROM tasks GROUP BY status')})
+        recent = [dict(row) for row in self.db.execute(
+            'SELECT id,engine,model,status,created FROM tasks ORDER BY created DESC,id DESC LIMIT 50')]
+        return {'counts': counts, 'recent': recent, 'limit': 50}
+
+    def cancel_pending(self, task):
+        # Retain the record and never interrupt inference already in progress.
+        with self.db:
+            changed = self.db.execute("UPDATE tasks SET status='cancelled' WHERE id=? AND status='pending'",
+                                      (task,)).rowcount
+        return changed == 1
+
 
 def handler(store, token):
     class Handler(BaseHTTPRequestHandler):
@@ -152,6 +168,8 @@ def handler(store, token):
                 return
             if self.path == '/health':
                 self.reply(200, {'status': 'ok', 'engines': list(ENGINES), 'execution': 'text-only'})
+            elif self.path == '/tasks':
+                self.reply(200, store.status())
             elif re.fullmatch(r'/tasks/[a-f0-9]{32}', self.path):
                 row = store.task(self.path.rsplit('/', 1)[1])
                 self.reply(200 if row else 404, row or {'error': 'No existe'})
@@ -161,7 +179,8 @@ def handler(store, token):
         def do_POST(self):
             if not self.authorized():
                 return
-            if self.path not in ('/tasks', '/memory/search'):
+            cancel = re.fullmatch(r'/tasks/([a-f0-9]{32})/cancel', self.path)
+            if self.path not in ('/tasks', '/memory/search') and not cancel:
                 self.reply(404, {'error': 'Ruta no permitida'})
                 return
             try:
@@ -173,7 +192,17 @@ def handler(store, token):
                 data = json.loads(self.rfile.read(length))
                 if not isinstance(data, dict):
                     raise ValueError('Objeto JSON requerido')
-                if self.path == '/tasks':
+                if cancel:
+                    if data:
+                        raise ValueError('La cancelación requiere objeto vacío')
+                    task_id = cancel.group(1)
+                    if store.cancel_pending(task_id):
+                        self.reply(200, {'id': task_id, 'status': 'cancelled'})
+                    elif store.task(task_id) is None:
+                        self.reply(404, {'error': 'No existe'})
+                    else:
+                        self.reply(409, {'error': 'Solo se cancelan tareas pendientes'})
+                elif self.path == '/tasks':
                     self.reply(201, {'id': store.enqueue(data), 'status': 'pending'})
                 else:
                     query = data.get('query')
@@ -192,6 +221,9 @@ def main():
     index = sub.add_parser('index')
     index.add_argument('--memory', type=Path, required=True)
     sub.add_parser('work-once')
+    sub.add_parser('status')
+    cancel = sub.add_parser('cancel')
+    cancel.add_argument('--task-id', required=True)
     serve = sub.add_parser('serve')
     serve.add_argument('--port', type=int, default=18765)
     args = parser.parse_args()
@@ -205,6 +237,12 @@ def main():
         print(json.dumps({'indexed_chunks': store.index(args.memory)}))
     elif args.command == 'work-once':
         print(json.dumps({'task': store.run_one()}))
+    elif args.command == 'status':
+        print(json.dumps(store.status(), ensure_ascii=False))
+    elif args.command == 'cancel':
+        if not store.cancel_pending(args.task_id):
+            parser.error('No existe una tarea pendiente con ese identificador')
+        print(json.dumps({'id': args.task_id, 'status': 'cancelled'}))
     else:
         if not token_file.exists():
             with token_file.open('x', encoding='utf-8') as f:

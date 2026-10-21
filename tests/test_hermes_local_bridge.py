@@ -111,6 +111,39 @@ class BridgeTests(unittest.TestCase):
         status, task = request('POST', '/tasks', headers, json.dumps(self.data()))
         self.assertEqual(status, 201)
         self.assertEqual(request(path='/tasks/' + task['id'], headers=auth)[1]['status'], 'pending')
+        self.assertEqual(request(path='/tasks')[0], 401)
+        overview = request(path='/tasks', headers=auth)[1]
+        self.assertEqual(overview['counts']['pending'], 1)
+        self.assertNotIn('prompt', overview['recent'][0])
+        cancel_path = '/tasks/' + task['id'] + '/cancel'
+        self.assertEqual(request('POST', cancel_path, headers, '{"force":true}')[0], 400)
+        self.assertEqual(request('POST', cancel_path, {}, '{}')[0], 401)
+        self.assertEqual(request('POST', cancel_path, headers, '{}')[1]['status'], 'cancelled')
+        self.assertEqual(request('POST', cancel_path, headers, '{}')[0], 409)
+        self.assertEqual(request('POST', '/tasks/' + '0'*32 + '/cancel', headers, '{}')[0], 404)
+
+    def test_cancel_preserves_record_skips_worker_and_never_interrupts_running(self):
+        task = self.store.enqueue(self.data())
+        self.assertTrue(self.store.cancel_pending(task))
+        self.assertEqual(self.store.task(task)['prompt'], self.data()['prompt'])
+        with patch.object(bridge.urllib.request, 'build_opener') as factory:
+            self.assertIsNone(self.store.run_one())
+        factory.assert_not_called()
+        running = self.store.enqueue(self.data())
+        with self.store.db:
+            self.store.db.execute("UPDATE tasks SET status='running' WHERE id=?", (running,))
+        self.assertFalse(self.store.cancel_pending(running))
+        self.assertEqual(self.store.task(running)['status'], 'running')
+        self.assertFalse(self.store.cancel_pending("'; DROP TABLE tasks; --"))
+
+    def test_overview_is_bounded_and_excludes_private_contents(self):
+        for _ in range(55):
+            self.store.enqueue(self.data())
+        overview = self.store.status()
+        self.assertEqual(overview['counts']['pending'], 55)
+        self.assertEqual(len(overview['recent']), 50)
+        self.assertNotIn('Analiza el reproductor', json.dumps(overview))
+        self.assertEqual(set(overview['recent'][0]), {'id','engine','model','status','created'})
 
 
 if __name__ == '__main__':

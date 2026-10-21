@@ -25,6 +25,11 @@ python tools/hermes/local_bridge.py --state <directorio-privado> work-once
 - `POST /tasks`, JSON `{"kind":"analyze","engine":"lmstudio","model":"modelo-cargado","prompt":"consulta"}`:
   crea tarea pendiente. `kind` también admite `propose`; no cambia los permisos.
 - `GET /tasks/<id>`: estado y resultado. Todas las rutas requieren el token local.
+- `GET /tasks`: conteos por estado y últimas 50 tareas, sin preguntas, respuestas
+  ni fragmentos privados. También funciona `status` desde la CLI con acceso al estado local.
+- `POST /tasks/<id>/cancel`, JSON `{}`: cancela solo tareas pendientes, conservando
+  el registro. Una tarea iniciada, finalizada o ya cancelada devuelve 409; no se
+  interrumpe una inferencia en curso. CLI equivalente: `cancel --task-id <id>`.
 - `work-once` reclama atómicamente **una** tarea pendiente, consulta fragmentos relevantes,
   pide respuesta en español y persiste resultado. Nunca hay descarga automática.
 

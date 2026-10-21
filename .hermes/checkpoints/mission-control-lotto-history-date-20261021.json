@@ -4,7 +4,7 @@
   "task_id": "mission-control-lotto-history-date-20261021",
   "branch": "fix/lotto-history-date-validation-20261021",
   "base_main_sha": "7374b2e03538830655041d50e5d71bf897f51769",
-  "status": "review_pending",
+  "status": "blocked_pr_creation",
   "problem": "Historical draw parser accepted impossible dates and non-ISO date strings.",
   "changed_files": [
     "lotto-lab/assets/page-context.mjs",
@@ -16,8 +16,10 @@
     "browser": "not_run",
     "CI": "pending"
   },
-  "last_observed_commit": "fbf36a80cd7282ba5e1f208a10ba17b1845afc90",
+  "last_observed_commit": "39c7518f8c9bb9990f89af121daac3805f314637",
   "last_verified_commit": null,
-  "next_action": "Open draft PR; inspect CI including node --test lotto-lab/tests/test_history_dates.mjs; review before merge. No automatic merge.",
-  "notes": "No local Windows/PC changes, no secrets, no external models, no payments."
+  "next_action": "Use GitHub compare UI to create draft PR manually, run node --test lotto-lab/tests/test_history_dates.mjs and inspect CI. Await human review; do not merge automatically.",
+  "notes": "No local Windows/PC changes, no secrets, no external models, no payments.",
+  "pr_created": false,
+  "blocker": "GitHub create_pull_request rejected by safety checks (two payloads). Orchestrator MASTER_QUEUE.json update also rejected. Do not retry identical operations."
 }

@@ -1,3 +1,4 @@
+import datetime as dt
 import importlib.util
 import json
 from pathlib import Path
@@ -46,6 +47,40 @@ class SupervisorTests(unittest.TestCase):
     def test_model_endpoint_is_loopback_only(self):
         with self.assertRaises(ValueError):
             ms.model_id('http://evil.example/v1/models')
+
+    def test_refresh_timestamp_boundaries(self):
+        started = dt.datetime.now(dt.timezone.utc) - dt.timedelta(seconds=1)
+        with tempfile.TemporaryDirectory() as td:
+            file = Path(td) / 'catalog.json'
+            doc = {'groups': {'trending': [{'id': i + 1, 'title': 'Sample'} for i in range(5)]}}
+            for timestamp in [started - dt.timedelta(milliseconds=1),
+                              started + dt.timedelta(days=1),
+                              started.replace(tzinfo=None)]:
+                with self.subTest(timestamp=timestamp):
+                    doc['updated'] = timestamp.isoformat()
+                    file.write_text(json.dumps(doc))
+                    with self.assertRaises(ValueError):
+                        ms.validate_catalog(file, refreshed_since=started)
+            for timestamp in [started, started.astimezone(dt.timezone(dt.timedelta(hours=-6)))]:
+                doc['updated'] = timestamp.isoformat()
+                file.write_text(json.dumps(doc))
+                self.assertEqual(ms.validate_catalog(file, refreshed_since=started), 5)
+
+    def test_successful_node_exit_does_not_accept_stale_catalog(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / 'scripts').mkdir()
+            (root / 'data').mkdir()
+            (root / 'scripts' / 'refresh-catalog.mjs').write_text('// Successful no-op scraper\n')
+            catalog = root / 'data' / 'catalog.json'
+            doc = {'updated': '2020-01-01T00:00:00Z', 'groups': {
+                'trending': [{'id': i + 1, 'title': 'Sample'} for i in range(5)]}}
+            original = json.dumps(doc)
+            catalog.write_text(original)
+            with self.assertRaisesRegex(ValueError, 'not refreshed'):
+                ms.execute_task({'kind': 'catalog_refresh', 'timeoutSeconds': 30},
+                                root, root / 'run.log', root / 'unused-python', '')
+            self.assertEqual(catalog.read_text(), original)
 
     def test_worktree_execution_checkpoint_and_resume(self):
         with tempfile.TemporaryDirectory() as td:

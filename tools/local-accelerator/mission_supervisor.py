@@ -84,14 +84,19 @@ def run(args: list[str], cwd: Path, timeout: int, log: Path, env: dict | None = 
             raise TimeoutError(f"Process exceeded {timeout}s (see {log})")
 
 
-def validate_catalog(path: Path) -> int:
+def validate_catalog(path: Path, *, refreshed_since: dt.datetime | None = None) -> int:
     doc = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(doc, dict) or not isinstance(doc.get("groups"), dict):
         raise ValueError("Invalid catalog groups")
     when = doc.get("updated")
     if not isinstance(when, str):
         raise ValueError("Missing update timestamp")
-    dt.datetime.fromisoformat(when.replace("Z", "+00:00"))
+    updated = dt.datetime.fromisoformat(when.replace("Z", "+00:00"))
+    if refreshed_since is not None:
+        if updated.tzinfo is None or updated.utcoffset() is None:
+            raise ValueError("Catalog update timestamp must include a timezone")
+        if updated < refreshed_since or updated > dt.datetime.now(dt.timezone.utc):
+            raise ValueError("Catalog was not refreshed during this scraping run")
     total = 0
     for section, records in doc["groups"].items():
         if not isinstance(records, list):
@@ -146,10 +151,13 @@ def execute_task(task: dict, worktree: Path, log_path: Path, venv_python: Path, 
         code = run(["node", "--check", str(script)], worktree, 30, log_path)
         if code != 0:
             raise RuntimeError(f"node --check failed ({code})")
+        # JavaScript ISO timestamps have millisecond precision; match that boundary.
+        started = dt.datetime.now(dt.timezone.utc)
+        started = started.replace(microsecond=(started.microsecond // 1000) * 1000)
         code = run(["node", str(script)], worktree, limit, log_path)
         if code != 0:
             raise RuntimeError(f"AniList fetch failed ({code}); last snapshot preserved if scraper is atomic")
-        after = validate_catalog(catalog)
+        after = validate_catalog(catalog, refreshed_since=started)
         return {"beforeCards": before, "afterCards": after, "source": "AniList GraphQL metadata", "playbackVerified": False}
     if kind == "qwen_catalog_review":
         mid = model_id(model_endpoint)

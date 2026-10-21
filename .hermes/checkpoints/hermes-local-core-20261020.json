@@ -13,22 +13,31 @@
     {
       "at": "2026-10-21T04:11:15+00:00",
       "event": "Avance: in_progress"
+    },
+    {
+      "at": "2026-10-21T04:13:15+00:00",
+      "event": "Avance: in_progress"
     }
   ],
-  "last_observed_commit": "49e654e",
-  "last_verified_commit": null,
+  "last_observed_commit": "0f17e93ad429f2ee6a6f1f08be75fceb94b365f4",
+  "last_verified_commit": "0f17e93ad429f2ee6a6f1f08be75fceb94b365f4",
   "links": [],
-  "next_action": "Verificar CI y revisar migracion del servicio local; conservar pendientes en HERMES_LOCAL_PHASES.md",
+  "next_action": "Revisar CI de PR #24; sandbox y handoff cloud pendientes; servicio diario sin migrar",
   "objective": "Diagnostico de tareas largas, DAG durable y cambio Qwen revisado en worktree",
   "project": "H4CKLABORATORY/dexter-fusion-studio",
   "schema_version": 1,
   "status": "in_progress",
   "task_id": "hermes-local-core-20261020",
-  "updated_at": "2026-10-21T04:11:15+00:00",
+  "updated_at": "2026-10-21T04:13:15+00:00",
   "verification": [
     {
       "evidence": "27 pruebas focalizadas PASS; suite ampliada 108:94 PASS,12 skipped,2 fallos preexistentes reproducidos en base; ver HERMES_LOCAL_PHASES.md",
       "name": "Local core Windows",
+      "result": "passed"
+    },
+    {
+      "evidence": "git diff --exit-code entre bdc7d2df3c733f9959a4a51d310d460c5657941f y 0f17e93ad429f2ee6a6f1f08be75fceb94b365f4: PASS; 27 core tests PASS; PR https://github.com/H4CKLABORATORY/dexter-fusion-studio/pull/24",
+      "name": "Public tree matches locally tested tree",
       "result": "passed"
     }
   ]

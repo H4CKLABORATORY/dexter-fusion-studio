@@ -236,7 +236,7 @@ def main(argv: list[str] | None = None) -> int:
             previous = state["tasks"].get(ident, {})
             if previous.get("status") == "passed":
                 continue
-            if previous.get("status") in {"failed", "timed_out"}:
+            if previous.get("status") in {"failed", "timed_out", "running"}:
                 raise RuntimeError(f"Previous task {ident} failed; inspect {active_file} before retrying (no silent reruns of AI edits)")
             record = {"status": "running", "startedAt": now(), "kind": task["kind"], "timeoutSeconds": task["timeoutSeconds"]}
             state["tasks"][ident] = record

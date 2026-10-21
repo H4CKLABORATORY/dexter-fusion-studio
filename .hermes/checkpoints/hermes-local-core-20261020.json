@@ -1,0 +1,35 @@
+{
+  "blockers": [],
+  "branch": "fix/hermes-long-task-diagnostics-20261020",
+  "changed_files": [],
+  "completed_steps": [
+    "Reproducido limite de tokens; recuperacion real 51.188s, propuesta Qwen revisada y rollback probado; seis benchmarks sinteticos completados."
+  ],
+  "history": [
+    {
+      "at": "2026-10-21T04:11:15+00:00",
+      "event": "Checkpoint inicializado (sin pruebas de código)"
+    },
+    {
+      "at": "2026-10-21T04:11:15+00:00",
+      "event": "Avance: in_progress"
+    }
+  ],
+  "last_observed_commit": "49e654e",
+  "last_verified_commit": null,
+  "links": [],
+  "next_action": "Verificar CI y revisar migracion del servicio local; conservar pendientes en HERMES_LOCAL_PHASES.md",
+  "objective": "Diagnostico de tareas largas, DAG durable y cambio Qwen revisado en worktree",
+  "project": "H4CKLABORATORY/dexter-fusion-studio",
+  "schema_version": 1,
+  "status": "in_progress",
+  "task_id": "hermes-local-core-20261020",
+  "updated_at": "2026-10-21T04:11:15+00:00",
+  "verification": [
+    {
+      "evidence": "27 pruebas focalizadas PASS; suite ampliada 108:94 PASS,12 skipped,2 fallos preexistentes reproducidos en base; ver HERMES_LOCAL_PHASES.md",
+      "name": "Local core Windows",
+      "result": "passed"
+    }
+  ]
+}

@@ -1,0 +1,109 @@
+{
+  "model": "qwen3.8-27b-defiance-uncensored-mtp",
+  "concurrency": 1,
+  "observed_providers": {
+    "observed_at": 1792555696.6305954,
+    "providers": {
+      "lmstudio": {
+        "status": "reachable",
+        "models": [
+          "qwen3.8-27b-defiance-uncensored-mtp"
+        ]
+      },
+      "ollama": {
+        "status": "unavailable_or_invalid"
+      }
+    },
+    "chatgpt": "unverified_no_adapter",
+    "locally_uncensored": "unverified_no_api_contract"
+  },
+  "samples": [
+    {
+      "case": "short",
+      "sample": 1,
+      "max_tokens": 512,
+      "status": "completed",
+      "answer_chars": 6,
+      "prompt_tokens": 168,
+      "completion_tokens": 44,
+      "total_tokens": 212,
+      "seconds": 1.328,
+      "completion_tokens_per_wall_second": 33.13
+    },
+    {
+      "case": "short",
+      "sample": 2,
+      "max_tokens": 512,
+      "status": "completed",
+      "answer_chars": 5,
+      "prompt_tokens": 168,
+      "completion_tokens": 58,
+      "total_tokens": 226,
+      "seconds": 1.031,
+      "completion_tokens_per_wall_second": 56.26
+    },
+    {
+      "case": "short",
+      "sample": 3,
+      "max_tokens": 512,
+      "status": "completed",
+      "answer_chars": 5,
+      "prompt_tokens": 168,
+      "completion_tokens": 61,
+      "total_tokens": 229,
+      "seconds": 1.016,
+      "completion_tokens_per_wall_second": 60.04
+    },
+    {
+      "case": "engineering",
+      "sample": 1,
+      "max_tokens": 8192,
+      "status": "completed",
+      "answer_chars": 889,
+      "prompt_tokens": 203,
+      "completion_tokens": 3156,
+      "total_tokens": 3359,
+      "seconds": 44.39,
+      "completion_tokens_per_wall_second": 71.1
+    },
+    {
+      "case": "engineering",
+      "sample": 2,
+      "max_tokens": 8192,
+      "status": "completed",
+      "answer_chars": 929,
+      "prompt_tokens": 203,
+      "completion_tokens": 1566,
+      "total_tokens": 1769,
+      "seconds": 21.797,
+      "completion_tokens_per_wall_second": 71.84
+    },
+    {
+      "case": "engineering",
+      "sample": 3,
+      "max_tokens": 8192,
+      "status": "completed",
+      "answer_chars": 992,
+      "prompt_tokens": 203,
+      "completion_tokens": 3419,
+      "total_tokens": 3622,
+      "seconds": 42.969,
+      "completion_tokens_per_wall_second": 79.57
+    }
+  ],
+  "summary": {
+    "short": {
+      "samples": 3,
+      "completed": 3,
+      "median_seconds": 1.031,
+      "max_seconds": 1.328
+    },
+    "engineering": {
+      "samples": 3,
+      "completed": 3,
+      "median_seconds": 42.969,
+      "max_seconds": 44.39
+    }
+  },
+  "limitations": "Small sequential warm-model sample. No p95, speedup, decode-only throughput or reliability estimate."
+}

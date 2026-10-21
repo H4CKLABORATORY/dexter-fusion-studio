@@ -8,6 +8,9 @@ on:
       - 'tests/test_hermes_generated_summary.py'
       - 'tests/test_hermes_scheduler.py'
       - 'tests/test_hermes_local_bridge.py'
+      - 'tests/test_hermes_agent_dispatch.py'
+      - 'tests/test_hermes_durable_plan.py'
+      - 'tests/test_hermes_repo_workspace.py'
       - '.hermes/checkpoints/**'
       - '.github/workflows/hermes-checkpoints.yml'
   push:
@@ -42,3 +45,23 @@ jobs:
         run: python tools/hermes/checkpoint.py validate-all
       - name: Verify authenticated local bridge and private queue
         run: python -m unittest discover -s tests -p test_hermes_local_bridge.py -v
+      - name: Verify durable dependency queue and guarded workspaces
+        run: |
+          python -m unittest discover -s tests -p test_hermes_agent_dispatch.py -v
+          python -m unittest discover -s tests -p test_hermes_durable_plan.py -v
+          python -m unittest discover -s tests -p test_hermes_repo_workspace.py -v
+  windows-local-core:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify Windows local core without POSIX harness
+        shell: cmd
+        run: |
+          python -m unittest discover -s tests -p test_hermes_local_bridge.py -v || exit /b 1
+          python -m unittest discover -s tests -p test_hermes_agent_dispatch.py -v || exit /b 1
+          python -m unittest discover -s tests -p test_hermes_durable_plan.py -v || exit /b 1
+          python -m unittest discover -s tests -p test_hermes_repo_workspace.py -v || exit /b 1

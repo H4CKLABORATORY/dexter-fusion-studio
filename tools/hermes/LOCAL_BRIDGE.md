@@ -44,3 +44,45 @@ un solo proceso por vez, duración máxima y fecha de expiración. No lo confund
 agente que implemente tareas de GitHub: la respuesta sigue siendo una propuesta revisable.
 
 Pruebas: `python -m unittest discover -s tests -p test_hermes_local_bridge.py -v`.
+
+## Incremento verificable: diagnóstico y coordinación durable
+
+`POST /tasks` admite `max_tokens` entero entre 64 y 8192 (por defecto 2400 para
+compatibilidad). En tareas de razonamiento largas solicitar 8192 explícitamente.
+El contexto cargado y la velocidad del proveedor siguen imponiendo límites: no es
+garantía de finalización. No se reintenta automáticamente. `finish_reason=length`
+produce `diagnostic=output_token_limit`, incluso con texto parcial; razonamiento
+sin respuesta final produce `reasoning_without_answer`. No se conserva razonamiento
+ni cuerpos de error. `elapsed_seconds` mide el worker, no throughput de decodificación.
+
+Migración SQLite aditiva: presupuestos de tareas antiguas permanecen en 2400;
+no altera su estado ni vuelve a ejecutar tareas fallidas. Probar primero con estado
+nuevo. No arrancar código antiguo contra una cola migrada: usa INSERT posicional.
+Detener servidor y workers antiguos antes de migrar una cola de uso diario.
+
+`GET /providers` prueba `/v1/models` en URLs fijas, sin proxies ni redirecciones,
+con timeout de 3 segundos y límite de respuesta. `reachable` significa catálogo
+accesible en ese instante; no promete inferencia exitosa. ChatGPT y Locally Uncensored
+se informan no verificados, sin adaptadores ni exploración de puertos arbitrarios.
+
+`plan` reutiliza `agent_dispatch.plan` del PR #23, guarda roles y aristas en SQLite,
+y rechaza reutilizar un ID con otro contenido. Los resultados previos se adjuntan
+como datos no confiables y acotados. Una dependencia fallida deja descendientes
+pendientes, sin ejecutarlos. Los roles son funciones de análisis; no son permisos.
+Eventos `queued`, `claimed`, `completed`, `failed` y `operator_abandoned` se guardan
+en transacciones junto al cambio de estado. Son auditoría, no replay de efectos.
+
+Solo hay un slot `running` por base SQLite. Distintas bases o clientes externos
+pueden competir por la misma GPU: el operador debe usar una cola por proveedor.
+Una caída conserva `running` y detiene nuevas inferencias hasta revisión. Tras
+comprobar que el worker anterior terminó, `abandon --task ID --confirm-worker-stopped`
+registra fallo definitivo. No reencola, no recupera a ciegas ni cancela un proveedor.
+
+La herramienta `repo_workspace.py` recibe raíz y lista de archivos autorizados del
+coordinador de confianza. Ofrece worktree fijado a SHA, lectura con hash, reemplazo
+exacto con revisión previa, backup privado y rollback que rechaza pisar cambios
+posteriores. Pruebas por nombre en lista fija y timeout; sin shell. No es sandbox
+del sistema operativo: las pruebas ejecutan código del repositorio y solo deben
+correr tras revisión humana/Codex. El modelo no llama directamente al editor.
+
+Arquitectura, comandos Windows, mediciones y límites en [HERMES_LOCAL_PHASES.md](HERMES_LOCAL_PHASES.md).

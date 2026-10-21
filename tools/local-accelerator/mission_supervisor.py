@@ -166,7 +166,7 @@ def execute_task(task: dict, worktree: Path, log_path: Path, venv_python: Path, 
         env = os.environ.copy()
         env.update({"OPENAI_API_BASE": "http://127.0.0.1:1234/v1", "OPENAI_API_KEY": "lm-studio"})
         cmd = [str(venv_python), "-m", "aider", "--model", "openai/" + mid,
-               "--yes-always", "--no-auto-commits", "--message", instructions,
+               "--yes-always", "--no-auto-commits", "--no-suggest-shell-commands", "--message", instructions,
                "--read", "AGENTS.md", "--read", "docs/PROJECT_CONTINUITY.md",
                "scripts/refresh-catalog.mjs"]
         code = run(cmd, worktree, limit, log_path, env)
@@ -207,7 +207,7 @@ def main(argv: list[str] | None = None) -> int:
     os.close(fd)
     try:
         project = args.project.resolve(strict=True)
-        if git(["rev-parse", "--show-toplevel"], project) != str(project):
+        if Path(git(["rev-parse", "--show-toplevel"], project)).resolve() != project:
             raise RuntimeError("--project must point to the repository root")
         head = git(["rev-parse", "HEAD"], project)
         active_file = root / "active.json"
@@ -216,7 +216,7 @@ def main(argv: list[str] | None = None) -> int:
             if state.get("baseProject") != str(project) or state.get("queue") != str(args.queue.resolve()):
                 raise RuntimeError("Resume project or queue differs from saved state")
             worktree = Path(state["worktree"])
-            if not worktree.is_dir() or git(["rev-parse", "--show-toplevel"], worktree) != str(worktree):
+            if not worktree.is_dir() or Path(git(["rev-parse", "--show-toplevel"], worktree)).resolve() != worktree.resolve():
                 raise RuntimeError("Saved worktree is missing or invalid")
         else:
             run_id = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d-%H%M%S") + "-" + uuid.uuid4().hex[:6]

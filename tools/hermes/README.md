@@ -23,6 +23,8 @@ python tools/hermes/checkpoint.py validate-all
 
 ## Ejecución real y servidor
 
+- [Puente local autenticado, memoria privada y cola de inferencia](LOCAL_BRIDGE.md).
+
 - [Instalación en Linux, Windows y conexión con Ollama](SERVER_SETUP.md).
 - Un turno sobre la rama de la tarea: `HERMES_RUN_ENABLED=1 python tools/hermes/runner.py --root /ruta/al/repositorio --task-id tarea --execute`.
 - Varias tareas de repositorios distintos: `HERMES_RUN_ENABLED=1 python tools/hermes/scheduler.py --config ~/.config/dexter-hermes/projects.json --execute --max-runs 1`.

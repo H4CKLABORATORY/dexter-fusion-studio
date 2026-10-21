@@ -24,6 +24,10 @@ python tools/hermes/local_bridge.py --state <directorio-privado> work-once
   archivo, número de fragmento y SHA-256 de procedencia. Búsqueda léxica, no embeddings.
 - `POST /tasks`, JSON `{"kind":"analyze","engine":"lmstudio","model":"modelo-cargado","prompt":"consulta"}`:
   crea tarea pendiente. `kind` también admite `propose`; no cambia los permisos.
+- Las tareas `propose` quedan detenidas hasta aprobación humana persistente. El
+  coordinador autorizado puede llamar `POST /tasks/<id>/approve` con JSON
+  `{"note":"..."}`. Solo se guarda la hora y un hash truncado de la nota en la
+  auditoría; no se guarda la nota ni se convierte la propuesta en un commit.
 - `GET /tasks/<id>`: estado y resultado. Todas las rutas requieren el token local.
 - `work-once` reclama atómicamente **una** tarea pendiente, consulta fragmentos relevantes,
   pide respuesta en español y persiste resultado. Nunca hay descarga automática.

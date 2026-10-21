@@ -86,7 +86,7 @@ class Store:
         self.db.row_factory = sqlite3.Row
         self.db.executescript('''
         CREATE TABLE IF NOT EXISTS tasks(id TEXT PRIMARY KEY, engine TEXT, model TEXT,
-          prompt TEXT, status TEXT, result TEXT, created REAL);
+          prompt TEXT, status TEXT, result TEXT, created REAL, kind TEXT NOT NULL DEFAULT 'analyze', approved REAL);
         CREATE TABLE IF NOT EXISTS chunks(source TEXT, digest TEXT, part INTEGER, text TEXT,
           PRIMARY KEY(source,part));
         CREATE TABLE IF NOT EXISTS plans(id TEXT PRIMARY KEY, digest TEXT NOT NULL);
@@ -100,7 +100,8 @@ class Store:
         # Additive migration preserves existing private queues.
         columns = {r[1] for r in self.db.execute('PRAGMA table_info(tasks)')}
         for name, declaration in (('max_tokens', 'INTEGER NOT NULL DEFAULT 2400'),
-                                  ('diagnostic', 'TEXT'), ('elapsed_seconds', 'REAL')):
+                                  ('diagnostic', 'TEXT'), ('elapsed_seconds', 'REAL'),
+                                  ('kind', "TEXT NOT NULL DEFAULT 'analyze'"), ('approved', 'REAL')):
             if name not in columns:
                 self.db.execute(f'ALTER TABLE tasks ADD COLUMN {name} {declaration}')
         self.db.commit()
@@ -146,8 +147,8 @@ class Store:
         if type(budget) is not int or not 64 <= budget <= 8192:
             raise ValueError('Presupuesto inválido')
         with self.db:
-            self.db.execute('INSERT INTO tasks(id,engine,model,prompt,status,result,created,max_tokens) VALUES(?,?,?,?,?,?,?,?)',
-                            (task, data['engine'], data['model'], data['prompt'], 'pending', None, time.time(), budget))
+            self.db.execute('INSERT INTO tasks(id,engine,model,prompt,status,result,created,kind,approved,max_tokens) VALUES(?,?,?,?,?,?,?,?,?,?)',
+                            (task, data['engine'], data['model'], data['prompt'], 'pending', None, time.time(), data.get('kind', 'analyze'), None, budget))
             self.db.execute('INSERT INTO events(task_id,event,created) VALUES(?,?,?)', (task, 'queued', time.time()))
         return task
 
@@ -159,6 +160,7 @@ class Store:
             if self.db.execute("SELECT 1 FROM tasks WHERE status='running'").fetchone():
                 return None
             row = self.db.execute("""SELECT t.* FROM tasks t WHERE t.status='pending'
+                AND (t.kind='analyze' OR t.approved IS NOT NULL)
                 AND NOT EXISTS (SELECT 1 FROM dependencies d JOIN tasks p ON p.id=d.prerequisite
                                 WHERE d.task_id=t.id AND p.status!='completed')
                 ORDER BY t.created,t.id LIMIT 1""").fetchone()
@@ -259,6 +261,19 @@ class Store:
         return [dict(r) for r in self.db.execute('''SELECT pt.task_key,pt.role,t.id,t.status,t.diagnostic
             FROM plan_tasks pt JOIN tasks t ON t.id=pt.task_id WHERE pt.plan_id=? ORDER BY pt.task_key''', (plan_id,))]
 
+    def approve(self, task, note):
+        if not isinstance(note, str) or not 1 <= len(note) <= 1000:
+            raise ValueError('Nota de aprobación inválida')
+        with self.db:
+            row = self.db.execute('SELECT kind,status,approved FROM tasks WHERE id=?', (task,)).fetchone()
+            if row is None or row['kind'] != 'propose' or row['status'] != 'pending' or row['approved'] is not None:
+                raise ValueError('Solo propuestas pendientes pueden aprobarse')
+            now = time.time()
+            self.db.execute('UPDATE tasks SET approved=? WHERE id=?', (now, task))
+            self.db.execute('INSERT INTO events(task_id,event,created) VALUES(?,?,?)',
+                            (task, 'approved:' + hashlib.sha256(note.encode()).hexdigest()[:16], now))
+        return self.task(task)
+
     def task(self, task):
         row = self.db.execute('SELECT * FROM tasks WHERE id=?', (task,)).fetchone()
         return dict(row) if row else None
@@ -307,6 +322,16 @@ def handler(store, token):
 
         def do_POST(self):
             if not self.authorized():
+                return
+            approval = re.fullmatch(r'/tasks/([a-f0-9]{32})/approve', self.path)
+            if approval:
+                try:
+                    length = int(self.headers.get('Content-Length', '0'))
+                    data = json.loads(self.rfile.read(length)) if 0 < length <= 4000 else {}
+                    result = store.approve(approval.group(1), data.get('note'))
+                    self.reply(200, {'id': result['id'], 'status': result['status'], 'approved': True})
+                except (ValueError, TypeError, json.JSONDecodeError):
+                    self.reply(400, {'error': 'Solicitud inválida'})
                 return
             if self.path not in ('/tasks', '/memory/search'):
                 self.reply(404, {'error': 'Ruta no permitida'})

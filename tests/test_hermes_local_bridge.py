@@ -142,6 +142,16 @@ class BridgeTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 self.store.enqueue({**self.data(), 'max_tokens': budget})
 
+    def test_proposals_require_human_approval_and_record_hash_only(self):
+        task = self.store.enqueue({**self.data(), 'kind': 'propose'})
+        self.assertIsNone(self.store.run_one())
+        row = self.store.approve(task, 'Aprobado por revisión humana')
+        self.assertIsNotNone(row['approved'])
+        self.assertIsNone(row['result'])
+        self.assertEqual(self.store.db.execute('SELECT event FROM events WHERE task_id=? ORDER BY sequence DESC LIMIT 1', (task,)).fetchone()[0][:9], 'approved:')
+        with self.assertRaises(ValueError):
+            self.store.approve(task, 'segunda aprobación')
+
     def test_migrates_legacy_queue_without_losing_tasks(self):
         import sqlite3
         root = Path(self.temp.name) / 'legacy'

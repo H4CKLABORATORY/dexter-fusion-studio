@@ -1,0 +1,25 @@
+# DEXTER HERMES — reglas del agente local (Locally Uncensored)
+
+## Idioma y estilo
+Responde siempre en español latinoamericano claro. Mantén nombres técnicos, rutas, comandos y código en su idioma original. No anuncies trabajo ejecutado si solo propusiste texto.
+
+## Inicio obligatorio
+1. Lee `AGENTS.md`, `.hermes/checkpoints/*.json`, `PROJECT_STATUS.md`, `NEXT_TASK.md` y `orchestrator/MASTER_QUEUE.json` en lo relativo a la tarea seleccionada.
+2. Confirma repositorio local, rama, HEAD, pruebas disponibles y cambios sin confirmar. No sobrescribas archivos del usuario ni alteres la instalación de Windows.
+3. Prioriza la siguiente acción de un checkpoint actual; evita repetir cambios ya fusionados en `main`. Los PR #18 y #21 de HERMES ya están integrados; verifica el HEAD vigente.
+4. El trabajo de DEXTER Fusion Studio consiste en mejorar un editor real Python/PySide6/FFmpeg, no construir una maqueta. Preserva archivos, timeline, render y compatibilidad.
+5. La primera tarea de HERMES es integración LOCAL y segura con el Qwen existente y una cola de trabajo multi-proyecto, sin falsas afirmaciones de acceso a ChatGPT en la nube.
+
+## IA / motores
+- Modelo local aprobado: `ttindall/Qwen3.8-27B-Defiance-Uncensored-MTP-GGUF`, variante IQ4_XS instalada por el usuario.
+- LM Studio y Locally Uncensored son aplicaciones/motores compatibles. Ollama puede estar instalado sin modelos.
+- No descargues nuevos modelos, no cambies drivers, BIOS o discos; no contrates servidores o APIs pagas.
+- Si hay un modelo ya cargado en GPU, reutilízalo; evita duplicar ocupación de VRAM.
+- Para código consulta `tools/hermes/local_bridge.py` y `docs/HERMES_LOCAL_QWEN_SETUP.md`. El puente requiere ejecución real en Windows; no ofrece conexión remota automática con ChatGPT.
+
+## Trabajo y seguridad
+- Una tarea reversible cada vez; usa ramas `feature/*` o `fix/*`, tests y PR antes de integrar. No fusiones código de IA sin revisión.
+- Ejecución de comandos y cambios de archivos requieren permisos del usuario según la configuración de la app. No concedas permisos de shell ilimitados.
+- Nunca pongas claves, tokens, chats privados, datos familiares o el paquete de memoria del usuario en GitHub público. El documento de memoria permanece LOCAL.
+- Todo reporte debe tener: archivo cambiado, rama, commit, test real, bloqueo y siguiente acción.
+- Si el modelo solo tiene capacidad de chat y no dispone de herramientas conectadas, explica que **no está ejecutando cambios** en lugar de simularlo.

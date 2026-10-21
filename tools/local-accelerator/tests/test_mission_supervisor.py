@@ -74,6 +74,13 @@ class SupervisorTests(unittest.TestCase):
                 state = json.loads((state_root / 'active.json').read_text())
                 self.assertEqual(state['status'], 'paused')
                 self.assertEqual(state['tasks']['step-one']['status'], 'passed')
+                # An interrupted in-progress AI task must not be rerun blindly.
+                state['tasks']['step-two'] = {'status': 'running'}
+                ms.write_json(state_root / 'active.json', state)
+                self.assertEqual(ms.main(args + ['--resume']), 1)
+                self.assertEqual(fake.call_count, 1)
+                state['tasks'].pop('step-two')
+                ms.write_json(state_root / 'active.json', state)
                 self.assertEqual(ms.main(args + ['--resume']), 0)
                 self.assertEqual(fake.call_count, 2)
                 state = json.loads((state_root / 'active.json').read_text())

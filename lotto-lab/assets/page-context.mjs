@@ -19,6 +19,11 @@ function announce(){
   window.dispatchEvent(new Event('lotto-science-updated'));
   window.dispatchEvent(new Event('lotto-lucky-updated'));
 }
+function isValidDrawDate(value){
+  if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value))return false;
+  const date=new Date(value);
+  return !Number.isNaN(date.getTime())&&date.toISOString().slice(0,10)===value;
+}
 function parseHistory(payload,game,key){
   if(!payload||payload.game!==key||!Array.isArray(payload.rows))throw Error('Historial incompatible');
   const seen=new Set(),output=[];
@@ -31,7 +36,7 @@ function parseHistory(payload,game,key){
       if(!Array.isArray(row)||row.length!==7)continue;
       [date,...main]=row;bonus=main.pop();
     }
-    if(typeof date!=='string'||date<game.start||main.length!==game.k||
+    if(!isValidDrawDate(date)||date<game.start||main.length!==game.k||
       new Set(main).size!==game.k||!main.every(x=>Number.isInteger(x)&&x>=1&&x<=game.n)||
       (game.bonus&&!Number.isInteger(bonus))||
       (game.bonus&&(bonus<1||bonus>game.bonus)))continue;

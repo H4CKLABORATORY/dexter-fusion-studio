@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "project": "lotto-lab",
+  "task_id": "mission-control-lotto-history-date-20261021",
+  "branch": "fix/lotto-history-date-validation-20261021",
+  "base_main_sha": "7374b2e03538830655041d50e5d71bf897f51769",
+  "status": "review_pending",
+  "problem": "Historical draw parser accepted impossible dates and non-ISO date strings.",
+  "changed_files": [
+    "lotto-lab/assets/page-context.mjs",
+    "lotto-lab/tests/test_history_dates.mjs"
+  ],
+  "verification": {
+    "isolated_parser_cases": "3/3 PASS",
+    "full_node_suite": "pending",
+    "browser": "not_run",
+    "CI": "pending"
+  },
+  "last_observed_commit": "fbf36a80cd7282ba5e1f208a10ba17b1845afc90",
+  "last_verified_commit": null,
+  "next_action": "Open draft PR; inspect CI including node --test lotto-lab/tests/test_history_dates.mjs; review before merge. No automatic merge.",
+  "notes": "No local Windows/PC changes, no secrets, no external models, no payments."
+}

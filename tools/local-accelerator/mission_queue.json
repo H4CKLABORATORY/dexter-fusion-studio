@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "tasks": [
+    {"id": "refresh-anilist-catalog", "kind": "catalog_refresh", "timeoutSeconds": 240},
+    {"id": "qwen-review-catalog", "kind": "qwen_catalog_review", "timeoutSeconds": 900}
+  ]
+}

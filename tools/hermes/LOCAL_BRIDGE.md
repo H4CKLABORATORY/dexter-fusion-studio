@@ -20,6 +20,8 @@ python tools/hermes/local_bridge.py --state <directorio-privado> work-once
 ```
 
 - `GET /health`: capacidades, sin prueba de disponibilidad de motores.
+- `GET /hardware`: lectura actual NVIDIA de temperatura del núcleo y VRAM, fecha
+  de muestreo y estado; requiere autenticación. CLI: `hardware`.
 - `POST /memory/search`, JSON `{"query":"reproductor"}`: hasta tres fragmentos con
   archivo, número de fragmento y SHA-256 de procedencia. Búsqueda léxica, no embeddings.
 - `POST /tasks`, JSON `{"kind":"analyze","engine":"lmstudio","model":"modelo-cargado","prompt":"consulta"}`:
@@ -47,5 +49,19 @@ el token. Hay límites de cuerpo y tiempo; no hay defensa contra un proceso loca
 Para reanudación acotada se puede programar `work-once` con el programador del equipo,
 un solo proceso por vez, duración máxima y fecha de expiración. No lo confundir con un
 agente que implemente tareas de GitHub: la respuesta sigue siendo una propuesta revisable.
+
+## Temperatura antes de iniciar tareas
+Cada `work-once` con trabajo pendiente consulta `nvidia-smi` con argumentos fijos,
+sin shell y con timeout de tres segundos. A partir de **80 °C** en cualquier GPU
+NVIDIA detectada, conserva la tarea pendiente y no inicia inferencia. Si falta el
+sensor, devuelve valores inválidos o falla la lectura, también espera. El límite
+es una política operativa conservadora del programador, no una especificación
+térmica del fabricante. Una ejecución posterior vuelve a leer la temperatura.
+
+La salida del worker incluye `hardware` para distinguir la espera de una cola vacía.
+La comprobación se hace al inicio: no es vigilancia continua, no interrumpe inferencias
+en curso, no controla otras aplicaciones y no modifica ventiladores, potencia ni clocks.
+Solo informa temperatura de núcleo NVIDIA; no certifica temperatura del CPU,
+hotspot o memoria gráfica. `cpu_temperature_c: null` significa que no se ha medido.
 
 Pruebas: `python -m unittest discover -s tests -p test_hermes_local_bridge.py -v`.

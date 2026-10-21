@@ -2,12 +2,14 @@
   "blockers": [],
   "branch": "feature/hermes-private-local-bridge-20261020",
   "changed_files": [
+    "tools/hermes/local_bridge.py",
     "tools/hermes/local_bridge.py"
   ],
   "completed_steps": [
     "Puente loopback y memoria consultable con Qwen probados en equipo Windows; cinco pruebas focalizadas pasan. Suite ampliada: dos fallos preexistentes por harness POSIX resource en Windows; no se debilitó aislamiento.",
     "PR #22 draft: tres workflows CI SUCCESS. Cinco pruebas HTTP/cola/memoria pasan; consulta Qwen local verificada.",
-    "Añadidos listado autenticado y conteos sin contenido privado; cancelación atómica solo de pendientes, preservando historial y tareas en curso. Siete pruebas focalizadas PASS. Trabajo separado de 1UP."
+    "Añadidos listado autenticado y conteos sin contenido privado; cancelación atómica solo de pendientes, preservando historial y tareas en curso. Siete pruebas focalizadas PASS. Trabajo separado de 1UP.",
+    "Preflight NVIDIA antes de iniciar inferencias: espera a 80 C o sensor no disponible; no interrumpe otras aplicaciones. Diez tests focalizados pasan y lectura GPU real disponible; CPU no medido."
   ],
   "history": [
     {
@@ -25,18 +27,22 @@
     {
       "at": "2026-10-21T02:57:04+00:00",
       "event": "Avance: in_progress"
+    },
+    {
+      "at": "2026-10-21T03:08:30+00:00",
+      "event": "Avance: in_progress"
     }
   ],
   "last_observed_commit": "616f0af0c54c5d7c29dd09157aeff5d7b5d571eb",
   "last_verified_commit": "616f0af0c54c5d7c29dd09157aeff5d7b5d571eb",
   "links": [],
-  "next_action": "Revisar CI del incremento de control de cola en PR #22; no enviar inferencias mientras IA local trabaja en 1UP",
+  "next_action": "Verificar CI del control térmico en PR #22; vigilancia durante inferencia y sensor CPU aún pendientes",
   "objective": "Puente local autenticado, memoria privada y cola de inferencia sin ejecución arbitraria",
   "project": "H4CKLABORATORY/dexter-fusion-studio",
   "schema_version": 1,
   "status": "in_progress",
   "task_id": "hermes-local-private-v1",
-  "updated_at": "2026-10-21T02:57:04+00:00",
+  "updated_at": "2026-10-21T03:08:30+00:00",
   "verification": [
     {
       "evidence": "python -m unittest discover -s tests -p test_hermes_local_bridge.py -v: 5 passed",
@@ -51,6 +57,11 @@
     {
       "evidence": "python -m unittest discover -s tests -p test_hermes_local_bridge.py -v: 7 passed",
       "name": "Queue control HTTP and persistence",
+      "result": "passed"
+    },
+    {
+      "evidence": "python -m unittest discover -s tests -p test_hermes_local_bridge.py -v: 10 passed",
+      "name": "Thermal preflight and bridge suite",
       "result": "passed"
     }
   ]

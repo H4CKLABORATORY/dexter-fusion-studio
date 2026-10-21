@@ -19,6 +19,9 @@ class BridgeTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.store = bridge.Store(Path(self.temp.name) / 'state')
         self.addCleanup(self.store.db.close)
+        sensor = patch.object(bridge, 'read_hardware', return_value={'status':'ready','gpus':[]})
+        sensor.start()
+        self.addCleanup(sensor.stop)
 
     def data(self, **changes):
         return dict(engine='lmstudio', model='local-test', prompt='Analiza el reproductor', **changes)
@@ -104,6 +107,8 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(request(headers={**auth, 'Origin': 'https://evil.example'})[0], 403)
         self.assertEqual(request(headers={**auth, 'Host': 'evil.example'})[0], 403)
         self.assertEqual(request(headers=auth)[0], 200)
+        self.assertEqual(request(path='/hardware')[0], 401)
+        self.assertEqual(request(path='/hardware', headers=auth)[1]['status'], 'ready')
         headers = {**auth, 'Content-Type': 'application/json'}
         self.assertEqual(request('POST', '/shell', headers, '{}')[0], 404)
         self.assertEqual(request('POST', '/tasks', headers, '[]')[0], 400)
@@ -144,6 +149,41 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(len(overview['recent']), 50)
         self.assertNotIn('Analiza el reproductor', json.dumps(overview))
         self.assertEqual(set(overview['recent'][0]), {'id','engine','model','status','created'})
+
+    def test_hot_or_unavailable_sensor_keeps_task_pending_without_inference(self):
+        task = self.store.enqueue(self.data())
+        for state in ('hot', 'unavailable'):
+            with patch.object(bridge, 'read_hardware', return_value={'status':state}), \
+                 patch.object(bridge.urllib.request, 'build_opener') as factory:
+                self.assertIsNone(self.store.run_one())
+                factory.assert_not_called()
+                self.assertEqual(self.store.task(task)['status'], 'pending')
+                self.assertEqual(self.store.last_hardware['status'], state)
+
+
+class SensorTests(unittest.TestCase):
+    def test_real_parser_and_threshold_on_all_gpus(self):
+        for text, status in [('0, 51, 21000, 24576\n', 'ready'),
+                             ('0, 79, 21000, 24576\n1, 80, 100, 1024\n', 'hot')]:
+            with patch.object(bridge.subprocess, 'run') as run:
+                run.return_value.stdout = text
+                sample = bridge.read_hardware()
+            self.assertEqual(sample['status'], status)
+            self.assertIsNone(sample['cpu_temperature_c'])
+            self.assertEqual(run.call_args.kwargs['timeout'], 3)
+            self.assertNotIn('shell', run.call_args.kwargs)
+
+    def test_missing_invalid_or_timed_out_readings_are_not_reported_as_safe(self):
+        for text in ('', '0, N/A, 100, 1024', '0, -1, 100, 1024', '0, 50, 2000, 1024'):
+            with patch.object(bridge.subprocess, 'run') as run:
+                run.return_value.stdout = text
+                sample = bridge.read_hardware()
+            self.assertEqual(sample['status'], 'unavailable')
+            self.assertEqual(sample['gpus'], [])
+        with patch.object(bridge.subprocess, 'run', side_effect=FileNotFoundError):
+            self.assertEqual(bridge.read_hardware()['status'], 'unavailable')
+        with patch.object(bridge.subprocess, 'run', side_effect=bridge.subprocess.TimeoutExpired('nvidia-smi', 3)):
+            self.assertEqual(bridge.read_hardware()['status'], 'unavailable')
 
 
 if __name__ == '__main__':

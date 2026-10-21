@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import ast
+import os
 from pathlib import Path
 import json
 import tempfile
@@ -13,12 +14,14 @@ SOURCE = Path("tools/hermes/experiments/checkpoint_summary.py").read_text(encodi
 
 
 class ProposalContractTests(unittest.TestCase):
+    @unittest.skipIf(os.name == "nt", "Functional gate requires POSIX resource limits; run on Linux CI")
     def test_reviewed_ollama_helper_satisfies_real_behavior(self):
         report = gate.check_source(SOURCE)
         self.assertTrue(report["passed"])
         self.assertGreaterEqual(report["checks"], gate.MIN_CONTRACT_CHECKS)
         self.assertEqual(report["policy"], "hermes-checkpoint-summary-v1")
 
+    @unittest.skipIf(os.name == "nt", "Functional gate requires POSIX resource limits; run on Linux CI")
     def test_original_model_logic_fails_behavior(self):
         broken = '''def summarize_checkpoint(record: dict) -> dict:
     """Draft model output, not yet correct."""
@@ -45,6 +48,7 @@ class ProposalContractTests(unittest.TestCase):
         with self.assertRaisesRegex(gate.ContractError, "AST"):
             gate.check_source("import os\n" + SOURCE)
 
+    @unittest.skipIf(os.name == "nt", "Functional gate requires POSIX resource limits; run on Linux CI")
     def test_reject_infinite_loop(self):
         looping = '''def summarize_checkpoint(record: dict) -> dict:
     """Never returns."""
@@ -58,6 +62,7 @@ class ProposalContractTests(unittest.TestCase):
         with self.assertRaises(gate.ContractError):
             gate.check_source(SOURCE, timeout_seconds=500)
 
+    @unittest.skipIf(os.name == "nt", "Functional gate requires POSIX resource limits; run on Linux CI")
     def test_cli_creates_json_report_only_for_pass(self):
         with tempfile.TemporaryDirectory() as d:
             source = Path(d) / "proposal.py"

@@ -3,7 +3,8 @@
   "branch": "fix/hermes-long-task-diagnostics-20261020",
   "changed_files": [],
   "completed_steps": [
-    "Reproducido limite de tokens; recuperacion real 51.188s, propuesta Qwen revisada y rollback probado; seis benchmarks sinteticos completados."
+    "Reproducido limite de tokens; recuperacion real 51.188s, propuesta Qwen revisada y rollback probado; seis benchmarks sinteticos completados.",
+    "CI PR #24 completado: Checkpoints Linux/Windows, Cloud Monitor y Studio success."
   ],
   "history": [
     {
@@ -17,18 +18,22 @@
     {
       "at": "2026-10-21T04:13:15+00:00",
       "event": "Avance: in_progress"
+    },
+    {
+      "at": "2026-10-21T04:30:35+00:00",
+      "event": "Avance: in_progress"
     }
   ],
-  "last_observed_commit": "0f17e93ad429f2ee6a6f1f08be75fceb94b365f4",
-  "last_verified_commit": "0f17e93ad429f2ee6a6f1f08be75fceb94b365f4",
+  "last_observed_commit": "2dc96eed389d87d2d6eac5f9ec89d0cf0a575bdf",
+  "last_verified_commit": "2dc96eed389d87d2d6eac5f9ec89d0cf0a575bdf",
   "links": [],
-  "next_action": "Revisar CI de PR #24; sandbox y handoff cloud pendientes; servicio diario sin migrar",
+  "next_action": "Implementar sandbox Windows y handoff cloud solo con APIs verificadas; servicio diario sin migrar",
   "objective": "Diagnostico de tareas largas, DAG durable y cambio Qwen revisado en worktree",
   "project": "H4CKLABORATORY/dexter-fusion-studio",
   "schema_version": 1,
   "status": "in_progress",
   "task_id": "hermes-local-core-20261020",
-  "updated_at": "2026-10-21T04:13:15+00:00",
+  "updated_at": "2026-10-21T04:30:35+00:00",
   "verification": [
     {
       "evidence": "27 pruebas focalizadas PASS; suite ampliada 108:94 PASS,12 skipped,2 fallos preexistentes reproducidos en base; ver HERMES_LOCAL_PHASES.md",
@@ -38,6 +43,11 @@
     {
       "evidence": "git diff --exit-code entre bdc7d2df3c733f9959a4a51d310d460c5657941f y 0f17e93ad429f2ee6a6f1f08be75fceb94b365f4: PASS; 27 core tests PASS; PR https://github.com/H4CKLABORATORY/dexter-fusion-studio/pull/24",
       "name": "Public tree matches locally tested tree",
+      "result": "passed"
+    },
+    {
+      "evidence": "Run 52 Checkpoints, run 22 Cloud Monitor y run 347 Verificar Studio: completed/success.",
+      "name": "PR #24 CI",
       "result": "passed"
     }
   ]

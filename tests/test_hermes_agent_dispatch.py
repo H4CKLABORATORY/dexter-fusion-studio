@@ -28,6 +28,11 @@ class AgentPlanTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             plan({"tasks": [task("a", role="superuser")]})
 
+    def test_unhashable_role_rejected_as_validation_error(self):
+        for role in ([], {}, None, 3):
+            with self.subTest(role=role), self.assertRaises(ValueError):
+                plan({"tasks": [task("a", role=role)]})
+
     def test_empty_rejected(self):
         with self.assertRaises(ValueError):
             plan({"tasks": []})

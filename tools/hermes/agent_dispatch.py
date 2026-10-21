@@ -24,7 +24,7 @@ def plan(spec):
         ident, role, prompt, deps = (task[k] for k in ("id", "role", "prompt", "depends_on"))
         if not isinstance(ident, str) or not ident.isidentifier() or len(ident) > 64 or ident in seen:
             raise ValueError("ID inválido o duplicado")
-        if role not in ROLES or not isinstance(prompt, str) or not 0 < len(prompt) <= 8000:
+        if not isinstance(role, str) or role not in ROLES or not isinstance(prompt, str) or not 0 < len(prompt) <= 8000:
             raise ValueError("Rol o prompt inválido")
         if not isinstance(deps, list) or any(not isinstance(x, str) for x in deps) or len(set(deps)) != len(deps):
             raise ValueError("Dependencias inválidas")

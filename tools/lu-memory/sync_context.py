@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""DEXTER shared local context for LU Code. Does not read or export LU chat databases.
+r"""DEXTER shared local context for LU Code. Does not read or export LU chat databases.
 
 Run: python tools/lu-memory/sync_context.py --parent "C:\Users\YOU\Projects"
 or:  python tools/lu-memory/sync_context.py --repo "C:\path\repo" [--repo ...]

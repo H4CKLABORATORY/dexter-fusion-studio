@@ -7,6 +7,7 @@ on:
       - 'tests/test_hermes_runner.py'
       - 'tests/test_hermes_generated_summary.py'
       - 'tests/test_hermes_scheduler.py'
+      - 'tests/test_hermes_local_bridge.py'
       - '.hermes/checkpoints/**'
       - '.github/workflows/hermes-checkpoints.yml'
   push:
@@ -15,6 +16,7 @@ on:
       - 'tools/hermes/**'
       - 'tests/test_hermes_checkpoint.py'
       - 'tests/test_hermes_runner.py'
+      - 'tests/test_hermes_local_bridge.py'
       - '.hermes/checkpoints/**'
   workflow_dispatch:
 permissions:
@@ -38,3 +40,5 @@ jobs:
         run: python -m unittest discover -s tests -p test_hermes_generated_summary.py -v
       - name: Validate existing JSON checkpoints
         run: python tools/hermes/checkpoint.py validate-all
+      - name: Verify authenticated local bridge and private queue
+        run: python -m unittest discover -s tests -p test_hermes_local_bridge.py -v

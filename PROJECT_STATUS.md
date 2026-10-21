@@ -33,3 +33,6 @@ Editor audiovisual Windows de nivel profesional. El sistema aún NO es equivalen
 
 ## Continuidad
 Consultar `NEXT_TASK.md`, `docs/WORKSPACE_QT.md`, el PR #11 (integrado) y el issue #10 antes de empezar nuevas funcionalidades. Todo avance debe citar commit, resultado de prueba y limitaciones.
+
+## 2026-10-20 — Puente local privado (rama de revisión)
+`tools/hermes/local_bridge.py`: cola SQLite con reclamación atómica, consultas léxicas de archivos privados MD/TXT, endpoints fijos LM Studio/Ollama y respuestas de texto en español. Autenticación Bearer, bind 127.0.0.1, rechazo Origin/Host ajenos; sin shell/instalaciones/commits/merge. Cinco pruebas focalizadas PASS; prueba real Qwen y consulta documental PASS en PC Windows. Memoria y token fuera de Git. Suite HERMES ampliada: 86 casos, 12 omitidos, dos fallos por harness POSIX `resource` no disponible en Windows; no se elimina aislamiento para forzar aprobación. Ver LOCAL_BRIDGE.md y checkpoint hermes-local-private-v1. Pendiente CI Linux y revisión humana; no afirmar ChatGPT remoto conectado.

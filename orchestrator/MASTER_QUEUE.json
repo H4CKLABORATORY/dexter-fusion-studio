@@ -3,23 +3,23 @@
   "queue_name": "DEXTER Mission Control",
   "policy": "SERIAL: seleccionar el active único o el primer pending por priority e id; blocked/paused/done se saltan. Completado requiere pruebas de todos los criterios; nunca inventar porcentajes",
   "plugin": "https://chatgpt.com/plugins/plugins_6ad3e62ed5708191b7620874d603837b",
-  "last_updated": "2026-10-17",
+  "last_updated": "2026-10-21T03:23:40.221984+00:00",
   "projects": [
     {
       "id": "1up-anime",
       "name": "1UP Anime",
       "repository": "H4CKLABORATORY/1UP-ANIME",
       "priority": 1,
-      "status": "pending",
+      "status": "active",
       "acceptance": [
         "Interfaz iPhone y escritorio comprobada",
         "Intro cinematográfica final validada",
         "Fuentes de streaming autorizadas verificadas",
         "Despliegue y pruebas documentados"
       ],
-      "next_action": "Leer AGENTS.md y docs/PROJECT_CONTINUITY.md; ejecutar siguiente cambio seguro",
-      "last_action": "",
-      "last_evidence": "",
+      "next_action": "Verificar CI y revisión humana del PR de caché; Safari físico pendiente.",
+      "last_action": "Reproducido y corregido bloqueo por caché malformada en rama fix/catalog-corrupt-cache-20261020; sin merge.",
+      "last_evidence": "Tres regresiones focalizadas PASS; suite previa 42 Node PASS, UI 152 assertions, navegación, reproductor y HLS PASS. Ver checkpoint catalog-cache-recovery-20261020 en 1UP.",
       "blocker": ""
     },
     {
@@ -115,10 +115,10 @@
       "max_project_changes": 1,
       "target_context_share_percent": 15
     },
-    "last_review_at": null,
-    "last_result": "Not yet run; routine installed 2026-10-17",
+    "last_review_at": "2026-10-21T03:23:40.221984+00:00",
+    "last_result": "Revisión breve: no se cambia política ni prioridad. Detectados dos fallos del harness POSIX resource al ejecutar suite HERMES en Windows; mantener aislamiento y verificar en CI Linux.",
     "last_evidence": "708596892e21d873decbab692449e24cc163b431",
-    "next_hypothesis": "Medir trabajo duplicado y verificar que el seguimiento de tareas se persista correctamente.",
+    "next_hypothesis": "Diseñar soporte Windows para el contrato de propuestas sin debilitar límites de CPU/memoria; por ahora gate Linux obligatorio.",
     "keep_active_when_queue_empty": true,
     "constraints": [
       "No modificar prioridades o acceptance automáticamente",

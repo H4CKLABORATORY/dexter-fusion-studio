@@ -12,3 +12,11 @@ __pycache__/
 workspace/
 private/
 .DS_Store
+
+# OpenCode Goal: project-local live goals, locks and evidence
+.opencode/goals/
+.opencode/goal-sequences/
+.opencode/goal-locks/
+
+# Local memory and chat context; never commit private archives
+.dexter-local/

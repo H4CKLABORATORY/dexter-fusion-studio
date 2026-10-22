@@ -25,7 +25,7 @@ $hermesHome=if ($env:HERMES_HOME) { $env:HERMES_HOME } else { Join-Path $local '
 $scripts=Join-Path $hermesHome 'scripts'
 New-Item -ItemType Directory -Force -Path $scripts | Out-Null
 $worker=Join-Path $scripts 'dexter_opencode_tick.py'
-$source=Join-Path $PSScriptRoot 'dexter_opencode_tick.py'
+$source=if ($PSScriptRoot) { Join-Path $PSScriptRoot 'dexter_opencode_tick.py' } else { '' }
 if (Test-Path -LiteralPath $source) {
   Copy-Item -LiteralPath $source -Destination $worker -Force
 } else {
@@ -56,6 +56,10 @@ Inspecciona AGENTS.md, checkpoints y Git. Implementa una sola mejora pequena y r
   & python $worker @options
   if ($LASTEXITCODE -ne 0) { throw 'No se pudo crear la tarea piloto' }
 } else { Write-Host "Tarea $id ya existe, conservamos su progreso" }
+& hermes config set compression.enabled true
+if ($LASTEXITCODE -ne 0) { throw 'Fallo configurar compresion' }
+& hermes config set compression.threshold 0.80
+if ($LASTEXITCODE -ne 0) { throw 'Fallo el umbral 80 por ciento' }
 & hermes gateway install
 if ($LASTEXITCODE -ne 0) { throw 'No se pudo instalar gateway de Hermes' }
 & hermes gateway start

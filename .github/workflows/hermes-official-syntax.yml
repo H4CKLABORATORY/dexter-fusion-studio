@@ -1,0 +1,25 @@
+name: Verify official Hermes Windows bootstrap script
+on:
+  pull_request:
+    paths:
+      - 'tools/hermes-official/**'
+      - '.github/workflows/hermes-official-syntax.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  powershell-syntax:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse PowerShell without executing installers
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path 'tools/hermes-official/START-HERMES-AUTO.ps1'),
+            [ref]$tokens, [ref]$errors
+          ) | Out-Null
+          if ($errors.Count -gt 0) { $errors | Out-String | Write-Error; exit 1 }
+          Write-Host 'PowerShell syntax valid (runtime integration not tested).'

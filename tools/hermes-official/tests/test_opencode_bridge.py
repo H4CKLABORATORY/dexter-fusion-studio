@@ -58,7 +58,10 @@ class BridgeTest(unittest.TestCase):
         self.assertEqual(task["status"], "completed")
         self.assertTrue((Path(task["worktree"]) / "file.py").exists())
         self.assertFalse((self.project / "file.py").exists())
-        self.assertFalse((self.home / "runner.lock").exists())
+        # The reusable lock file remains after release; verify the OS lock is free.
+        holder = bridge.acquire_lock(self.home)
+        self.assertIsNotNone(holder)
+        bridge.release_lock(holder)
         self.assertEqual(bridge.run_one(self.home), 0)
 
     def test_changes_without_tests_need_review(self):

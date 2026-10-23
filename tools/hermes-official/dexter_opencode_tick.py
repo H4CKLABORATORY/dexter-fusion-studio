@@ -55,12 +55,50 @@ def project_root(path):
     return root
 
 
+def acquire_lock(home):
+    """Use a kernel file lock, released automatically on process termination.
+
+    An existing runner.lock file does NOT mean a process is still active.
+    """
+    home.mkdir(parents=True, exist_ok=True)
+    handle = (home / "runner.lock").open("a+b")
+    try:
+        if os.name == "nt":
+            import msvcrt
+            handle.seek(0, os.SEEK_END)
+            if handle.tell() == 0:
+                handle.write(b"\\0")
+                handle.flush()
+            handle.seek(0)
+            msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+        else:
+            import fcntl
+            fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        handle.close()
+        return None
+    return handle
+
+
+def release_lock(handle):
+    if handle is None:
+        return
+    try:
+        if os.name == "nt":
+            import msvcrt
+            handle.seek(0)
+            msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+        else:
+            import fcntl
+            fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+    finally:
+        handle.close()
+
+
 def enqueue(home, project, prompt, name="", model="", timeout=1800, checks=None):
     project = project_root(project)
     if home.expanduser().resolve().is_relative_to(project):
         raise ValueError("State cannot be stored inside the project repository")
-    if (home / "runner.lock").exists():
-        raise RuntimeError("Runner is busy; add task after current run")
     if not prompt.strip() or len(prompt) > 12000 or not 30 <= timeout <= 3600:
         raise ValueError("Invalid prompt or timeout")
     checks = [] if checks is None else checks
@@ -73,15 +111,21 @@ def enqueue(home, project, prompt, name="", model="", timeout=1800, checks=None)
     name = name or "task-" + uuid.uuid4().hex[:10]
     if not ID.fullmatch(name):
         raise ValueError("Invalid task ID")
-    state = read(home)
-    if any(task.get("id") == name for task in state["tasks"]):
-        raise ValueError("Task already queued")
-    state["tasks"].append({
-        "id": name, "project": str(project), "prompt": prompt.strip(), "model": model,
-        "checks": checks, "timeout": timeout, "status": "pending", "queuedAt": now()
-    })
-    write(home / "tasks.json", state)
-    return name
+    holder = acquire_lock(home)
+    if holder is None:
+        raise RuntimeError("Runner is busy; retry enqueue later")
+    try:
+        state = read(home)
+        if any(task.get("id") == name for task in state["tasks"]):
+            raise ValueError("Task already queued")
+        state["tasks"].append({
+            "id": name, "project": str(project), "prompt": prompt.strip(), "model": model,
+            "checks": checks, "timeout": timeout, "status": "pending", "queuedAt": now()
+        })
+        write(home / "tasks.json", state)
+        return name
+    finally:
+        release_lock(holder)
 
 
 def execute(argv, cwd, log, timeout):
@@ -108,18 +152,19 @@ def execute(argv, cwd, log, timeout):
 
 def run_one(home):
     home.mkdir(parents=True, exist_ok=True)
-    lock = home / "runner.lock"
-    try:
-        fd = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
-    except FileExistsError:
-        print("Runner busy or stale lock; inspect runner.lock", file=sys.stderr)
+    holder = acquire_lock(home)
+    if holder is None:
+        print("Another worker is running; next cron tick can retry", file=sys.stderr)
         return 3
-    os.close(fd)
     try:
         state = read(home)
-        if any(t.get("status") == "running" for t in state["tasks"]):
-            print("Interrupted task; manual worktree review required", file=sys.stderr)
-            return 4
+        interrupted = [t for t in state["tasks"] if t.get("status") == "running"]
+        if interrupted:
+            for old in interrupted:
+                old.update(status="blocked", finishedAt=now(),
+                           error="Interrupted process; worktree preserved for human review, no automatic replay")
+            write(home / "tasks.json", state)
+            print("Previous interrupted tasks marked blocked; running next distinct pending task", file=sys.stderr)
         task = next((t for t in state["tasks"] if t.get("status") == "pending"), None)
         if task is None:
             return 0  # silent tick with no pending job
@@ -173,7 +218,7 @@ def run_one(home):
         print(f"DEXTER blocked: {exc}", file=sys.stderr)
         return 2
     finally:
-        lock.unlink(missing_ok=True)
+        release_lock(holder)
 
 
 def main(argv=None):
@@ -190,7 +235,7 @@ def main(argv=None):
     try:
         if args.action == "doctor":
             print(json.dumps({"git": shutil.which("git"), "opencode": shutil.which("opencode"),
-                              "state": str(args.root), "lock": (args.root / "runner.lock").exists()}))
+                              "state": str(args.root), "lockFilePresent": (args.root / "runner.lock").exists()}))
             return 0 if shutil.which("git") and shutil.which("opencode") else 2
         if args.action == "status":
             for task in read(args.root)["tasks"]:

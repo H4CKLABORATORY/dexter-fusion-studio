@@ -93,13 +93,46 @@ class BridgeTest(unittest.TestCase):
         state = bridge.read(self.home)
         state["tasks"][0]["status"] = "running"
         bridge.write(self.home / "tasks.json", state)
-        self.assertEqual(bridge.run_one(self.home), 4)
+        self.assertEqual(bridge.run_one(self.home), 0)
+        task = bridge.read(self.home)["tasks"][0]
+        self.assertEqual(task["status"], "blocked")
+        self.assertIn("Interrupted", task["error"])
 
     def test_lock_blocks_concurrent_worker(self):
+        holder = bridge.acquire_lock(self.home)
+        self.assertIsNotNone(holder)
+        try:
+            self.assertEqual(bridge.run_one(self.home), 3)
+            with self.assertRaisesRegex(RuntimeError, "busy"):
+                bridge.enqueue(self.home, self.project, "cannot queue while busy", "locked")
+        finally:
+            bridge.release_lock(holder)
+        self.assertEqual(bridge.enqueue(self.home, self.project, "can queue now", "unlocked"), "unlocked")
+
+    def test_old_lock_file_no_longer_disables_dispatcher_forever(self):
         self.home.mkdir()
-        (self.home / "runner.lock").write_text("locked")
-        self.assertEqual(bridge.run_one(self.home), 3)
-        self.assertTrue((self.home / "runner.lock").exists())
+        (self.home / "runner.lock").write_bytes(b"stale")
+        self.assertEqual(bridge.run_one(self.home), 0)
+        self.assertEqual(bridge.enqueue(self.home, self.project, "still runs", "next"), "next")
+
+    def test_interrupted_task_is_not_replayed_and_other_queued_task_starts(self):
+        bridge.enqueue(self.home, self.project, "old", "old-task")
+        bridge.enqueue(self.home, self.project, "next", "next-task")
+        state = bridge.read(self.home)
+        state["tasks"][0]["status"] = "running"
+        bridge.write(self.home / "tasks.json", state)
+
+        def make_file(argv, cwd, log, timeout):
+            (cwd / "new.txt").write_text("task two was attempted")
+            return 0
+
+        with patch.object(bridge.shutil, "which", return_value="/mock/opencode"):
+            with patch.object(bridge, "execute", side_effect=make_file) as execute:
+                self.assertEqual(bridge.run_one(self.home), 0)
+                self.assertEqual(execute.call_count, 1)
+        done = bridge.read(self.home)["tasks"]
+        self.assertEqual(done[0]["status"], "blocked")
+        self.assertEqual(done[1]["status"], "needs_review")
 
 if __name__ == "__main__":
     unittest.main()

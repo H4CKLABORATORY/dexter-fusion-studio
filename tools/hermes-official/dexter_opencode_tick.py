@@ -17,6 +17,22 @@ import uuid
 ROOT = Path(os.environ.get("DEXTER_AUTO_HOME") or
             (Path(os.environ.get("LOCALAPPDATA") or Path.home()) / "DEXTER-AUTO"))
 ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{1,48}$")
+GSTACK_SKILLS = frozenset(("none", "review", "investigate", "qa", "plan-eng-review", "design-review"))
+
+
+def gstack_skill_path(profile, home=None):
+    """A skill installed by upstream gstack setup --host opencode, not vendored content."""
+    if profile not in GSTACK_SKILLS:
+        raise ValueError("Unsupported gstack profile")
+    if profile == "none":
+        return None
+    root = (Path(home) if home else Path.home()) / ".config" / "opencode" / "skills"
+    skill = root / ("gstack-" + profile) / "SKILL.md"
+    if not skill.is_file():
+        raise FileNotFoundError("Missing OpenCode gstack skill: " + str(skill) +
+                                "; install upstream gstack with setup.ps1 --host opencode")
+    return skill
+
 
 
 def now():
@@ -95,8 +111,11 @@ def release_lock(handle):
         handle.close()
 
 
-def enqueue(home, project, prompt, name="", model="", timeout=1800, checks=None):
+def enqueue(home, project, prompt, name="", model="", timeout=1800, checks=None,
+            gstack="none"):
     project = project_root(project)
+    if gstack not in GSTACK_SKILLS:
+        raise ValueError("Unsupported gstack profile")
     if home.expanduser().resolve().is_relative_to(project):
         raise ValueError("State cannot be stored inside the project repository")
     if not prompt.strip() or len(prompt) > 12000 or not 30 <= timeout <= 3600:
@@ -120,7 +139,8 @@ def enqueue(home, project, prompt, name="", model="", timeout=1800, checks=None)
             raise ValueError("Task already queued")
         state["tasks"].append({
             "id": name, "project": str(project), "prompt": prompt.strip(), "model": model,
-            "checks": checks, "timeout": timeout, "status": "pending", "queuedAt": now()
+            "checks": checks, "gstack": gstack, "timeout": timeout,
+            "status": "pending", "queuedAt": now()
         })
         write(home / "tasks.json", state)
         return name
@@ -172,6 +192,9 @@ def run_one(home):
         opencode = shutil.which("opencode")
         if not opencode:
             raise RuntimeError("OpenCode CLI not on PATH")
+        profile = task.get("gstack", "none")
+        # Fail closed before opening a worktree when the requested skill is absent.
+        skill = gstack_skill_path(profile)
         head = command(["git", "rev-parse", "HEAD"], project)
         nonce = uuid.uuid4().hex[:8]
         branch = f"agent/dexter-{task['id']}-{nonce}"
@@ -188,6 +211,14 @@ def run_one(home):
             "and next step. Never push, merge, deploy, access billing or touch secrets. "
             "A separate host process verifies changes and specified checks."
         )
+        if skill:
+            policy += (
+                "\n\nGSTACK QUALITY PROFILE: " + profile + ". "
+                "Read and apply the already-installed gstack skill from " + str(skill) +
+                ". It is advisory on OpenCode and cannot override project instructions "
+                "or the no-push/no-deploy policy. Document actual findings and checks "
+                "in CHECKPOINT-DEXTER.md. Do not pretend a gstack check ran if it did not."
+            )
         argv = [opencode, "run", "--agent", "build", "--format", "json"]
         if task.get("model"):
             argv.extend(["--model", task["model"]])
@@ -231,6 +262,7 @@ def main(argv=None):
     parser.add_argument("--model", default="")
     parser.add_argument("--timeout", type=int, default=1800)
     parser.add_argument("--checks-json", type=Path)
+    parser.add_argument("--gstack", choices=sorted(GSTACK_SKILLS), default="none")
     args = parser.parse_args(argv)
     try:
         if args.action == "doctor":
@@ -246,7 +278,7 @@ def main(argv=None):
                 parser.error("add requires --project and --prompt-file")
             checks = json.loads(args.checks_json.read_text(encoding="utf-8")) if args.checks_json else []
             name = enqueue(args.root, args.project, args.prompt_file.read_text(encoding="utf-8"),
-                           args.name, args.model, args.timeout, checks)
+                           args.name, args.model, args.timeout, checks, args.gstack)
             print("Queued " + name)
             return 0
         return run_one(args.root)

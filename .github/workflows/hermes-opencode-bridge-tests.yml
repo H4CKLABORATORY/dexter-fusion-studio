@@ -1,0 +1,45 @@
+name: Hermes to OpenCode bridge (Windows and Linux)
+on:
+  pull_request:
+    paths:
+      - 'tools/hermes-official/**'
+      - '.github/workflows/hermes-opencode-bridge-tests.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  bridge-tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run tests with actual Git worktree and fake OpenCode
+        run: python -m unittest discover -s tools/hermes-official/tests -v
+      - name: Validate Python syntax
+        run: python -m py_compile tools/hermes-official/dexter_opencode_tick.py
+      - name: Validate Windows PowerShell install syntax
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $errors = $null
+          foreach ($path in @(
+            'tools/hermes-official/INSTALL-OPENCODE-BRIDGE.ps1',
+            'tools/hermes-official/INSTALL-GSTACK-OPENCODE.ps1'
+          )) {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile(
+              (Resolve-Path $path), [ref]$tokens, [ref]$errors
+            ) | Out-Null
+            if ($errors.Count -gt 0) {
+              $errors | Out-String | Write-Error
+              exit 1
+            }
+          }

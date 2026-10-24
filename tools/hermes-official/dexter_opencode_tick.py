@@ -193,8 +193,13 @@ def run_one(home):
         if not opencode:
             raise RuntimeError("OpenCode CLI not on PATH")
         profile = task.get("gstack", "none")
-        # Fail closed before opening a worktree when the requested skill is absent.
-        skill = gstack_skill_path(profile)
+        # Block a misconfigured task once; don't retry on every hourly tick.
+        try:
+            skill = gstack_skill_path(profile)
+        except (FileNotFoundError, ValueError) as exc:
+            task.update(status="blocked", error=str(exc)[:500], finishedAt=now())
+            write(home / "tasks.json", state)
+            raise
         head = command(["git", "rev-parse", "HEAD"], project)
         nonce = uuid.uuid4().hex[:8]
         branch = f"agent/dexter-{task['id']}-{nonce}"

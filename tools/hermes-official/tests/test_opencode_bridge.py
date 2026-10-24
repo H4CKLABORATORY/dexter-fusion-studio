@@ -43,6 +43,43 @@ class BridgeTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             bridge.enqueue(self.home, self.project, "x", "bad", checks=[[""]])
 
+    def test_gstack_skill_lookup_matches_official_opencode_install(self):
+        target = self.base / ".config" / "opencode" / "skills" / "gstack-review"
+        target.mkdir(parents=True)
+        (target / "SKILL.md").write_text("# Review")
+        self.assertEqual(bridge.gstack_skill_path("review", home=self.base), target / "SKILL.md")
+        with self.assertRaises(ValueError):
+            bridge.gstack_skill_path("made-up", home=self.base)
+
+    def test_gstack_selected_profile_passed_to_real_opencode_dispatch(self):
+        bridge.enqueue(self.home, self.project, "Fix bug", "gstack-1", gstack="review")
+        seen = []
+        def executor(argv, cwd, log, timeout):
+            seen.append(argv)
+            (cwd / "fix.txt").write_text("change")
+            return 0
+        fake_skill = self.base / ".config" / "opencode" / "skills" / "gstack-review" / "SKILL.md"
+        with patch.object(bridge, "gstack_skill_path", return_value=fake_skill):
+            with patch.object(bridge.shutil, "which", return_value="/mock/opencode"):
+                with patch.object(bridge, "execute", side_effect=executor):
+                    self.assertEqual(bridge.run_one(self.home), 0)
+        self.assertIn("gstack-review", seen[0][-1])
+        self.assertIn("CHECKPOINT-DEXTER.md", seen[0][-1])
+        task = bridge.read(self.home)["tasks"][0]
+        self.assertEqual(task["gstack"], "review")
+        self.assertEqual(task["status"], "needs_review")
+
+    def test_missing_gstack_blocks_once_without_infinite_retries(self):
+        bridge.enqueue(self.home, self.project, "Fix bug", "gstack-2", gstack="qa")
+        with patch.object(bridge, "gstack_skill_path",
+                          side_effect=FileNotFoundError("Install upstream gstack first")):
+            with patch.object(bridge.shutil, "which", return_value="/mock/opencode"):
+                with patch.object(bridge, "execute") as execute:
+                    self.assertEqual(bridge.run_one(self.home), 2)
+                    self.assertEqual(bridge.run_one(self.home), 0)
+                    execute.assert_not_called()
+        self.assertEqual(bridge.read(self.home)["tasks"][0]["status"], "blocked")
+
     def test_real_worktree_success_without_modifying_original(self):
         bridge.enqueue(self.home, self.project, "Implement one fix", "task1",
                        checks=[["python", "-c", "print(123)"]])

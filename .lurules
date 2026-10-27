@@ -1,0 +1,25 @@
+# LU Code - DEXTER memoria de continuidad
+
+Este archivo se carga automaticamente cuando LU Code trabaja en esta carpeta raiz. No es una transcripcion ni prueba de una funcion terminada.
+
+## Al comenzar CADA tarea
+1. Identifica carpeta, rama, git status y HEAD real; no adivines el estado de otros chats.
+2. Lee estos archivos si existen, en orden: `AGENTS.md`, `PROJECT_STATUS.md`, `NEXT_TASK.md`, `.hermes/checkpoints/`, `tools/hermes/README.md`.
+3. Lee `.dexter-local/SHARED_CONTEXT.md` y `.dexter-local/LAST_SESSION.md` si existen. Son privados/locales: NUNCA incluirlos en commits, logs publicos o PR.
+4. Contrasta las tareas pendientes con commits, CI y tests reales; no reconstruyas funciones terminadas.
+5. Si los archivos privados no existen, continua con hechos verificables del repo. No inventes memoria.
+
+## Durante la tarea
+- Preservar editor Qt/FFmpeg, sus checkpoints, y distinguir planes de cambios implementados.
+- Aplica AGENTS.md y reglas actuales del proyecto sin reemplazarlas.
+- Trabaja por cambios pequenos y con tests, en rama separada; evita ediciones simultaneas sobre la misma rama.
+- Usa herramientas disponibles para editar, instalar y probar sin delegar innecesariamente el trabajo al usuario.
+- No modifiques main, realices compras, expongas claves o despliegues produccion sin aprobacion.
+
+## Al cerrar CADA tarea
+- Crea o actualiza `.dexter-local/LAST_SESSION.md`: fecha, objetivo, decisiones, archivos cambiados, rama/commit, tests y resultados REALES, pendientes y proxima accion exacta.
+- Actualiza checkpoints VERSIONADOS ya existentes cuando el cambio lo requiera, excluyendo informacion privada.
+- Tras abrir otro chat, vuelve a leer este archivo y los checkpoints. No confundas historial de LU con contexto compartido.
+
+## Limites
+LU solo lee el `.lurules` en la raiz de la carpeta seleccionada; no hereda reglas de carpetas superiores. El historial completo de ChatGPT o LU no se sincroniza automaticamente: usa Settings > General > Import from other chatbots / Chat Backup; la memoria general va en Settings > Agent > Memory.

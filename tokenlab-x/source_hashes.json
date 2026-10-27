@@ -8,7 +8,7 @@
     "url": "https://developers.openai.com/api/docs/guides/compaction.md"
   },
   "prompt_caching": {
-    "sha256": "30fb5f15abddeae2ea57acc2a5d1006b44c843147f6a4d0d6a0cfcaf70248611",
+    "sha256": "70fe6be152c930139218c12b3019f20d20b4b733e50d5a528a515e00bf455b9d",
     "url": "https://developers.openai.com/api/docs/guides/prompt-caching.md"
   }
 }

@@ -1,0 +1,37 @@
+{
+  "blockers": [],
+  "branch": "feature/local-accelerator-bootstrap-20261021",
+  "changed_files": [
+    "tools/local-accelerator/tests/test_mission_supervisor.py"
+  ],
+  "completed_steps": [
+    "Rebuilt inaccessible prior patch; reject stale, future and timezone-less post-scraping timestamps. No additional improvement or automation."
+  ],
+  "history": [
+    {
+      "at": "2026-10-21T22:48:55+00:00",
+      "event": "Checkpoint inicializado (sin pruebas de código)"
+    },
+    {
+      "at": "2026-10-21T22:49:11+00:00",
+      "event": "Avance: in_progress"
+    }
+  ],
+  "last_observed_commit": "3e5890729339dccb6899937003a6631ba0819e19",
+  "last_verified_commit": null,
+  "links": [],
+  "next_action": "Publish commit on PR 30 branch and verify new CI; then owner runs PowerShell bootstrap, AniList and Qwen",
+  "objective": "Reject stale catalogs after scraping",
+  "project": "H4CKLABORATORY/dexter-fusion-studio",
+  "schema_version": 1,
+  "status": "in_progress",
+  "task_id": "reject-stale-catalog-pr30",
+  "updated_at": "2026-10-21T22:49:11+00:00",
+  "verification": [
+    {
+      "evidence": "9 tests passed; python -m unittest discover -s tools/local-accelerator/tests -v; py_compile and git diff --check passed",
+      "name": "Supervisor unittest suite on Windows Python 3.12 and real Node offline fixtures",
+      "result": "passed"
+    }
+  ]
+}

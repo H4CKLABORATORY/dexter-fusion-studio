@@ -1,0 +1,28 @@
+name: DEXTER Local Accelerator Tests
+
+on:
+  pull_request:
+    paths:
+      - 'tools/local-accelerator/**'
+      - '.github/workflows/local-accelerator-tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  supervisor-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check Python syntax
+        run: python -m py_compile tools/local-accelerator/mission_supervisor.py
+      - name: Run isolated supervisor tests
+        run: python -m unittest discover -s tools/local-accelerator/tests -v

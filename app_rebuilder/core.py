@@ -15,10 +15,10 @@ def inspect_file(path):
     kind = "unknown"
     if header.startswith(b"MZ"):
         kind = "PE (Windows, probable)"
-    elif header.startswith(b"\\x7fELF"):
+    elif header.startswith(bytes.fromhex("7f454c46")):
         kind = "ELF"
     elif header[:4] in (bytes.fromhex(x) for x in ("feedface", "feedfacf", "cefaedfe", "cffaedfe", "cafebabe", "bebafeca")):
         kind = "Mach-O/Fat"
-    elif header.startswith(b"PK\\x03\\x04"):
+    elif header.startswith(bytes.fromhex("504b0304")):
         kind = "ZIP/APK (requiere inspección adicional)"
     return {"name": path.name, "size_bytes": path.stat().st_size, "sha256": digest.hexdigest(), "format": kind}

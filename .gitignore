@@ -12,3 +12,8 @@ __pycache__/
 workspace/
 private/
 .DS_Store
+node_modules/
+.hermes-mobile/
+.opencode/goals/
+*.gguf
+*.part

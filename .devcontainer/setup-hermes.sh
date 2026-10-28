@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
-set -u
-echo "== HERMES Mobile: entorno listo =="
-python --version
+set -euo pipefail
+umask 077
+hermes_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$hermes_root"
+python3 --version
 node --version
-git --version
-echo
-echo "Para instalar OpenCode (opcional), ejecuta:"
-echo "  curl -fsSL https://opencode.ai/install | bash"
-echo "Verifica el instalador oficial antes de ejecutarlo."
-echo "Para iniciar un agente, abre la terminal y ejecuta: opencode"
-echo "Nunca pegues claves API en archivos versionados."
+npm ci --prefix tools/hermes/mobile --no-audit --no-fund
+python3 tools/hermes/mobile.py doctor
+python3 -m unittest discover -s tests -p 'test_hermes_mobile*.py' -v
+printf '%s\n' 'Instalado. Sin servidor activo y sin APIs de pago.'
+printf '%s\n' 'Respaldo CPU: python3 tools/hermes/mobile.py install-cpu'
+printf '%s\n' 'Iniciar: python3 tools/hermes/mobile.py start'

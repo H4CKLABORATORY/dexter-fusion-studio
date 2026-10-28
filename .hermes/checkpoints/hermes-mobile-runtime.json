@@ -1,0 +1,23 @@
+{
+  "blockers": [],
+  "branch": "feature/hermes-mobile-runtime-20261027",
+  "changed_files": [],
+  "completed_steps": [],
+  "history": [
+    {
+      "at": "2026-10-28T01:36:29+00:00",
+      "event": "Checkpoint inicializado (sin pruebas de código)"
+    }
+  ],
+  "last_observed_commit": "8c10d43661b5d5e055c011c5c484d586e3834ff3",
+  "last_verified_commit": null,
+  "links": [],
+  "next_action": "Ejecutar servidor real, modelo CPU, Goal y demostración de código",
+  "objective": "OpenCode desde iPhone con ejecución acotada y sin API de pago",
+  "project": "H4CKLABORATORY/dexter-fusion-studio",
+  "schema_version": 1,
+  "status": "planned",
+  "task_id": "hermes-mobile-runtime",
+  "updated_at": "2026-10-28T01:36:29+00:00",
+  "verification": []
+}

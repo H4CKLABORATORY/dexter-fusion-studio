@@ -1,11 +1,14 @@
 {
   "name": "HERMES Mobile Dev",
-  "image": "mcr.microsoft.com/devcontainers/python:3.12-bookworm",
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "hostRequirements": {"cpus": 2, "memory": "4gb"},
+  "runArgs": ["--device=/dev/net/tun"],
   "features": {
-    "ghcr.io/devcontainers/features/node:1": {
-      "version": "22"
-    }
+    "ghcr.io/tailscale/codespace/tailscale:1.0.8": {}
   },
+  "forwardPorts": [4096],
+  "portsAttributes": {"4096": {"label": "HERMES privado", "onAutoForward": "silent"}},
+  "otherPortsAttributes": {"onAutoForward": "ignore"},
   "postCreateCommand": "bash .devcontainer/setup-hermes.sh",
   "customizations": {
     "vscode": {

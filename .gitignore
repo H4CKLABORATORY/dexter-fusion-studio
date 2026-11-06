@@ -12,3 +12,6 @@ __pycache__/
 workspace/
 private/
 .DS_Store
+
+# La captura Qt real del motor multipista sí se versiona
+!docs/screenshots/*.png

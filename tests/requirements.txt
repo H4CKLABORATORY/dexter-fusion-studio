@@ -1,0 +1,5 @@
+# Dependencias de pruebas (tests/): necesarias para `python -m unittest discover -s tests`.
+# - pytest: los tests multitrack usan pytest.raises / pytest.approx / pytest.importorskip.
+# - opentimelineio: sin él, test_otio_bridge se salta entero (importorskip); con él, corre.
+pytest>=8
+opentimelineio>=0.17

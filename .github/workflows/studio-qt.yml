@@ -18,12 +18,16 @@ on:
 
 jobs:
   native-qt:
-    runs-on: ubuntu-latest
+    # Fijado a 24.04: ubuntu-latest migro a Ubuntu 26 (FFmpeg 9 / PipeWire) y
+    # QtMultimedia (QMediaPlayer/QAudioOutput) hace SIGSEGV en offscreen alli.
+    # En 24.04 estos mismos tests pasan (verificado en dexter, Ubuntu 24.04).
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     env:
       QT_QPA_PLATFORM: offscreen
       QT_OPENGL: software
+      LIBGL_ALWAYS_SOFTWARE: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -35,6 +39,7 @@ jobs:
           sudo apt-get install -y ffmpeg libegl1 libopengl0 libgl1 libxkbcommon-x11-0
           python -m pip install --upgrade pip
           python -m pip install -r studio-requirements.txt
+          python -m pip install -r tests/requirements.txt
       - name: Compilar y probar todas las funciones
         run: |
           python -m compileall -q fusion studio.py

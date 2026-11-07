@@ -27,3 +27,7 @@ Estado verificado en dexter (Linux, CPU, sin GPU) el 2026-11-06. Nada de esta li
 
 ## Seguridad / contenido
 - Solo medios sintéticos en tests (testsrc, smptebars, color, aevalsrc). El repo es público: nunca subir grabaciones, voces, contraseñas ni tokens.
+
+## CI (resuelto 2026-11-07)
+- **Segfault Qt en ubuntu-latest**: el 2026-11-07 `ubuntu-latest` migró a Ubuntu 26 (FFmpeg 9.0.1, PipeWire sin config) y `QMediaPlayer`/`QAudioOutput` hacía SIGSEGV (exit 139) en offscreen durante `test_drop_audio_into_a3_and_waveform`. Fijado `runs-on: ubuntu-24.04` en `studio-qt.yml` (donde los mismos tests pasan) + `LIBGL_ALWAYS_SOFTWARE=1`.
+- **Tests multitrack sin pytest en CI**: `verify.yml` y `studio-qt.yml` no instalaban las dependencias de pruebas; los módulos `test_audio_proxy`, `test_compositor`, `test_multitrack` y `test_otio_bridge` fallaban al importar (`ModuleNotFoundError: No module named pytest`). Nuevo `tests/requirements.txt` (pytest, opentimelineio) instalado por ambos workflows antes de correr los tests. Nota: la línea `python -m unittest: error: --execute también requiere HERMES_RUN_ENABLED=1` en los logs es salida esperada de un test negativo de Hermes (`test_execution_requires_both_opt_ins`), no un fallo.

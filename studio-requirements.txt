@@ -1,2 +1,4 @@
 # UI real de escritorio. El motor FFmpeg/FFprobe se instala por separado.
 PySide6>=6.7,<7
+# Hash de contrasenas de perfiles locales (opcional en runtime: sin bcrypt usa PBKDF2-SHA256 de la libreria estandar).
+bcrypt>=4.1,<6

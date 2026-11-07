@@ -23,5 +23,8 @@ jobs:
         run: |
           python -m compileall -q fusion
           python -m unittest discover -s tests -v
+          # Los 4 modulos multitrack son estilo pytest (funciones + tmp_path);
+          # unittest los importa pero recoge 0 tests de ellos. pytest si los corre.
+          python -m pytest tests/test_audio_proxy.py tests/test_compositor.py tests/test_multitrack.py tests/test_otio_bridge.py -q
       - name: Comprobar CLI
         run: python -m fusion.cli effects

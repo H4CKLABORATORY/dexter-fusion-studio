@@ -44,6 +44,9 @@ jobs:
         run: |
           python -m compileall -q fusion studio.py
           python -m unittest discover -s tests -v
+          # Los 4 modulos multitrack son estilo pytest (funciones + tmp_path);
+          # unittest los importa pero recoge 0 tests de ellos. pytest si los corre.
+          python -m pytest tests/test_audio_proxy.py tests/test_compositor.py tests/test_multitrack.py tests/test_otio_bridge.py -q
       - name: Generar medio sintético para screenshot sin usar videos privados
         run: |
           ffmpeg -hide_banner -loglevel error -nostdin -y \

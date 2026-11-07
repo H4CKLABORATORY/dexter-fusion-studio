@@ -10,6 +10,10 @@ El editor Qt incorpora **imágenes superpuestas V2** (tiempos, tamaño, posició
 - Estado verificable: [PROJECT_STATUS.md](PROJECT_STATUS.md).
 - Próxima tarea concreta: [NEXT_TASK.md](NEXT_TASK.md).
 
+## Motor multipista v3 (rama `feature/multitrack-engine-v1`, 2026-11-06)
+
+Arquitectura híbrida documentada en [docs/ENGINE_COMPARISON.md](docs/ENGINE_COMPARISON.md): **FFmpeg compone y renderiza, OpenTimelineIO modela e intercambia el timeline, y un proxy con caché muestra la composición real sin exportar la película entera**. Incluye esquema de proyecto versionado (schema 3), 7 pistas (V1/V2/V3/T1/A1/A2/A3), transiciones, keyframes (zoom, volumen, posición, opacidad), marcadores, snapping, drag/drop, formas de onda reales por clip, medidor de audio real y exportación/importación OTIO. La migración desde proyectos v2 no destruye `timeline-v2.json`. **Está en rama de trabajo, no en `main`; NVENC, EXE Windows y tiempo real en RTX 3090 siguen sin verificar.** Captura real de la ventana Qt con el timeline multipista: [docs/screenshots/qt-multitrack-v3.png](docs/screenshots/qt-multitrack-v3.png). Cambios: [CHANGELOG.md](CHANGELOG.md). Problemas conocidos: [KNOWN_ISSUES.md](KNOWN_ISSUES.md).
+
 ## Nuevo espacio de edición Qt para Windows (beta)
 
 La nueva ventana de escritorio **Dexter Fusion Studio Workspace Qt** no es una maqueta: utiliza PySide6, FFmpeg y el timeline editable existente. Incluye visor del medio original, inspector, biblioteca de efectos, pistas V1/A1 con forma de onda, cortes, recortes, reordenar, undo/redo, subtítulos animados, exportación MP4 y Director Creativo de intros. **No reemplaza aún el motor de composición profesional completo**: V2/V3/A2/A3 están pendientes y el visor no reproduce todavía las capas compuestas.

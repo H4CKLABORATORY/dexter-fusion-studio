@@ -12,10 +12,10 @@ from pathlib import Path
 import subprocess
 import sys
 
-from PySide6.QtCore import Qt, QThread, Signal, QUrl, QSize
+from PySide6.QtCore import Qt, QThread, Signal, QUrl, QSize, QPointF
 from PySide6.QtGui import (
     QAction, QColor, QBrush, QPen, QFont, QIcon, QPainter, QPixmap,
-    QKeySequence, QShortcut, QLinearGradient,
+    QKeySequence, QShortcut, QLinearGradient, QPolygonF,
 )
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
@@ -31,8 +31,17 @@ from PySide6.QtMultimediaWidgets import QVideoWidget
 
 from .engine import EFFECTS, export_plan
 from .media import required
+from .multitrack import (
+    MultiTrackProject, migrate_v2_timeline, project_duration as mt_duration,
+    snap_time as mt_snap_time, _clip_duration as mt_clip_duration,
+)
+from .otio_bridge import from_otio, write_otio
 from .phase2 import apply_timeline
-from .project import create_project
+from .project import create_project, read_json
+from .qt_multitrack import (
+    ClipWaveformWorker, MeterWidget, MultitrackExportWorker, ProxyWorker,
+    proxy_audio_levels,
+)
 from .studio_model import StudioDocument
 from .caption_styles import CAPTION_STYLES
 from .director import parse_prompt, render_motion
@@ -173,6 +182,8 @@ class TimelineCanvas(QGraphicsView):
     clip_picked = Signal(int)
     layer_picked = Signal(str,int)
     seek_requested = Signal(float)
+    media_dropped = Signal(object, float)
+    marker_requested = Signal(float)
 
     HEAD = 138
     RULER = 35
@@ -192,6 +203,9 @@ class TimelineCanvas(QGraphicsView):
         self.thumbnail = None
         self.selected_index = -1
         self.playhead = 0.0
+        self.multitrack = None
+        self.clip_waveforms = {}
+        self.setAcceptDrops(True)
         self.track_names = ['V3  Efectos (pendiente)', 'V2  Imágenes reales',
                             'V1  Montaje', 'A1  Audio original', 'A2  Voz (pendiente)',
                             'A3  Música real']
@@ -203,6 +217,54 @@ class TimelineCanvas(QGraphicsView):
         self.playhead = 0
         self.waveform = []
         self.redraw()
+
+    def set_multitrack(self, data):
+        """Show a v3 multitrack project (rows = its tracks, markers on top)."""
+        self.multitrack = data
+        if data:
+            self.track_names = [t["name"] for t in data["tracks"]]
+            self.markers = [(m["time"], m.get("label", "")) for m in data.get("markers", [])]
+        self.redraw()
+
+    def set_clip_waveform(self, clip_id, peaks):
+        self.clip_waveforms[clip_id] = list(peaks or [])
+        self.redraw()
+
+    def snap_time(self, seconds):
+        if self.multitrack is not None:
+            return mt_snap_time(self.multitrack, float(seconds))
+        if self.document:
+            points = {0.0}
+            current = 0.0
+            for clip in self.document.clips:
+                current += clip.duration
+                points.add(round(current, 3))
+            best = min(points, key=lambda x: abs(x - seconds))
+            return round(best, 3) if abs(best - seconds) <= 0.25 else round(seconds, 3)
+        return round(float(seconds), 3)
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+        else:
+            super().dragEnterEvent(event)
+
+    def dropEvent(self, event):
+        urls = event.mimeData().urls()
+        paths = [url.toLocalFile() for url in urls if url.isLocalFile()]
+        if not paths:
+            return
+        pos = self.mapToScene(event.position().toPoint())
+        when = max(0.0, (pos.x() - self.HEAD) / self.pixels_per_second)
+        self.media_dropped.emit(paths, self.snap_time(when))
+        event.acceptProposedAction()
+
+    def mouseDoubleClickEvent(self, event):
+        pos = self.mapToScene(event.position().toPoint())
+        if pos.y() < self.RULER and self.multitrack is not None:
+            self.marker_requested.emit(self.snap_time(max(0.0, (pos.x() - self.HEAD) / self.pixels_per_second)))
+            return
+        super().mouseDoubleClickEvent(event)
 
     def set_waveform(self, data):
         self.waveform = data
@@ -248,8 +310,42 @@ class TimelineCanvas(QGraphicsView):
             tint = '#141E2C' if i%2 == 0 else '#101825'
             scene.addRect(0, y, width, self.ROW, QPen(QColor('#283449'), 1), QBrush(QColor(tint)))
             scene.addRect(0, y, self.HEAD, self.ROW, QPen(QColor('#283449')), QBrush(QColor('#1A2636')))
-            active = i in (1,2,3,5)
+            active = i in (1,2,3,5) if self.multitrack is None else True
             self._t(name, 12, y+16, '#E7EFFC' if active else '#64758E', 9, active)
+        if getattr(self, 'multitrack', None):
+            for m_time, m_label in getattr(self, 'markers', []):
+                mx = self.HEAD + m_time * self.pixels_per_second
+                diamond = scene.addPolygon(
+                    QPolygonF([QPointF(mx, 2), QPointF(mx + 6, 12),
+                               QPointF(mx, 22), QPointF(mx - 6, 12)]),
+                    QPen(QColor('#FFCE72'), 1), QBrush(QColor('#FFCE72')))
+                diamond.setToolTip(f'Marcador {format_time(m_time)}' + (f' · {m_label}' if m_label else ''))
+            colors = {'video': '#236C8C', 'audio': '#135D59', 'image': '#7549A8', 'text': '#6B5B2E'}
+            for track in self.multitrack['tracks']:
+                row = track['index']
+                y = self.RULER + row * self.ROW + 6
+                for clip in self.multitrack['clips']:
+                    if clip['track_id'] != track['track_id']:
+                        continue
+                    dur = mt_clip_duration(clip)
+                    x = self.HEAD + clip['timeline_start'] * self.pixels_per_second
+                    w = max(2.0, dur * self.pixels_per_second - 2)
+                    box = scene.addRect(x, y, w, self.ROW - 13,
+                                        QPen(QColor('#8EEFE2'), 1),
+                                        QBrush(QColor(colors.get(track['kind'], '#236C8C'))))
+                    box.setToolTip(f"{clip.get('label', 'Clip')}\n{format_time(clip['timeline_start'])} · {dur:.1f}s")
+                    self._t('▣  ' + str(clip.get('label', 'Clip'))[:25], x + 6, y + 5, '#FFFFFF', 9, True)
+                    peaks = self.clip_waveforms.get(clip['clip_id'])
+                    if peaks and track['kind'] == 'audio':
+                        span = max(0, round(w / 3))
+                        center = y + (self.ROW - 13) / 2
+                        for k in range(span):
+                            pos = int((k + .5) / span * len(peaks))
+                            if 0 <= pos < len(peaks):
+                                amp = max(1.0, peaks[pos] * 16)
+                                wx = x + (k + .5) / span * w
+                                scene.addLine(wx, center - amp, wx, center + amp,
+                                              QPen(QColor('#3DF5CC'), 1.4))
         if self.document:
             current = 0.0
             for index, clip in enumerate(self.document.clips):
@@ -350,8 +446,9 @@ class TimelineCanvas(QGraphicsView):
             else:
                 pos = self.mapToScene(event.pos())
                 if pos.y() < self.RULER:
-                    self.seek_requested.emit(max(0.0, (pos.x()-self.HEAD)/self.pixels_per_second))
-                    self.set_playhead((pos.x()-self.HEAD)/self.pixels_per_second)
+                    when = self.snap_time(max(0.0, (pos.x()-self.HEAD)/self.pixels_per_second))
+                    self.seek_requested.emit(when)
+                    self.set_playhead(when)
         super().mousePressEvent(event)
 
 
@@ -363,9 +460,14 @@ class StudioWindow(QMainWindow):
         self.setMinimumSize(1080, 700)
         self.setStyleSheet(STYLE)
         self.document = None
+        self.multitrack = None
         self._render = None
         self._motion = None
         self._wave_worker = None
+        self._proxy = None
+        self._mt_render = None
+        self._proxy_levels = []
+        self._clip_wave_workers = []
         self._loading = False
         self._preview_rendered = False
         self._render_output = None
@@ -408,6 +510,10 @@ class StudioWindow(QMainWindow):
         director_action=QAction('✦  Director creativo',self)
         director_action.triggered.connect(self.create_motion)
         tool.addAction(director_action)
+        tool.addSeparator()
+        self.proxy_action=QAction('▶  Vista previa proxy',self)
+        self.proxy_action.triggered.connect(self.preview_proxy)
+        tool.addAction(self.proxy_action)
 
         main = QWidget()
         self.setCentralWidget(main)
@@ -456,6 +562,18 @@ class StudioWindow(QMainWindow):
             a = edit_menu.addAction(title)
             a.triggered.connect(callback)
             a.setShortcut(QKeySequence(shortcut))
+        mt_menu = bar.addMenu('Multipista')
+        for title, callback, shortcut in [
+            ('Migrar proyecto a multipista (v3)', self.migrate_to_multitrack, ''),
+            ('Exportar multipista MP4', self.export_multitrack, 'Ctrl+Shift+E'),
+            ('Vista previa proxy (composición real)', self.preview_proxy, 'Ctrl+P'),
+            ('Exportar OTIO…', self.export_otio, ''),
+            ('Importar OTIO…', self.import_otio, ''),
+        ]:
+            a = mt_menu.addAction(title)
+            a.triggered.connect(callback)
+            if shortcut:
+                a.setShortcut(QKeySequence(shortcut))
         help_menu = bar.addMenu('Ayuda')
         help_menu.addAction('Acerca del Studio', self.about)
 
@@ -527,6 +645,11 @@ class StudioWindow(QMainWindow):
             btn.clicked.connect(callback)
             transport.addWidget(btn)
         box.addLayout(transport)
+        meter_row = QHBoxLayout()
+        meter_row.addWidget(label('Medidor'))
+        self.meter = MeterWidget()
+        meter_row.addWidget(self.meter, 1)
+        box.addLayout(meter_row)
         self.player.positionChanged.connect(self._player_position)
         self.player.durationChanged.connect(self._player_duration)
         self.player.errorOccurred.connect(lambda *args: self.statusBar().showMessage('Reproductor: revisa compatibilidad del archivo',6000))
@@ -647,9 +770,11 @@ class StudioWindow(QMainWindow):
         self.timeline.clip_picked.connect(self.select_clip)
         self.timeline.layer_picked.connect(self.select_layer)
         self.timeline.seek_requested.connect(self.seek_timeline)
+        self.timeline.media_dropped.connect(self.on_media_dropped)
+        self.timeline.marker_requested.connect(self.on_marker_requested)
         box.addWidget(self.timeline)
         footer=QHBoxLayout()
-        footer.addWidget(label('V1 / A1: montaje · V2: imágenes · A3: música · V3 / A2: pendiente'))
+        footer.addWidget(label('V1 / A1: montaje · V2: imágenes · A3: música · Arrastra medios al timeline · Doble clic en la regla: marcador'))
         footer.addStretch(1)
         footer.addWidget(label('30 fps · Proyecto local'))
         box.addLayout(footer)
@@ -695,6 +820,18 @@ class StudioWindow(QMainWindow):
             self.media_list.addItem(item)
             self.media_list.addItem(f"◷  {info['width']}×{info['height']} · {info['duration']:.1f}s")
             self.timeline.set_document(self.document)
+            mt_path = self.document.folder / 'multitrack.json'
+            if mt_path.is_file():
+                try:
+                    self.multitrack = MultiTrackProject.load(mt_path)
+                    self.timeline.set_multitrack(self.multitrack.data)
+                    self._start_clip_waveforms()
+                except Exception as exc:
+                    self.multitrack = None
+                    self.statusBar().showMessage('multitrack.json no se pudo cargar: ' + str(exc), 8000)
+            else:
+                self.multitrack = None
+                self.timeline.set_multitrack(None)
             self.setWindowTitle(f'DEXTER FUSION STUDIO  —  {self.document.project.get("name","Proyecto")}')
             self._refresh()
             if info['audio']:
@@ -954,12 +1091,20 @@ class StudioWindow(QMainWindow):
             QMessageBox.warning(self,'Recorte',str(exc))
 
     def undo(self):
+        if self.multitrack and self.multitrack.undo():
+            self.timeline.set_multitrack(self.multitrack.data)
+            self._refresh()
+            return
         if self.document and self.document.undo():
             self.timeline.selected_index=min(self.timeline.selected_index,len(self.document.clips)-1)
             self.timeline.redraw()
             self._refresh()
 
     def redo(self):
+        if self.multitrack and self.multitrack.redo():
+            self.timeline.set_multitrack(self.multitrack.data)
+            self._refresh()
+            return
         if self.document and self.document.redo():
             self.timeline.selected_index=min(self.timeline.selected_index,len(self.document.clips)-1)
             self.timeline.redraw()
@@ -971,9 +1116,210 @@ class StudioWindow(QMainWindow):
         try:
             self.document.caption_style=self.caption_combo.currentData()
             path=self.document.save()
+            if self.multitrack:
+                self.multitrack.save(self.document.folder / 'multitrack.json')
             self.statusBar().showMessage('Línea de tiempo guardada: '+str(path),5000)
         except Exception as exc:
             QMessageBox.critical(self,'Guardar',str(exc))
+
+    # ---------- Multipista (v3) ----------
+    def migrate_to_multitrack(self):
+        if not self.document:
+            QMessageBox.information(self,'Multipista','Abre primero un proyecto.')
+            return
+        try:
+            self.document.caption_style=self.caption_combo.currentData()
+            self.document.save()
+            timeline = read_json(self.document.folder / 'timeline-v2.json')
+            self.multitrack = MultiTrackProject(
+                migrate_v2_timeline(timeline, self.document.project))
+            self.multitrack.save(self.document.folder / 'multitrack.json')
+            self.timeline.set_multitrack(self.multitrack.data)
+            self._start_clip_waveforms()
+            self.statusBar().showMessage(
+                f"Migrado a multipista v3: {len(self.multitrack.data['clips'])} clips, "
+                f"{mt_duration(self.multitrack.data):.1f}s · timeline-v2.json intacto", 8000)
+        except Exception as exc:
+            QMessageBox.critical(self,'Migrar a multipista',str(exc))
+
+    def _start_clip_waveforms(self):
+        for worker in self._clip_wave_workers:
+            if worker.isRunning():
+                worker.wait(500)
+        self._clip_wave_workers = []
+        if not self.multitrack:
+            return
+        assets = {a['asset_id']: a for a in self.multitrack.data['assets']}
+        for clip in self.multitrack.data['clips']:
+            asset = assets.get(clip.get('asset_id') or '')
+            if asset and asset['kind'] == 'audio':
+                worker = ClipWaveformWorker(clip['clip_id'], asset['path'])
+                worker.finished.connect(self.timeline.set_clip_waveform)
+                self._clip_wave_workers.append(worker)
+                worker.start()
+
+    def on_marker_requested(self, when):
+        if not self.multitrack:
+            return
+        try:
+            self.multitrack.add_marker(when)
+            self.multitrack.save(self.document.folder / 'multitrack.json')
+            self.timeline.set_multitrack(self.multitrack.data)
+            self.statusBar().showMessage(f'Marcador en {format_time(when)}', 4000)
+        except Exception as exc:
+            QMessageBox.warning(self,'Marcador',str(exc))
+
+    def on_media_dropped(self, paths, when):
+        if not paths:
+            return
+        if not self.document:
+            QMessageBox.information(self,'Arrastrar medios','Abre primero un proyecto.')
+            return
+        if not self.multitrack:
+            # Without a v3 project, images/audio join the V2/A3 layers.
+            for path in paths:
+                suffix = Path(path).suffix.lower()
+                try:
+                    if suffix in ('.png', '.jpg', '.jpeg', '.webp'):
+                        self.document.add_image(path, start=when, end=min(self.document.output_duration, when + 3.0))
+                    elif suffix in ('.wav', '.mp3', '.m4a', '.flac', '.ogg', '.aac'):
+                        self.document.add_audio(path, start=when, gain=.35)
+                    else:
+                        QMessageBox.information(self,'Arrastrar medios',
+                            'Para añadir otro vídeo, migra primero a multipista (menú Multipista).')
+                        return
+                except Exception as exc:
+                    QMessageBox.warning(self,'Arrastrar medios',str(exc))
+                    return
+            self.timeline.redraw()
+            self._refresh()
+            return
+        try:
+            for path in paths:
+                asset = self.multitrack.add_asset(path)
+                kind = asset['kind']
+                track_id = 'v1' if kind == 'video' else ('a3' if kind == 'audio' else 'v3')
+                # Place at the dropped time if free, else append at track end.
+                start = when
+                try:
+                    self.multitrack.add_clip(
+                        asset_id=asset['asset_id'], track_id=track_id,
+                        source_in=0.0,
+                        source_out=(asset['duration'] if kind != 'image' else 3.0),
+                        timeline_start=start, label=Path(path).name)
+                except ValueError:
+                    end = max([c['timeline_start'] + mt_clip_duration(c)
+                               for c in self.multitrack.data['clips']
+                               if c['track_id'] == track_id] or [0.0])
+                    self.multitrack.add_clip(
+                        asset_id=asset['asset_id'], track_id=track_id,
+                        source_in=0.0,
+                        source_out=(asset['duration'] if kind != 'image' else 3.0),
+                        timeline_start=end, label=Path(path).name)
+            self.multitrack.save(self.document.folder / 'multitrack.json')
+            self.timeline.set_multitrack(self.multitrack.data)
+            self._start_clip_waveforms()
+            self._refresh()
+        except Exception as exc:
+            QMessageBox.warning(self,'Arrastrar medios',str(exc))
+
+    def preview_proxy(self):
+        if not self.multitrack:
+            QMessageBox.information(self,'Vista previa proxy',
+                'Migra primero el proyecto a multipista (menú Multipista).')
+            return
+        if self._proxy and self._proxy.isRunning():
+            return
+        self._proxy = ProxyWorker(self.multitrack.data, self.document.folder)
+        self._proxy.completed.connect(self._proxy_complete)
+        self._proxy.failed.connect(self._proxy_failed)
+        self._proxy.start()
+        self.statusBar().showMessage('Generando vista previa proxy de la composición…', 8000)
+
+    def _proxy_complete(self, path, hit):
+        self._proxy.wait(1500)
+        self._proxy = None
+        self.player.pause()
+        self.player.setSource(QUrl.fromLocalFile(path))
+        self._preview_rendered = True
+        self.preview_heading.setText('VISTA PREVIA PROXY · COMPOSICIÓN REAL')
+        self.preview_stack.setCurrentWidget(self.video)
+        self._proxy_levels = proxy_audio_levels(path)
+        self.meter.set_levels(self._proxy_levels)
+        self.player.play()
+        self.statusBar().showMessage(
+            f"Vista previa proxy lista ({'caché' if hit else 'renderizada'}): {path}", 8000)
+
+    def _proxy_failed(self, message):
+        self._proxy.wait(1500)
+        self._proxy = None
+        QMessageBox.critical(self,'Vista previa proxy',message)
+
+    def export_multitrack(self):
+        if not self.multitrack:
+            QMessageBox.information(self,'Exportar multipista',
+                'Migra primero el proyecto a multipista (menú Multipista).')
+            return
+        if self._mt_render and self._mt_render.isRunning():
+            return
+        target = self.document.folder / 'output' / 'multitrack.mp4'
+        overwrite = target.exists()
+        self._mt_render = MultitrackExportWorker(self.multitrack.data, target, overwrite)
+        self._mt_render.completed.connect(self._mt_export_complete)
+        self._mt_render.failed.connect(self._mt_export_failed)
+        self.export_progress.setRange(0, 0)
+        self._mt_render.start()
+        self.statusBar().showMessage('Exportando composición multipista con FFmpeg…', 10000)
+
+    def _mt_export_complete(self, path):
+        self.export_progress.setRange(0, 100)
+        self.export_progress.setValue(100)
+        self._mt_render.wait(2500)
+        self._mt_render = None
+        self._render_output = path
+        self.final_btn.setEnabled(True)
+        self.statusBar().showMessage('Exportación multipista terminada: ' + path, 10000)
+        self.show_final_video()
+
+    def _mt_export_failed(self, message):
+        self.export_progress.setRange(0, 100)
+        self.export_progress.setValue(0)
+        self._mt_render.wait(2500)
+        self._mt_render = None
+        QMessageBox.critical(self,'Falló la exportación multipista',message)
+
+    def export_otio(self):
+        if not self.multitrack:
+            QMessageBox.information(self,'Exportar OTIO',
+                'Migra primero el proyecto a multipista (menú Multipista).')
+            return
+        path, _ = QFileDialog.getSaveFileName(self, 'Exportar timeline OTIO',
+            str(self.document.folder / 'timeline.otio'), 'OTIO (*.otio)')
+        if not path:
+            return
+        try:
+            write_otio(self.multitrack.data, path)
+            self.statusBar().showMessage('OTIO exportado: ' + path, 8000)
+        except Exception as exc:
+            QMessageBox.critical(self,'Exportar OTIO',str(exc))
+
+    def import_otio(self):
+        if not self.document:
+            QMessageBox.information(self,'Importar OTIO','Abre primero un proyecto.')
+            return
+        path, _ = QFileDialog.getOpenFileName(self, 'Importar timeline OTIO',
+            str(self.document.folder), 'OTIO (*.otio)')
+        if not path:
+            return
+        try:
+            data = from_otio(path)
+            self.multitrack = MultiTrackProject(data)
+            self.multitrack.save(self.document.folder / 'multitrack.json')
+            self.timeline.set_multitrack(self.multitrack.data)
+            self._start_clip_waveforms()
+            self.statusBar().showMessage(f"OTIO importado: {len(data['clips'])} clips", 8000)
+        except Exception as exc:
+            QMessageBox.critical(self,'Importar OTIO',str(exc))
 
     def export(self):
         if not self.document or self._render:
@@ -1085,6 +1431,8 @@ class StudioWindow(QMainWindow):
         if not self.scrub.isSliderDown():
             self.scrub.setValue(position)
         self.time_display.setText(f'{format_time(position/1000)}  /  {format_time(self.player.duration()/1000)}')
+        if getattr(self, '_proxy_levels', None):
+            self.meter.set_time(position / 1000)
         # Source time is not necessarily composition time after reordering.
         if self._preview_rendered:
             self.timeline.set_playhead(position/1000)
@@ -1108,13 +1456,17 @@ class StudioWindow(QMainWindow):
     def about(self):
         QMessageBox.information(self,'Dexter Fusion Studio',
             'Espacio de edición Qt profesional en desarrollo.\n'
-            'Motor de exportación FFmpeg integrado.\n'
-            'Actualmente V1 y A1 tienen montaje/exportación real.\n'
-            'La previsualización usa el video original; no representa aún las capas compuestas.\n'
-            'Las pistas adicionales no son exportables.')
+            'Motor de exportación FFmpeg integrado (V1/A1 y multipista v3).\n'
+            'Multipista v3: varias pistas de vídeo/audio, transiciones, keyframes, '
+            'vista previa proxy de la composición real y OTIO.\n'
+            'La vista previa de fuente usa el video original; la vista previa proxy '
+            'muestra la composición real a baja resolución.\n'
+            'NVENC y reproducción en tiempo real en RTX 3090 aún sin verificar.')
 
     def closeEvent(self, event):
-        if (self._render and self._render.isRunning()) or (self._motion and self._motion.isRunning()):
+        if ((self._render and self._render.isRunning()) or (self._motion and self._motion.isRunning())
+                or (self._proxy and self._proxy.isRunning())
+                or (self._mt_render and self._mt_render.isRunning())):
             QMessageBox.warning(self,'Exportación en curso',
                 'Espera a que termine el render antes de cerrar.')
             event.ignore()

@@ -17,10 +17,20 @@ Editor audiovisual Windows de nivel profesional. El sistema aún NO es equivalen
 - Capas persistidas en JSON, validación estricta y operaciones undo/redo.
 - Pruebas sintéticas que confirman cambios en píxeles y presencia de tonos audio separados.
 
+## Motor multipista v3 — rama `feature/multitrack-engine-v1` (SIN fusionar a main, 2026-11-06)
+- Arquitectura elegida y documentada en `docs/ENGINE_COMPARISON.md`: **híbrida — FFmpeg como motor de composición/render + OpenTimelineIO como modelo/intercambio de timeline + proxy con caché para la vista previa**. MLT y GStreamer evaluados y descartados para v1 con motivos documentados; motor propio descartado.
+- Modelo de proyecto versionado (schema 3, `multitrack.json`): assets, 7 pistas (V1/V2/V3/T1/A1/A2/A3), clips no destructivos, transiciones, keyframes, marcadores, snapping (0.25 s), undo/redo (40 pasos), migración v2→v3 sin tocar `timeline-v2.json`, reporte de assets faltantes.
+- Compositor real con FFmpeg: mezcla FPS/resoluciones, crossfade vídeo y audio, overlays de imagen con opacidad, textos drawtext, keyframes de zoom/volumen/posición (opacidad por segmentos constantes de 0.25 s), V2/A3 de PR #11 intactos. Verificado con ffprobe + análisis de píxeles + FFT de audio en medios sintéticos; render de 60 s verificado.
+- Vista previa proxy con caché incremental de dos niveles (segmentos + composición), medidor de audio real (RMS/pico medidos del proxy) y formas de onda reales por clip de audio.
+- Intercambio OTIO (Apache-2.0) de ida y vuelta, con campos v3 en metadatos `dexter`.
+- Qt: menú Multipista (migrar, exportar MP4, vista previa proxy, OTIO), drag/drop de medios al timeline, marcadores con doble clic en la regla, snapping al buscar/arrastrar, formas de onda por clip en A3. Captura real: `docs/screenshots/qt-multitrack-v3.png`.
+- Pruebas: 154 passed + 67 subtests (suite completa, 2026-11-06), incluidos 31 tests nuevos del motor y 5 tests Qt offscreen. La base de 118 tests previos sigue en verde.
+- **Pendiente de verificar (no afirmado):** NVENC/NVDEC en RTX 3090, EXE Windows real, reproducción en tiempo real, rendimiento/memoria en Windows.
+
 ## Límites confirmados
-- Todavía no admite varios videos independientes en V1/V2, transiciones complejas entre archivos diferentes ni keyframes de efecto.
-- No hay formas de onda por pista A3 individual ni mezcla de audio de nivel DAW.
-- Vista compuesta disponible después de renderizar, NO en vivo.
+- En `main`: todavía no admite varios videos independientes en V1/V2, transiciones complejas entre archivos diferentes ni keyframes de efecto (todo eso existe solo en la rama multipista v3, pendiente de revisión y merge).
+- No hay formas de onda por pista A3 individual ni mezcla de audio de nivel DAW (en `main`; la rama v3 añade ondas por clip y medidor, pero no mezcla DAW).
+- Vista compuesta disponible después de renderizar, NO en vivo (la rama v3 añade proxy de la composición, que tampoco es reproducción en vivo).
 - Detección multimodal IA de escenas de Free Fire, motion tracking, máscara y composición 3D pendientes.
 - Solo archivos locales; el repositorio de GitHub es público. No subir grabaciones, datos personales ni claves al código.
 

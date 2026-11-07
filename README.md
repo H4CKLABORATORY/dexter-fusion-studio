@@ -48,6 +48,16 @@ Nuevo prototipo local en **Timeline v2**. Describe una intro en español y gener
 - Adaptador de **Concat JSON-RPC con token en localhost**, además de configuración MCP de FilmCraft/EffectCraft cuando se han instalado aparte.
 - Originales intactos. Sin cuotas API ni nube obligatoria.
 
+## Perfiles locales con contraseña
+
+Varias personas pueden usar el mismo PC, cada una con su perfil: sus propios proyectos y ajustes, separados por carpetas. Al abrir el Studio aparece la pantalla de perfiles; si un perfil tiene contraseña, solo entra quien la sabe (contraseña incorrecta = no hay entrada). El perfil **Invitado** no tiene contraseña y siempre está disponible.
+
+- Crear perfil: menú **Perfil → Nuevo perfil…** (la contraseña es opcional, mínimo 4 caracteres).
+- Cambiar de perfil, cambiar o quitar la contraseña y eliminar un perfil: menú **Perfil**.
+- Las contraseñas nunca se guardan en texto claro: solo su hash (bcrypt si está instalado, si no PBKDF2-SHA256). No hay cuentas en la nube ni red.
+- Los datos viven en `Documentos/DexterFusionStudio/profiles/<perfil>/` (proyectos en `projects/`, ajustes en `settings.json`).
+- Automatización/CI: `studio.py --project … --screenshot …`, `--no-profile-prompt` o `--profile <nombre>` omiten la pantalla de perfiles.
+
 ## Arranque en Windows
 
 1. Descarga/instala Python 3.10+ desde https://www.python.org/downloads/.

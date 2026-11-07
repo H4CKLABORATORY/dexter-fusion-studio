@@ -20,7 +20,7 @@ from PySide6.QtGui import (
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QPushButton, QFileDialog, QSplitter, QListWidget,
-    QListWidgetItem, QComboBox, QDoubleSpinBox, QSlider,
+    QListWidgetItem, QComboBox, QDoubleSpinBox, QSlider, QLineEdit,
     QMessageBox, QToolBar, QFrame, QProgressBar, QGraphicsScene,
     QGraphicsView, QGraphicsRectItem, QGraphicsSimpleTextItem, QGraphicsPixmapItem,
     QSizePolicy, QScrollArea, QGroupBox, QInputDialog, QDockWidget, QStackedWidget,
@@ -33,6 +33,7 @@ from .engine import EFFECTS, export_plan
 from .media import required
 from .phase2 import apply_timeline
 from .project import create_project
+from .profiles import GUEST_SLUG, ProfileManager
 from .studio_model import StudioDocument
 from .caption_styles import CAPTION_STYLES
 from .director import parse_prompt, render_motion
@@ -355,10 +356,185 @@ class TimelineCanvas(QGraphicsView):
         super().mousePressEvent(event)
 
 
+class ProfilePickerDialog(QDialog):
+    # Elige perfil y pide su contrasena si tiene bloqueo.
+    # Sin la contrasena correcta no hay entrada.
+    def __init__(self, manager, parent=None):
+        super().__init__(parent)
+        self.manager = manager
+        self.selected_profile = None
+        self.setWindowTitle('DEXTER FUSION STUDIO  —  Elige tu perfil')
+        self.setMinimumWidth(380)
+        layout = QVBoxLayout(self)
+        layout.addWidget(QLabel('Perfil:'))
+        self.list = QListWidget()
+        self.list.itemSelectionChanged.connect(self._refresh_password_field)
+        layout.addWidget(self.list)
+        self.password_label = QLabel('Contraseña:')
+        layout.addWidget(self.password_label)
+        self.password = QLineEdit()
+        self.password.setEchoMode(QLineEdit.EchoMode.Password)
+        self.password.returnPressed.connect(self._try_unlock)
+        layout.addWidget(self.password)
+        self._load_profiles()
+        buttons = QDialogButtonBox()
+        enter = buttons.addButton('Entrar', QDialogButtonBox.ButtonRole.ActionRole)
+        enter.clicked.connect(self._try_unlock)
+        new = buttons.addButton('Nuevo perfil…', QDialogButtonBox.ButtonRole.ActionRole)
+        new.clicked.connect(self._new_profile)
+        buttons.addButton(QDialogButtonBox.StandardButton.Cancel)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+        self._refresh_password_field()
+
+    def _load_profiles(self):
+        self._profiles = self.manager.list_profiles()
+        active = self.manager.get_active_slug()
+        self.list.clear()
+        for profile in self._profiles:
+            item = QListWidgetItem(profile.name + ('  \U0001f512' if profile.has_password else ''))
+            item.setData(Qt.ItemDataRole.UserRole, profile.slug)
+            self.list.addItem(item)
+            if profile.slug == active:
+                self.list.setCurrentItem(item)
+        if self.list.count() and self.list.currentItem() is None:
+            self.list.setCurrentRow(0)
+
+    def _current(self):
+        item = self.list.currentItem()
+        if item is None:
+            return None
+        return self.manager.get_profile(item.data(Qt.ItemDataRole.UserRole))
+
+    def _refresh_password_field(self):
+        profile = self._current()
+        locked = bool(profile and profile.has_password)
+        self.password_label.setVisible(locked)
+        self.password.setVisible(locked)
+
+    def _try_unlock(self):
+        profile = self._current()
+        if profile is None:
+            QMessageBox.warning(self, 'Perfil', 'Elige un perfil.')
+            return
+        try:
+            unlocked = self.manager.unlock(
+                profile.slug, self.password.text() if profile.has_password else None)
+        except ValueError:
+            QMessageBox.warning(self, 'Contraseña incorrecta',
+                                'Esa contraseña no abre este perfil.')
+            self.password.clear()
+            return
+        self.selected_profile = unlocked
+        self.manager.set_active_slug(unlocked.slug)
+        self.accept()
+
+    def _new_profile(self):
+        dialog = NewProfileDialog(self.manager, self)
+        if dialog.exec() == QDialog.DialogCode.Accepted and dialog.created_profile is not None:
+            self._load_profiles()
+            for row in range(self.list.count()):
+                if self.list.item(row).data(Qt.ItemDataRole.UserRole) == dialog.created_profile.slug:
+                    self.list.setCurrentRow(row)
+                    break
+
+
+class NewProfileDialog(QDialog):
+    # Crea un perfil local. La contrasena es opcional; si se pone, queda
+    # guardada solo como hash (ver fusion/profiles.py).
+    def __init__(self, manager, parent=None):
+        super().__init__(parent)
+        self.manager = manager
+        self.created_profile = None
+        self.setWindowTitle('Nuevo perfil local')
+        self.setMinimumWidth(340)
+        form = QFormLayout(self)
+        self.name_field = QLineEdit()
+        self.name_field.setPlaceholderText('Nombre del perfil')
+        form.addRow('Nombre:', self.name_field)
+        self.password_field = QLineEdit()
+        self.password_field.setEchoMode(QLineEdit.EchoMode.Password)
+        self.password_field.setPlaceholderText('Opcional, mínimo 4 caracteres')
+        form.addRow('Contraseña:', self.password_field)
+        self.confirm_field = QLineEdit()
+        self.confirm_field.setEchoMode(QLineEdit.EchoMode.Password)
+        form.addRow('Repite la contraseña:', self.confirm_field)
+        buttons = QDialogButtonBox()
+        create = buttons.addButton('Crear perfil', QDialogButtonBox.ButtonRole.ActionRole)
+        create.clicked.connect(self._create)
+        buttons.addButton(QDialogButtonBox.StandardButton.Cancel)
+        buttons.rejected.connect(self.reject)
+        form.addWidget(buttons)
+
+    def _create(self):
+        name = self.name_field.text().strip()
+        password = self.password_field.text()
+        if password != self.confirm_field.text():
+            QMessageBox.warning(self, 'Nuevo perfil', 'Las contraseñas no coinciden.')
+            return
+        try:
+            self.created_profile = self.manager.create_profile(name, password or None)
+        except ValueError as exc:
+            QMessageBox.warning(self, 'Nuevo perfil', str(exc))
+            return
+        self.accept()
+
+
+class ChangePasswordDialog(QDialog):
+    # Cambia o quita la contrasena de un perfil (pide la actual si la hay).
+    def __init__(self, manager, profile, parent=None):
+        super().__init__(parent)
+        self.manager = manager
+        self.profile = profile
+        self.setWindowTitle('Contraseña del perfil ' + profile.name)
+        self.setMinimumWidth(340)
+        form = QFormLayout(self)
+        form.addRow(QLabel('Deja la contraseña nueva vacía para quitar el bloqueo.'))
+        self.current_field = QLineEdit()
+        self.current_field.setEchoMode(QLineEdit.EchoMode.Password)
+        form.addRow('Contraseña actual:', self.current_field)
+        self.new_field = QLineEdit()
+        self.new_field.setEchoMode(QLineEdit.EchoMode.Password)
+        form.addRow('Contraseña nueva:', self.new_field)
+        self.confirm_field = QLineEdit()
+        self.confirm_field.setEchoMode(QLineEdit.EchoMode.Password)
+        form.addRow('Repite la nueva:', self.confirm_field)
+        buttons = QDialogButtonBox()
+        apply = buttons.addButton('Guardar', QDialogButtonBox.ButtonRole.ActionRole)
+        apply.clicked.connect(self._apply)
+        buttons.addButton(QDialogButtonBox.StandardButton.Cancel)
+        buttons.rejected.connect(self.reject)
+        form.addWidget(buttons)
+
+    def _apply(self):
+        new = self.new_field.text()
+        if new != self.confirm_field.text():
+            QMessageBox.warning(self, 'Contraseña', 'Las contraseñas nuevas no coinciden.')
+            return
+        try:
+            self.manager.change_password(
+                self.profile.slug, self.current_field.text() or None, new or None)
+        except ValueError as exc:
+            QMessageBox.warning(self, 'Contraseña', str(exc))
+            return
+        self.accept()
+
+
 class StudioWindow(QMainWindow):
-    def __init__(self, project_folder=None):
+    def __init__(self, project_folder=None, profile=None, profile_manager=None):
         super().__init__()
-        self.setWindowTitle('DEXTER FUSION STUDIO  —  Workspace Pro')
+        self.profile_manager = profile_manager
+        if profile is None and profile_manager is not None:
+            profile = profile_manager.get_profile(profile_manager.get_active_slug())
+        self.profile = profile
+        if profile_manager is not None and profile is not None:
+            self.profile_workspace = profile_manager.workspace(profile.slug)
+        else:
+            self.profile_workspace = Path.home() / 'Documents' / 'DexterFusionStudio'
+        title = 'DEXTER FUSION STUDIO  —  Workspace Pro'
+        if profile is not None:
+            title += '  ·  Perfil: ' + profile.name
+        self.setWindowTitle(title)
         self.resize(1510, 920)
         self.setMinimumSize(1080, 700)
         self.setStyleSheet(STYLE)
@@ -456,6 +632,15 @@ class StudioWindow(QMainWindow):
             a = edit_menu.addAction(title)
             a.triggered.connect(callback)
             a.setShortcut(QKeySequence(shortcut))
+        profile_menu = bar.addMenu('Perfil')
+        for title, callback in [
+            ('Cambiar perfil…', self.switch_profile),
+            ('Nuevo perfil…', self.create_profile_dialog),
+            ('Cambiar contraseña…', self.change_password_dialog),
+            ('Eliminar perfil…', self.delete_profile_dialog),
+        ]:
+            a = profile_menu.addAction(title)
+            a.triggered.connect(callback)
         help_menu = bar.addMenu('Ayuda')
         help_menu.addAction('Acerca del Studio', self.about)
 
@@ -655,13 +840,107 @@ class StudioWindow(QMainWindow):
         box.addLayout(footer)
         return panel
 
+    def _need_manager(self):
+        if self.profile_manager is None:
+            QMessageBox.information(self, 'Perfiles',
+                'Los perfiles locales no están disponibles en esta sesión.')
+            return None
+        return self.profile_manager
+
+    def _apply_profile(self, profile):
+        self.profile = profile
+        self.profile_workspace = self.profile_manager.workspace(profile.slug)
+        self.setWindowTitle('DEXTER FUSION STUDIO  —  Workspace Pro  ·  Perfil: ' + profile.name)
+
+    def _close_document(self):
+        if self._wave_worker and self._wave_worker.isRunning():
+            self._wave_worker.wait(1500)
+        try:
+            self.player.stop()
+        except Exception:
+            pass
+        self.document = None
+        self.timeline.set_document(None)
+        self.media_list.clear()
+        self._preview_rendered = False
+        self._render_output = None
+        self._refresh()
+
+    def switch_profile(self):
+        manager = self._need_manager()
+        if manager is None:
+            return
+        dialog = ProfilePickerDialog(manager, self)
+        if dialog.exec() != QDialog.DialogCode.Accepted or dialog.selected_profile is None:
+            return
+        if self.document is not None:
+            answer = QMessageBox.question(self, 'Cambiar perfil',
+                'Se cerrará el proyecto abierto. ¿Cambiar de perfil?',
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            if answer != QMessageBox.StandardButton.Yes:
+                return
+            self._close_document()
+        self._apply_profile(dialog.selected_profile)
+        self.statusBar().showMessage('Perfil activo: ' + dialog.selected_profile.name, 5000)
+
+    def create_profile_dialog(self):
+        manager = self._need_manager()
+        if manager is None:
+            return
+        dialog = NewProfileDialog(manager, self)
+        if dialog.exec() == QDialog.DialogCode.Accepted and dialog.created_profile is not None:
+            QMessageBox.information(self, 'Perfil creado',
+                'Perfil "' + dialog.created_profile.name + '" creado. '
+                'Cámbialo desde el menú Perfil cuando quieras usarlo.')
+
+    def change_password_dialog(self):
+        manager = self._need_manager()
+        if manager is None or self.profile is None:
+            return
+        dialog = ChangePasswordDialog(manager, self.profile, self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            self.profile = manager.get_profile(self.profile.slug)
+            QMessageBox.information(self, 'Contraseña', 'Contraseña actualizada.')
+
+    def delete_profile_dialog(self):
+        manager = self._need_manager()
+        if manager is None or self.profile is None:
+            return
+        if self.profile.slug == GUEST_SLUG:
+            QMessageBox.information(self, 'Eliminar perfil',
+                'El perfil Invitado no se puede eliminar: es el perfil sin '
+                'contraseña que siempre está disponible.')
+            return
+        password = None
+        if self.profile.has_password:
+            text, ok = QInputDialog.getText(self, 'Eliminar perfil',
+                'Contraseña del perfil para confirmar:',
+                QLineEdit.EchoMode.Password)
+            if not ok:
+                return
+            password = text
+        answer = QMessageBox.question(self, 'Eliminar perfil',
+            'Se eliminará el perfil "' + self.profile.name + '" y TODOS sus proyectos. ¿Seguro?',
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        if answer != QMessageBox.StandardButton.Yes:
+            return
+        try:
+            manager.delete_profile(self.profile.slug, password)
+        except ValueError as exc:
+            QMessageBox.warning(self, 'No se pudo eliminar', str(exc))
+            return
+        if self.document is not None:
+            self._close_document()
+        self._apply_profile(manager.get_profile(GUEST_SLUG))
+        self.statusBar().showMessage('Perfil eliminado. Perfil activo: Invitado', 5000)
+
     def import_video(self):
         path, _ = QFileDialog.getOpenFileName(self,'Importar video original',str(Path.home()),
             'Videos (*.mp4 *.mov *.mkv *.webm *.avi)')
         if not path:
             return
         try:
-            base = Path.home()/'Documents'/'DexterFusionStudio'
+            base = self.profile_workspace
             folder, _ = create_project(base, Path(path).stem, path, profile='freefire_short')
             self.open_project(folder)
         except Exception as exc:
@@ -1128,9 +1407,27 @@ def main(argv=None):
     parser=argparse.ArgumentParser(description='DEXTER FUSION STUDIO Qt workspace')
     parser.add_argument('--project',help='Carpeta de proyecto compatible con timeline-v2.json')
     parser.add_argument('--screenshot',help='Captura verdadera de la interfaz Qt, sin renderizar medios externos')
+    parser.add_argument('--profile',help='Perfil local a usar sin pantalla de bloqueo (solo perfiles sin contraseña)')
+    parser.add_argument('--no-profile-prompt',action='store_true',help='No mostrar la pantalla de perfiles; usa el perfil activo o Invitado')
     args=parser.parse_args(argv)
     app=QApplication.instance() or QApplication(sys.argv[:1])
-    win=StudioWindow(args.project)
+    manager=ProfileManager()
+    profile=None
+    automated=bool(args.project or args.screenshot or args.no_profile_prompt)
+    if args.profile:
+        try:
+            profile=manager.unlock(args.profile)
+        except (KeyError, ValueError) as exc:
+            print(f'No se pudo abrir el perfil "{args.profile}": {exc}')
+            return 2
+    elif not automated:
+        dialog=ProfilePickerDialog(manager)
+        if dialog.exec() != QDialog.DialogCode.Accepted or dialog.selected_profile is None:
+            return 0
+        profile=dialog.selected_profile
+    if profile is None:
+        profile=manager.get_profile(manager.get_active_slug())
+    win=StudioWindow(args.project, profile=profile, profile_manager=manager)
     win.show()
     if args.screenshot:
         def screenshot():
